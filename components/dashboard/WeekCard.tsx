@@ -5,7 +5,7 @@ import { palette, weeklyProgress } from '@/constants/dashboard-constants';
 import { styles } from './dashboard.styles';
 import { webStyles } from './dashboard-web.styles';
 
-export function WeekCard({ desktop = false }: { desktop?: boolean }) {
+export function WeekCard({ desktop = false, compact = false }: { desktop?: boolean; compact?: boolean }) {
   return (
     <View style={[styles.smallCard, desktop && webStyles.webSmallCard]}>
       <View style={styles.weekHeader}>
@@ -15,15 +15,15 @@ export function WeekCard({ desktop = false }: { desktop?: boolean }) {
           <ChevronDown size={13} color={palette.greenDark} />
         </View>
       </View>
-      <Text style={[styles.weekValue, desktop && webStyles.webWeekValue]}>
+      <Text style={[styles.weekValue, desktop && webStyles.webWeekValue, compact && { fontSize: 26, lineHeight: 30 }]}>
         0 <Text style={styles.weekUnit}>von 7</Text>
       </Text>
       <Text style={styles.cardMuted}>Diese Woche</Text>
-      <View style={styles.weekBars}>
+      <View style={[styles.weekBars, compact && { marginTop: 14 }]}>
         {weeklyProgress.map((item, index) => (
           <View key={`${item.day}-${index}`} style={styles.weekBarItem}>
             <View style={styles.checkSpace}>{item.done && <Text style={styles.checkMark}>✓</Text>}</View>
-            <View style={[styles.weekTrack, desktop && webStyles.webWeekTrack]}>
+            <View style={[styles.weekTrack, desktop && webStyles.webWeekTrack, compact && { height: 56, width: 10 }]}>
               <View
                 style={[
                   styles.weekFill,
@@ -34,7 +34,7 @@ export function WeekCard({ desktop = false }: { desktop?: boolean }) {
                 ]}
               />
             </View>
-            <Text style={styles.weekDay}>{item.day}</Text>
+            <Text style={[styles.weekDay, compact && { fontSize: 11, marginTop: 6 }]}>{item.day}</Text>
           </View>
         ))}
       </View>

@@ -4,7 +4,9 @@ import { Play, Clock, Dumbbell, Zap, Flame } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/constants/Colors';
 import { FadeIn } from '@/components/FadeIn';
-import { api, ApiWorkout } from '@/lib/api';
+import { api, ApiWorkout, GeneratedWorkout } from '@/lib/api';
+import { QuickStartModal } from '@/components/modals/QuickStartModal';
+import { GeneratedWorkoutModal } from '@/components/modals/GeneratedWorkoutModal';
 
 const MOBILE_BP = 600;
 
@@ -13,6 +15,11 @@ export default function WorkoutScreenWeb() {
   const isMobile = width < MOBILE_BP;
   const [workouts, setWorkouts] = useState<ApiWorkout[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [quickStartVisible, setQuickStartVisible] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [generatedWorkout, setGeneratedWorkout] = useState<GeneratedWorkout | null>(null);
+  const [resultVisible, setResultVisible] = useState(false);
 
   useEffect(() => { loadWorkouts(); }, []);
 
@@ -23,6 +30,20 @@ export default function WorkoutScreenWeb() {
     finally { setLoading(false); }
   }
 
+  const handleGenerate = async (duration: number, focus: string, intensity: string) => {
+    setGenerating(true);
+    try {
+      const res = await api.workouts.generate({ duration_minutes: duration, focus, intensity });
+      setGeneratedWorkout(res);
+      setQuickStartVisible(false);
+      setResultVisible(true);
+    } catch (err) {
+      alert('Fehler bei der Generierung: ' + (err instanceof Error ? err.message : 'Unbekannter Fehler'));
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   const cardWidth = isMobile ? '100%' : width < 900 ? 'calc(50% - 12px)' : 'calc(33.33% - 16px)';
 
   return (
@@ -32,7 +53,7 @@ export default function WorkoutScreenWeb() {
           <Text style={[styles.webTitle, isMobile && { fontSize: 24 }]}>Trainings-Bibliothek</Text>
           <Text style={styles.webSubtitle}>Wähle ein Training aus und starte deine Session.</Text>
         </View>
-        <TouchableOpacity style={styles.startBtn} activeOpacity={0.8}>
+        <TouchableOpacity style={styles.startBtn} activeOpacity={0.8} onPress={() => setQuickStartVisible(true)}>
           <Play size={22} color="#FFFFFF" fill="#FFFFFF" />
           <Text style={styles.startBtnText}>Schnellstart</Text>
         </TouchableOpacity>
@@ -80,6 +101,23 @@ export default function WorkoutScreenWeb() {
           )}
         </View>
       )}
+
+      <QuickStartModal
+        visible={quickStartVisible}
+        onClose={() => setQuickStartVisible(false)}
+        onGenerate={handleGenerate}
+        loading={generating}
+      />
+
+      <GeneratedWorkoutModal
+        visible={resultVisible}
+        onClose={() => setResultVisible(false)}
+        workout={generatedWorkout}
+        onStart={() => {
+          setResultVisible(false);
+          alert('Training gestartet! (Platzhalter für Tracker)');
+        }}
+      />
     </View>
   );
 }

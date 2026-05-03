@@ -24,6 +24,7 @@ export function MobileHome({ data }: { data: DashboardData }) {
   const { width } = useWindowDimensions();
   const viewportWidth = Platform.OS === 'web' && typeof window !== 'undefined' ? window.innerWidth : width;
   const isCompact = viewportWidth < 430;
+  const isNarrow = viewportWidth < 380;
   const mobileFrameStyle = Platform.OS === 'web' ? styles.webMobileFrame : null;
 
   return (
@@ -57,13 +58,13 @@ export function MobileHome({ data }: { data: DashboardData }) {
           </View>
         </FadeIn>
 
-        <View style={[styles.smallCardsRow, mobileFrameStyle, { width: '100%' }]}>
-          <FadeIn delay={220} style={styles.smallCardFlex}>
+        <View style={[styles.smallCardsRow, mobileFrameStyle, { width: '100%' }, isNarrow && { flexDirection: 'column' }]}>
+          <FadeIn delay={220} style={[styles.smallCardFlex, isNarrow && { minWidth: '100%' }]}>
             <HeartCard />
           </FadeIn>
 
-          <FadeIn delay={280} style={styles.smallCardFlex}>
-            <WeekCard />
+          <FadeIn delay={280} style={[styles.smallCardFlex, isNarrow && { minWidth: '100%' }]}>
+            <WeekCard compact={isNarrow} />
           </FadeIn>
         </View>
 
