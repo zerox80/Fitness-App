@@ -37,9 +37,9 @@ export const styles = StyleSheet.create({
   },
   greeting: {
     color: palette.text,
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: '900',
-    lineHeight: 32,
+    lineHeight: 30,
   },
   subtitle: {
     color: palette.muted,
@@ -109,14 +109,12 @@ export const styles = StyleSheet.create({
     gap: 4,
   },
   stepRingArea: {
-    width: '54%',
-    minWidth: 184,
+    width: '46%',
     alignItems: 'center',
     justifyContent: 'center',
   },
   compactStepRingArea: {
-    width: '50%',
-    minWidth: 154,
+    width: '42%',
   },
   stepRingContent: {
     position: 'absolute',
@@ -124,24 +122,24 @@ export const styles = StyleSheet.create({
   },
   stepsValue: {
     color: palette.text,
-    fontSize: 40,
+    fontSize: 34,
     fontWeight: '900',
-    marginTop: 12,
-    lineHeight: 45,
+    marginTop: 8,
+    lineHeight: 38,
   },
   compactStepsValue: {
-    fontSize: 33,
-    lineHeight: 37,
-    marginTop: 8,
+    fontSize: 26,
+    lineHeight: 30,
+    marginTop: 6,
   },
   stepsGoal: {
     color: palette.muted,
-    fontSize: 17,
+    fontSize: 13,
     fontWeight: '600',
     marginTop: 2,
   },
   compactStepsGoal: {
-    fontSize: 14,
+    fontSize: 11,
   },
   stepsPercent: {
     color: palette.green,
@@ -174,9 +172,9 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   compactMetricIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
   },
   metricLabel: {
     color: palette.text,
@@ -194,8 +192,8 @@ export const styles = StyleSheet.create({
     lineHeight: 31,
   },
   compactMetricValue: {
-    fontSize: 23,
-    lineHeight: 27,
+    fontSize: 20,
+    lineHeight: 24,
   },
   metricUnit: {
     color: palette.muted,

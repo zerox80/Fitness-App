@@ -13,7 +13,7 @@ function formatSteps(steps: number) {
 }
 
 export function OverviewCard({ compact = false, data, desktop = false }: { compact?: boolean; data: DashboardData; desktop?: boolean }) {
-  const ringSize = desktop ? 236 : compact ? 172 : 198;
+  const ringSize = desktop ? 236 : compact ? 140 : 180;
 
   return (
     <View style={[styles.overviewCard, compact && styles.compactOverviewCard, desktop && webStyles.webOverviewCard]}>
