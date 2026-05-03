@@ -40,10 +40,10 @@ export default function HomeScreen() {
     setRefreshing(false);
   };
 
-  const name = user?.name?.split(' ')[0] || 'Alex';
-  const steps = activity?.steps ?? 8742;
-  const calories = activity?.calories ?? 562;
-  const activeMinutes = activity?.active_minutes ?? 61;
+  const name = user?.name?.split(' ')[0] || '';
+  const steps = activity?.steps ?? 0;
+  const calories = activity?.calories ?? 0;
+  const activeMinutes = activity?.active_minutes ?? 0;
   const stepProgress = Math.min(steps / STEP_GOAL, 1);
   const distance = useMemo(() => Math.max(0, steps * 0.00072).toFixed(1).replace('.', ','), [steps]);
 

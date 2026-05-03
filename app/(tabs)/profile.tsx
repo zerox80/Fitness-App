@@ -30,9 +30,9 @@ export default function ProfileScreen() {
   }
 
   const displayStats = [
-    { label: 'Workouts', value: (stats?.total_workouts ?? 142).toString(), icon: Trophy, color: Colors.primary, glow: Colors.primaryGlow },
-    { label: 'Minutes', value: (stats?.total_minutes ?? 8450).toLocaleString(), icon: TrendingUp, color: Colors.secondary, glow: Colors.secondaryGlow },
-    { label: 'Streak', value: (stats?.current_streak ?? 12).toString(), icon: Calendar, color: Colors.tertiary, glow: Colors.tertiaryGlow },
+    { label: 'Workouts', value: (stats?.total_workouts ?? 0).toString(), icon: Trophy, color: Colors.primary, glow: Colors.primaryGlow },
+    { label: 'Minutes', value: (stats?.total_minutes ?? 0).toLocaleString(), icon: TrendingUp, color: Colors.secondary, glow: Colors.secondaryGlow },
+    { label: 'Streak', value: (stats?.current_streak ?? 0).toString(), icon: Calendar, color: Colors.tertiary, glow: Colors.tertiaryGlow },
   ];
 
   // ─── GUEST ───

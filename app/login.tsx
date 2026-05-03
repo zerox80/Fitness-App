@@ -39,9 +39,11 @@ export default function LoginScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.flex}>
         <View style={styles.content}>
-          <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()} activeOpacity={0.7}>
-            <X size={24} color={Colors.text} />
-          </TouchableOpacity>
+          {user && (
+            <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()} activeOpacity={0.7}>
+              <X size={24} color={Colors.text} />
+            </TouchableOpacity>
+          )}
 
           <FadeIn delay={0}>
             <View style={styles.brand}>
