@@ -15,6 +15,7 @@ pub async fn generate_workout(
     axum::Extension(_auth_user): axum::Extension<AuthUser>,
     Json(req): Json<GenerateWorkoutRequest>,
 ) -> Result<Json<crate::dto::GeneratedWorkout>, AppError> {
+    req.validate().map_err(AppError::Validation)?;
     let ai_service = AiService::new(&state.config).map_err(|e| AppError::Internal(e.to_string()))?;
     let workout = ai_service.generate_workout(&req).await.map_err(|e| AppError::Internal(e.to_string()))?;
     Ok(Json(workout))

@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use reqwest::Client;
 use serde_json::json;
+use tracing;
 use crate::config::Config;
 use crate::dto::workout_generator::{GenerateWorkoutRequest, GeneratedWorkout};
 
@@ -40,7 +41,7 @@ impl AiService {
             req.duration_minutes, req.focus, req.intensity, req.duration_minutes, req.intensity
         );
 
-        let response = self.client
+        let http_response = self.client
             .post(format!("{}/chat/completions", self.api_base))
             .header("Authorization", format!("Bearer {}", self.api_key))
             .json(&json!({
@@ -49,20 +50,48 @@ impl AiService {
                     { "role": "system", "content": system_prompt },
                     { "role": "user", "content": user_prompt }
                 ],
-                "response_format": { "type": "json_object" },
-                "temperature": 0.7
+                "response_format": { "type": "json_object" }
             }))
             .send()
-            .await?
-            .json::<serde_json::Value>()
-            .await?;
+            .await
+            .context("Failed to send request to AI API")?;
 
-        let content = response["choices"][0]["message"]["content"]
+        let status = http_response.status();
+        if !status.is_success() {
+            let error_body = http_response.text().await.unwrap_or_default();
+            tracing::error!(
+                status = %status,
+                model = %self.model,
+                error_body = %error_body,
+                "AI API returned non-2xx status"
+            );
+            return Err(anyhow::anyhow!(
+                "AI API returned {} for model {}: {}",
+                status,
+                self.model,
+                error_body
+            ));
+        }
+
+        let response = http_response
+            .json::<serde_json::Value>()
+            .await
+            .context("Failed to parse AI API response as JSON")?;
+
+        let choices = response["choices"]
+            .as_array()
+            .context("AI response missing 'choices' array")?;
+
+        let first_choice = choices
+            .first()
+            .context("AI response 'choices' array was empty")?;
+
+        let content = first_choice["message"]["content"]
             .as_str()
-            .context("Failed to get content from AI response")?;
+            .context("Failed to get content string from AI response message")?;
 
         let generated: GeneratedWorkout = serde_json::from_str(content)
-            .context("Failed to parse AI response into GeneratedWorkout")?;
+            .with_context(|| format!("Failed to parse AI response into GeneratedWorkout. Content: {}", content))?;
 
         Ok(generated)
     }

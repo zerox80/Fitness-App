@@ -30,10 +30,7 @@ impl IntoResponse for AppError {
             AppError::Auth(msg) => (StatusCode::UNAUTHORIZED, msg),
             AppError::Validation(msg) => (StatusCode::BAD_REQUEST, msg),
             AppError::NotFound => (StatusCode::NOT_FOUND, "Resource not found".to_string()),
-            AppError::Internal(_) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Internal server error".to_string(),
-            ),
+            AppError::Internal(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
         };
 
         let body = Json(json!({ "error": message }));
@@ -113,7 +110,7 @@ mod tests {
 
         let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
         let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
-        assert_eq!(json["error"], "Internal server error");
+        assert_eq!(json["error"], "failure");
     }
 
     #[tokio::test]
