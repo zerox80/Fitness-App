@@ -14,9 +14,9 @@ pub fn validate_email(email: &str) -> Result<(), AppError> {
 }
 
 pub fn validate_password(password: &str) -> Result<(), AppError> {
-    if password.len() < 6 {
+    if password.len() < 8 {
         return Err(AppError::Validation(
-            "Password must be at least 6 characters".to_string(),
+            "Password must be at least 8 characters".to_string(),
         ));
     }
     if password.len() > 128 {
@@ -93,12 +93,12 @@ mod tests {
     // --- Password tests ---
     #[test]
     fn test_validate_password_valid() {
-        assert!(validate_password("123456").is_ok());
+        assert!(validate_password("12345678").is_ok());
     }
 
     #[test]
     fn test_validate_password_too_short() {
-        assert!(validate_password("12345").is_err());
+        assert!(validate_password("1234567").is_err());
     }
 
     #[test]
@@ -108,7 +108,7 @@ mod tests {
 
     #[test]
     fn test_validate_password_exactly_min() {
-        assert!(validate_password("abcdef").is_ok());
+        assert!(validate_password("abcdefgh").is_ok());
     }
 
     #[test]

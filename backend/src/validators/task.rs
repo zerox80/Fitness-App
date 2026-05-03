@@ -21,7 +21,7 @@ pub fn validate_custom_days(days: &[i32]) -> Result<(), AppError> {
     for &day in days {
         if !(0..=6).contains(&day) {
             return Err(AppError::Validation(
-                "Custom days must be between 0 (Sunday) and 6 (Saturday)".to_string(),
+                "Custom days must be between 0 (Monday) and 6 (Sunday)".to_string(),
             ));
         }
     }

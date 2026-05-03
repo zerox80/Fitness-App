@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug, sqlx::Type, PartialEq, Clone)]
+#[serde(rename_all = "snake_case")]
 #[sqlx(type_name = "task_recurrence", rename_all = "lowercase")]
 pub enum TaskRecurrence {
     Daily,
@@ -12,6 +13,7 @@ pub enum TaskRecurrence {
 }
 
 #[derive(Serialize, Deserialize, Debug, sqlx::Type, PartialEq, Clone)]
+#[serde(rename_all = "snake_case")]
 #[sqlx(type_name = "task_category", rename_all = "lowercase")]
 pub enum TaskCategory {
     Workout,

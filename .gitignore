@@ -41,7 +41,7 @@ yarn-error.*
 
 # Rust backend
 backend/target/
-backend/Cargo.lock
+# backend/Cargo.lock
 
 # IDE
 .vscode/

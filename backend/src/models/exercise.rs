@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, sqlx::Type)]
+#[serde(rename_all = "snake_case")]
 #[sqlx(type_name = "muscle_group", rename_all = "snake_case")]
 pub enum MuscleGroup {
     Chest,
@@ -22,6 +23,7 @@ pub enum MuscleGroup {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, sqlx::Type)]
+#[serde(rename_all = "snake_case")]
 #[sqlx(type_name = "equipment_type", rename_all = "snake_case")]
 pub enum EquipmentType {
     Barbell,
@@ -41,6 +43,7 @@ pub enum EquipmentType {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, sqlx::Type)]
+#[serde(rename_all = "snake_case")]
 #[sqlx(type_name = "difficulty_level", rename_all = "snake_case")]
 pub enum DifficultyLevel {
     Beginner,
@@ -92,38 +95,38 @@ mod tests {
     #[test]
     fn test_muscle_group_serialization() {
         let json = serde_json::to_string(&MuscleGroup::Chest).unwrap();
-        assert_eq!(json, "\"Chest\"");
+        assert_eq!(json, "\"chest\"");
     }
 
     #[test]
     fn test_muscle_group_deserialization() {
-        let mg: MuscleGroup = serde_json::from_str("\"Back\"").unwrap();
+        let mg: MuscleGroup = serde_json::from_str("\"back\"").unwrap();
         assert!(matches!(mg, MuscleGroup::Back));
     }
 
     #[test]
     fn test_equipment_type_serialization() {
         let json = serde_json::to_string(&EquipmentType::Barbell).unwrap();
-        assert_eq!(json, "\"Barbell\"");
+        assert_eq!(json, "\"barbell\"");
     }
 
     #[test]
     fn test_equipment_type_all_variants() {
         let variants = [
-            ("\"Barbell\"", EquipmentType::Barbell),
-            ("\"Dumbbell\"", EquipmentType::Dumbbell),
-            ("\"Kettlebell\"", EquipmentType::Kettlebell),
-            ("\"Machine\"", EquipmentType::Machine),
-            ("\"Cable\"", EquipmentType::Cable),
-            ("\"Bodyweight\"", EquipmentType::Bodyweight),
-            ("\"ResistanceBand\"", EquipmentType::ResistanceBand),
-            ("\"MedicineBall\"", EquipmentType::MedicineBall),
-            ("\"Bench\"", EquipmentType::Bench),
-            ("\"SquatRack\"", EquipmentType::SquatRack),
-            ("\"PullUpBar\"", EquipmentType::PullUpBar),
-            ("\"DipStation\"", EquipmentType::DipStation),
-            ("\"Treadmill\"", EquipmentType::Treadmill),
-            ("\"None\"", EquipmentType::None),
+            ("\"barbell\"", EquipmentType::Barbell),
+            ("\"dumbbell\"", EquipmentType::Dumbbell),
+            ("\"kettlebell\"", EquipmentType::Kettlebell),
+            ("\"machine\"", EquipmentType::Machine),
+            ("\"cable\"", EquipmentType::Cable),
+            ("\"bodyweight\"", EquipmentType::Bodyweight),
+            ("\"resistance_band\"", EquipmentType::ResistanceBand),
+            ("\"medicine_ball\"", EquipmentType::MedicineBall),
+            ("\"bench\"", EquipmentType::Bench),
+            ("\"squat_rack\"", EquipmentType::SquatRack),
+            ("\"pull_up_bar\"", EquipmentType::PullUpBar),
+            ("\"dip_station\"", EquipmentType::DipStation),
+            ("\"treadmill\"", EquipmentType::Treadmill),
+            ("\"none\"", EquipmentType::None),
         ];
         for (json_str, expected) in &variants {
             let et: EquipmentType = serde_json::from_str(json_str).unwrap();
@@ -135,21 +138,21 @@ mod tests {
     fn test_difficulty_level_serialization() {
         assert_eq!(
             serde_json::to_string(&DifficultyLevel::Beginner).unwrap(),
-            "\"Beginner\""
+            "\"beginner\""
         );
         assert_eq!(
             serde_json::to_string(&DifficultyLevel::Intermediate).unwrap(),
-            "\"Intermediate\""
+            "\"intermediate\""
         );
         assert_eq!(
             serde_json::to_string(&DifficultyLevel::Advanced).unwrap(),
-            "\"Advanced\""
+            "\"advanced\""
         );
     }
 
     #[test]
     fn test_difficulty_level_deserialization() {
-        let dl: DifficultyLevel = serde_json::from_str("\"Advanced\"").unwrap();
+        let dl: DifficultyLevel = serde_json::from_str("\"advanced\"").unwrap();
         assert!(matches!(dl, DifficultyLevel::Advanced));
     }
 
@@ -158,9 +161,9 @@ mod tests {
         let json = r#"{
             "name": "Bench Press",
             "description": "Classic chest exercise",
-            "muscle_groups": ["Chest", "Triceps"],
-            "equipment": ["Barbell"],
-            "difficulty": "Intermediate",
+            "muscle_groups": ["chest", "triceps"],
+            "equipment": ["barbell"],
+            "difficulty": "intermediate",
             "instructions": ["Lie down", "Lift"]
         }"#;
         let req: CreateExerciseRequest = serde_json::from_str(json).unwrap();
@@ -181,24 +184,25 @@ mod tests {
     #[test]
     fn test_muscle_group_all_variants() {
         let variants = [
-            "Chest",
-            "Back",
-            "Shoulders",
-            "Biceps",
-            "Triceps",
-            "Abs",
-            "Legs",
-            "Glutes",
-            "Calves",
-            "Forearms",
-            "Traps",
-            "Lats",
-            "Hamstrings",
-            "Quadriceps",
+            ("chest", MuscleGroup::Chest),
+            ("back", MuscleGroup::Back),
+            ("shoulders", MuscleGroup::Shoulders),
+            ("biceps", MuscleGroup::Biceps),
+            ("triceps", MuscleGroup::Triceps),
+            ("abs", MuscleGroup::Abs),
+            ("legs", MuscleGroup::Legs),
+            ("glutes", MuscleGroup::Glutes),
+            ("calves", MuscleGroup::Calves),
+            ("forearms", MuscleGroup::Forearms),
+            ("traps", MuscleGroup::Traps),
+            ("lats", MuscleGroup::Lats),
+            ("hamstrings", MuscleGroup::Hamstrings),
+            ("quadriceps", MuscleGroup::Quadriceps),
         ];
-        for v in &variants {
+        for (v, expected) in &variants {
             let json_str = format!("\"{}\"", v);
             let mg: MuscleGroup = serde_json::from_str(&json_str).unwrap();
+            assert_eq!(mg, *expected);
             let serialized = serde_json::to_string(&mg).unwrap();
             assert_eq!(serialized, json_str);
         }

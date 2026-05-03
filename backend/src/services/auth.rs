@@ -12,14 +12,13 @@ use crate::{
     models::{AuthResponse, LoginRequest, RegisterRequest, UserResponse},
     repository::users,
     state::AppState,
+    validators::user::{validate_email, validate_name, validate_password},
 };
 
 pub async fn register(state: &AppState, req: RegisterRequest) -> Result<AuthResponse, AppError> {
-    if req.password.len() < 8 {
-        return Err(AppError::Validation(
-            "Password must be at least 8 characters".to_string(),
-        ));
-    }
+    validate_email(&req.email)?;
+    validate_name(&req.name)?;
+    validate_password(&req.password)?;
 
     let existing = users::find_by_email(&state.pool, &req.email).await?;
     if existing.is_some() {

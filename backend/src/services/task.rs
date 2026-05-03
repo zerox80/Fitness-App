@@ -1,4 +1,4 @@
-use chrono::{NaiveDate, Utc};
+use chrono::{Datelike, NaiveDate};
 use uuid::Uuid;
 
 use crate::{
@@ -89,6 +89,11 @@ pub async fn toggle_task_completion(
     user_id: Uuid,
     date: NaiveDate,
 ) -> Result<bool, AppError> {
+    let task = tasks::find_by_id(&state.pool, task_id, user_id).await?;
+    if task.is_none() {
+        return Err(AppError::NotFound);
+    }
+
     let completed_ids = tasks::get_completions_for_date(&state.pool, user_id, date).await?;
     let is_completed = completed_ids.contains(&task_id);
 
@@ -109,8 +114,7 @@ pub async fn get_tasks_with_completion(
     let all_tasks = tasks::list_by_user(&state.pool, user_id).await?;
     let completed_ids = tasks::get_completions_for_date(&state.pool, user_id, date).await?;
 
-    let today = Utc::now().date_naive();
-    let weekday = today.weekday().num_days_from_monday() as i32;
+    let weekday = date.weekday().num_days_from_monday() as i32;
 
     let filtered: Vec<TaskWithCompletionStatus> = all_tasks
         .into_iter()
@@ -136,7 +140,7 @@ pub async fn get_tasks_with_completion(
 fn task_is_scheduled(task: &Task, weekday: i32) -> bool {
     match task.recurrence {
         TaskRecurrence::Daily => true,
-        TaskRecurrence::Weekdays => (1..=5).contains(&weekday),
+        TaskRecurrence::Weekdays => (0..=4).contains(&weekday),
         TaskRecurrence::Weekly => {
             let created_weekday = task.created_at.weekday().num_days_from_monday() as i32;
             weekday == created_weekday
