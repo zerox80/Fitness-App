@@ -16,6 +16,7 @@ function formatGermanDate(date: Date) {
 }
 
 export default function HomeScreen() {
+  const [hasMounted, setHasMounted] = useState(false);
   const { user } = useAuth();
   const { width } = useWindowDimensions();
   const viewportWidth = Platform.OS === 'web' && typeof window !== 'undefined' ? window.innerWidth : width;
@@ -31,8 +32,11 @@ export default function HomeScreen() {
   }
 
   useEffect(() => {
+    setHasMounted(true);
     load();
   }, []);
+
+  if (!hasMounted) return null;
 
   const onRefresh = async () => {
     setRefreshing(true);
