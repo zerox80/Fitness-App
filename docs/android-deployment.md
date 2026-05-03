@@ -34,6 +34,13 @@ Use this method if you have Android Studio and the Android SDK installed on your
     ```
     This will compile the native code locally and push the app to your connected device.
 
+3.  **Production-Style Test (Recommended)**:
+    If you want to run the app without the "Open Debugger" menu and see the real performance/look:
+    ```bash
+    npx expo run:android --variant release
+    ```
+    *Note: This will use the URL from your `.env` (e.g., your VPS) and won't have hot-reloading.*
+
 ---
 
 ## Method B: EAS Build (Easiest - Cloud Based)
