@@ -1,0 +1,292 @@
+import { StyleSheet } from 'react-native';
+import { palette, WEB_CONTENT_MAX_WIDTH } from '@/constants/dashboard-constants';
+
+const webShadow = {
+  shadowColor: '#D9DFE5',
+  shadowOffset: { width: 0, height: 16 },
+  shadowOpacity: 0.35,
+  shadowRadius: 30,
+  elevation: 8,
+};
+
+export const webStyles = StyleSheet.create({
+  webSafeArea: {
+    flex: 1,
+    backgroundColor: palette.appBackground,
+  },
+  webShell: {
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: palette.appBackground,
+  },
+  webSidebar: {
+    width: 270,
+    backgroundColor: '#FFFFFF',
+    borderRightWidth: 1,
+    borderRightColor: '#E3E7EB',
+    paddingHorizontal: 24,
+    paddingTop: 30,
+    paddingBottom: 34,
+  },
+  logoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 46,
+  },
+  logoMark: {
+    width: 34,
+    height: 34,
+  },
+  logoTop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 34,
+    height: 12,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
+    borderBottomRightRadius: 4,
+    backgroundColor: '#42D88E',
+  },
+  logoMiddle: {
+    position: 'absolute',
+    top: 11,
+    left: 0,
+    width: 24,
+    height: 11,
+    borderTopRightRadius: 4,
+    borderBottomRightRadius: 4,
+    backgroundColor: palette.teal,
+  },
+  logoBottom: {
+    position: 'absolute',
+    top: 21,
+    left: 0,
+    width: 12,
+    height: 13,
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 4,
+    backgroundColor: palette.greenDark,
+  },
+  logoText: {
+    color: palette.text,
+    fontSize: 25,
+    fontWeight: '900',
+  },
+  sidebarNav: {
+    gap: 16,
+  },
+  sidebarItem: {
+    minHeight: 58,
+    borderRadius: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    paddingHorizontal: 24,
+  },
+  sidebarItemActive: {
+    backgroundColor: '#EFF7F2',
+    borderLeftWidth: 4,
+    borderLeftColor: '#BDEEDB',
+    paddingLeft: 20,
+  },
+  sidebarText: {
+    color: '#566172',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  sidebarTextActive: {
+    color: palette.greenDark,
+  },
+  sidebarSettings: {
+    marginTop: 'auto',
+    minHeight: 58,
+    borderRadius: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    paddingHorizontal: 24,
+  },
+  webMain: {
+    flex: 1,
+  },
+  webTopBar: {
+    height: 78,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E3E7EB',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 30,
+  },
+  searchBox: {
+    width: 560,
+    height: 46,
+    borderRadius: 13,
+    backgroundColor: '#F6F8FA',
+    borderWidth: 1,
+    borderColor: '#EEF1F3',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 13,
+    paddingHorizontal: 17,
+  },
+  searchPlaceholder: {
+    color: '#8A929D',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  topActions: {
+    position: 'absolute',
+    right: 32,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
+  },
+  notificationButton: {
+    width: 38,
+    height: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  webAvatar: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: palette.track,
+  },
+  webScrollContent: {
+    paddingHorizontal: 48,
+    paddingTop: 22,
+    paddingBottom: 42,
+  },
+  webContent: {
+    width: '100%',
+    maxWidth: WEB_CONTENT_MAX_WIDTH,
+    alignSelf: 'center',
+  },
+  webGreetingBlock: {
+    marginBottom: 22,
+  },
+  webGreeting: {
+    color: palette.text,
+    fontSize: 32,
+    fontWeight: '900',
+    lineHeight: 38,
+  },
+  webSubtitle: {
+    color: palette.muted,
+    fontSize: 18,
+    fontWeight: '500',
+    marginTop: 4,
+  },
+  webCardsRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: 16,
+  },
+  webOverviewFlex: {
+    flex: 1.95,
+    minWidth: 510,
+  },
+  webMetricCardFlex: {
+    flex: 1,
+    minWidth: 260,
+  },
+  webOverviewCard: {
+    ...webShadow,
+    minHeight: 320,
+    borderRadius: 12,
+    padding: 22,
+    marginBottom: 0,
+  },
+  webCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  webCardTitle: {
+    color: palette.text,
+    fontSize: 18,
+    fontWeight: '900',
+  },
+  webOverviewBody: {
+    alignItems: 'center',
+  },
+  webStepRingArea: {
+    width: '50%',
+    minWidth: 250,
+  },
+  webStepsValue: {
+    fontSize: 42,
+    lineHeight: 46,
+  },
+  webStepsGoal: {
+    fontSize: 18,
+  },
+  webMetricsColumn: {
+    gap: 20,
+    borderLeftWidth: 0,
+    paddingLeft: 6,
+  },
+  webSmallCard: {
+    ...webShadow,
+    minHeight: 320,
+    borderRadius: 12,
+    paddingHorizontal: 22,
+    paddingTop: 22,
+    paddingBottom: 18,
+  },
+  webHeartValue: {
+    fontSize: 34,
+    marginTop: 22,
+  },
+  webWeekSelector: {
+    paddingTop: 2,
+  },
+  webWeekValue: {
+    fontSize: 38,
+    marginTop: 22,
+  },
+  webWeekTrack: {
+    height: 86,
+    width: 15,
+  },
+  webTrainingSection: {
+    marginTop: 18,
+  },
+  webTrainingsHeader: {
+    marginBottom: 0,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    backgroundColor: palette.card,
+    paddingHorizontal: 22,
+    paddingTop: 18,
+    paddingBottom: 12,
+    ...webShadow,
+  },
+  webTrainingCard: {
+    ...webShadow,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+    paddingHorizontal: 22,
+  },
+  webTrainingRow: {
+    minHeight: 54,
+  },
+  webTrainingContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 44,
+  },
+  webKcalBlock: {
+    minWidth: 80,
+    alignItems: 'flex-end',
+  },
+});
