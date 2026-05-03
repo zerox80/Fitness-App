@@ -22,6 +22,7 @@ pub fn verify_password(password: &str, hash: &str) -> Result<bool, AppError> {
         .is_ok())
 }
 
+#[allow(dead_code)]
 pub fn dummy_hash() -> &'static PasswordHash<'static> {
     static DUMMY: OnceLock<PasswordHash<'static>> = OnceLock::new();
     DUMMY.get_or_init(|| {

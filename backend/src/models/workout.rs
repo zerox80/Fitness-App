@@ -35,6 +35,7 @@ pub struct UpdateWorkoutRequest {
 }
 
 #[derive(Serialize, Deserialize, Debug, sqlx::FromRow)]
+#[allow(dead_code)]
 pub struct WorkoutSummary {
     pub id: Uuid,
     pub title: String,

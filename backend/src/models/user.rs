@@ -51,6 +51,7 @@ pub struct AuthResponse {
 }
 
 #[derive(Deserialize, Debug)]
+#[allow(dead_code)]
 pub struct UpdateUserRequest {
     pub name: Option<String>,
     pub email: Option<String>,

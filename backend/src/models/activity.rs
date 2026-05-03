@@ -10,6 +10,7 @@ pub struct UserStats {
 }
 
 #[derive(Serialize, Deserialize, Debug, sqlx::FromRow)]
+#[allow(dead_code)]
 pub struct ActivityLog {
     pub id: Uuid,
     pub user_id: Uuid,

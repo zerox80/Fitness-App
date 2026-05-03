@@ -5,10 +5,7 @@ use crate::{
     dto::ExerciseFilterParams,
     error::AppError,
     middleware::auth::AuthUser,
-    models::{
-        CreateExerciseRequest, DifficultyLevel, EquipmentType, Exercise, MuscleGroup,
-        UpdateExerciseRequest,
-    },
+    models::{CreateExerciseRequest, Exercise, UpdateExerciseRequest},
     services::exercise,
     state::AppState,
 };

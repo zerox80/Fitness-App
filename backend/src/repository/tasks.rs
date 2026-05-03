@@ -1,5 +1,5 @@
 use crate::{error::AppError, models::task::*};
-use chrono::{NaiveDate, Utc};
+use chrono::NaiveDate;
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -53,6 +53,7 @@ pub async fn create(
     .map_err(AppError::Database)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn update(
     pool: &PgPool,
     id: Uuid,

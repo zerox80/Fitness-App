@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Serialize, Debug)]
+#[allow(dead_code)]
 pub struct WorkoutDetailDto {
     pub id: Uuid,
     pub title: String,
@@ -16,6 +17,7 @@ pub struct WorkoutDetailDto {
 }
 
 #[derive(Serialize, Debug)]
+#[allow(dead_code)]
 pub struct WorkoutListDto {
     pub id: Uuid,
     pub title: String,
@@ -44,10 +46,10 @@ fn default_per_page() -> i64 {
 
 impl WorkoutFilterParams {
     pub fn offset(&self) -> i64 {
-        (self.page.max(1) - 1) * self.per_page.max(1).min(100)
+        (self.page.max(1) - 1) * self.per_page.clamp(1, 100)
     }
 
     pub fn limit(&self) -> i64 {
-        self.per_page.max(1).min(100)
+        self.per_page.clamp(1, 100)
     }
 }

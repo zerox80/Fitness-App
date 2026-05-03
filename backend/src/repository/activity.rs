@@ -61,6 +61,7 @@ pub async fn get_today(
     .map_err(AppError::Database)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn upsert_today(
     pool: &PgPool,
     user_id: Uuid,

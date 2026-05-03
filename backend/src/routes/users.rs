@@ -4,9 +4,7 @@ use crate::{
     dto::{ChangePasswordRequest, UserProfileDto},
     error::AppError,
     middleware::auth::AuthUser,
-    models::UpdateUserRequest,
     repository::{activity, users},
-    services::auth,
     state::AppState,
     utils::password::verify_password,
 };

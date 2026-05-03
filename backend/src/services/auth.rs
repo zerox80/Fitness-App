@@ -9,7 +9,7 @@ use std::sync::OnceLock;
 use crate::{
     error::AppError,
     middleware::auth::Claims,
-    models::{AuthResponse, LoginRequest, RegisterRequest, UserResponse},
+    models::{AuthResponse, LoginRequest, RegisterRequest},
     repository::users,
     state::AppState,
     validators::user::{validate_email, validate_name, validate_password},

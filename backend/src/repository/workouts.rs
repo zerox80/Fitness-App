@@ -3,6 +3,7 @@ use chrono::Utc;
 use sqlx::PgPool;
 use uuid::Uuid;
 
+#[allow(dead_code)]
 pub async fn list_by_user(pool: &PgPool, user_id: Uuid) -> Result<Vec<Workout>, AppError> {
     sqlx::query_as::<_, Workout>(
         "SELECT * FROM workouts WHERE user_id = $1 ORDER BY created_at DESC",
@@ -77,6 +78,7 @@ pub async fn create(
     .map_err(AppError::Database)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn update(
     pool: &PgPool,
     id: Uuid,

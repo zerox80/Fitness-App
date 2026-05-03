@@ -24,10 +24,10 @@ fn default_per_page() -> i64 {
 
 impl ExerciseFilterParams {
     pub fn offset(&self) -> i64 {
-        (self.page.max(1) - 1) * self.per_page.max(1).min(100)
+        (self.page.max(1) - 1) * self.per_page.clamp(1, 100)
     }
 
     pub fn limit(&self) -> i64 {
-        self.per_page.max(1).min(100)
+        self.per_page.clamp(1, 100)
     }
 }

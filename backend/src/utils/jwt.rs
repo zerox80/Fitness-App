@@ -5,6 +5,7 @@ use uuid::Uuid;
 use crate::error::AppError;
 use crate::middleware::auth::Claims;
 
+#[allow(dead_code)]
 pub fn generate_token(user_id: &Uuid, secret: &str, expiry_hours: i64) -> Result<String, AppError> {
     let now = Utc::now();
     let claims = Claims {
@@ -21,6 +22,7 @@ pub fn generate_token(user_id: &Uuid, secret: &str, expiry_hours: i64) -> Result
     .map_err(|_| AppError::Internal)
 }
 
+#[allow(dead_code)]
 pub fn generate_refresh_token(user_id: &Uuid, secret: &str) -> Result<String, AppError> {
     generate_token(user_id, secret, 24 * 7) // 7 days
 }

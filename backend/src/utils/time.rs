@@ -5,14 +5,17 @@ pub fn week_start(date: NaiveDate) -> NaiveDate {
     date - Duration::days(days_from_monday as i64)
 }
 
+#[allow(dead_code)]
 pub fn week_end(date: NaiveDate) -> NaiveDate {
     week_start(date) + Duration::days(6)
 }
 
+#[allow(dead_code)]
 pub fn month_start(date: NaiveDate) -> NaiveDate {
     NaiveDate::from_ymd_opt(date.year(), date.month(), 1).unwrap_or(date)
 }
 
+#[allow(dead_code)]
 pub fn month_end(date: NaiveDate) -> NaiveDate {
     let next_month = if date.month() == 12 {
         NaiveDate::from_ymd_opt(date.year() + 1, 1, 1)
@@ -22,10 +25,12 @@ pub fn month_end(date: NaiveDate) -> NaiveDate {
     next_month.unwrap_or(date) - Duration::days(1)
 }
 
+#[allow(dead_code)]
 pub fn days_between(start: NaiveDate, end: NaiveDate) -> i64 {
     (end - start).num_days()
 }
 
+#[allow(dead_code)]
 pub fn is_same_day(a: DateTime<Utc>, b: DateTime<Utc>) -> bool {
     a.date_naive() == b.date_naive()
 }
