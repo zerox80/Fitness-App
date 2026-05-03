@@ -41,9 +41,25 @@ export function useTasks() {
   const toggleTask = useCallback(async (id: string) => {
     const result = await api.tasks.toggle(id);
     setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, completed_today: result.completed } : t))
+      prev.map((t) => (t.id === id ? { ...t, completed_today: result.completed, completed_sets_today: result.completed ? 1 : 0 } : t))
     );
     return result.completed;
+  }, []);
+
+  const incrementSet = useCallback(async (id: string) => {
+    const result = await api.tasks.incrementSet(id);
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === id
+          ? {
+              ...t,
+              completed_today: result.completed_sets > 0,
+              completed_sets_today: result.completed_sets,
+            }
+          : t
+      )
+    );
+    return result.completed_sets;
   }, []);
 
   return {
@@ -55,5 +71,6 @@ export function useTasks() {
     updateTask,
     deleteTask,
     toggleTask,
+    incrementSet,
   };
 }

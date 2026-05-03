@@ -32,6 +32,7 @@ pub struct Task {
     pub custom_days: Vec<i32>,
     pub category: TaskCategory,
     pub is_active: bool,
+    pub target_sets: i32,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -42,6 +43,7 @@ pub struct TaskCompletion {
     pub task_id: Uuid,
     pub user_id: Uuid,
     pub completed_date: chrono::NaiveDate,
+    pub completed_sets: i32,
     pub created_at: DateTime<Utc>,
 }
 
@@ -52,6 +54,7 @@ pub struct CreateTaskRequest {
     pub recurrence: TaskRecurrence,
     pub custom_days: Option<Vec<i32>>,
     pub category: TaskCategory,
+    pub target_sets: Option<i32>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -62,6 +65,7 @@ pub struct UpdateTaskRequest {
     pub custom_days: Option<Vec<i32>>,
     pub category: Option<TaskCategory>,
     pub is_active: Option<bool>,
+    pub target_sets: Option<i32>,
 }
 
 #[derive(Serialize, Debug, sqlx::FromRow)]
@@ -74,9 +78,11 @@ pub struct TaskWithCompletionStatus {
     pub custom_days: Vec<i32>,
     pub category: TaskCategory,
     pub is_active: bool,
+    pub target_sets: i32,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
     pub completed_today: bool,
+    pub completed_sets_today: i32,
 }
 
 #[cfg(test)]

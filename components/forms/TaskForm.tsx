@@ -25,6 +25,7 @@ export function TaskForm({ visible, onClose, onSubmit }: TaskFormProps) {
   const [recurrence, setRecurrence] = useState<TaskRecurrence>('daily');
   const [category, setCategory] = useState<TaskCategory>('general');
   const [customDays, setCustomDays] = useState<Weekday[]>([]);
+  const [targetSets, setTargetSets] = useState('1');
 
   const toggleDay = (day: Weekday) => {
     setCustomDays((prev) =>
@@ -40,6 +41,7 @@ export function TaskForm({ visible, onClose, onSubmit }: TaskFormProps) {
       recurrence,
       category,
       custom_days: recurrence === 'custom' ? customDays : undefined,
+      target_sets: parseInt(targetSets) || 1,
     });
     resetForm();
   };
@@ -50,6 +52,7 @@ export function TaskForm({ visible, onClose, onSubmit }: TaskFormProps) {
     setRecurrence('daily');
     setCategory('general');
     setCustomDays([]);
+    setTargetSets('1');
   };
 
   const handleClose = () => {
@@ -137,6 +140,14 @@ export function TaskForm({ visible, onClose, onSubmit }: TaskFormProps) {
               </TouchableOpacity>
             ))}
           </View>
+
+          <Input
+            label="Anzahl Sätze"
+            value={targetSets}
+            onChangeText={setTargetSets}
+            keyboardType="number-pad"
+            placeholder="z.B. 3"
+          />
         </ScrollView>
 
         <View style={styles.footer}>

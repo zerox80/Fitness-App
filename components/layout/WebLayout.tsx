@@ -19,21 +19,19 @@ export function WebLayout({ children }: WebLayoutProps) {
     return <>{children}</>;
   }
 
+  const isMedium = width < 1100;
+  const sidebarWidth = isMedium ? 80 : 270;
+
   return (
     <SafeAreaView style={webStyles.webSafeArea} edges={['top']}>
       <StatusBar style="dark" />
       <View style={webStyles.webShell}>
-        <WebSidebar />
+        <WebSidebar collapsed={isMedium} />
         <View style={webStyles.webMain}>
-          <WebTopBar />
-          <ScrollView 
-            contentContainerStyle={webStyles.webScrollContent} 
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={webStyles.webContent}>
-              {children}
-            </View>
-          </ScrollView>
+          <WebTopBar collapsed={isMedium} />
+          <View style={webStyles.webContent}>
+            {children}
+          </View>
         </View>
       </View>
     </SafeAreaView>

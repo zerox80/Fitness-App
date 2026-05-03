@@ -122,7 +122,8 @@ export const webStyles = StyleSheet.create({
     paddingHorizontal: 30,
   },
   searchBox: {
-    width: 560,
+    flex: 1,
+    maxWidth: 560,
     height: 46,
     borderRadius: 13,
     backgroundColor: '#F6F8FA',
@@ -166,6 +167,7 @@ export const webStyles = StyleSheet.create({
     width: '100%',
     maxWidth: WEB_CONTENT_MAX_WIDTH,
     alignSelf: 'center',
+    flex: 1,
   },
   webGreetingBlock: {
     marginBottom: 22,
@@ -186,14 +188,15 @@ export const webStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'stretch',
     gap: 16,
+    flexWrap: 'wrap',
   },
   webOverviewFlex: {
-    flex: 1.95,
-    minWidth: 510,
+    flex: 2,
+    minWidth: 320,
   },
   webMetricCardFlex: {
     flex: 1,
-    minWidth: 260,
+    minWidth: 240,
   },
   webOverviewCard: {
     ...webShadow,
@@ -217,8 +220,8 @@ export const webStyles = StyleSheet.create({
     alignItems: 'center',
   },
   webStepRingArea: {
-    width: '50%',
-    minWidth: 250,
+    flex: 1,
+    minWidth: 200,
   },
   webStepsValue: {
     fontSize: 42,

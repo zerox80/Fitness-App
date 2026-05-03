@@ -72,6 +72,16 @@ pub async fn toggle_completion(
     Ok(Json(serde_json::json!({ "completed": completed })))
 }
 
+pub async fn increment_set(
+    State(state): State<AppState>,
+    axum::Extension(auth_user): axum::Extension<AuthUser>,
+    axum::extract::Path(task_id): axum::extract::Path<Uuid>,
+) -> Result<Json<serde_json::Value>, AppError> {
+    let today = Utc::now().date_naive();
+    let new_sets = task::increment_task_set(&state, task_id, auth_user.user_id, today).await?;
+    Ok(Json(serde_json::json!({ "completed_sets": new_sets })))
+}
+
 pub async fn get_today_tasks(
     State(state): State<AppState>,
     axum::Extension(auth_user): axum::Extension<AuthUser>,

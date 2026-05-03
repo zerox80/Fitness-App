@@ -77,12 +77,14 @@ export interface ApiTask {
   custom_days: number[];
   category: ApiTaskCategory;
   is_active: boolean;
+  target_sets: number;
   created_at: string;
   updated_at: string;
 }
 
 export interface ApiTaskWithCompletion extends ApiTask {
   completed_today: boolean;
+  completed_sets_today: number;
 }
 
 export interface CreateTaskData {
@@ -91,6 +93,7 @@ export interface CreateTaskData {
   recurrence: ApiTaskRecurrence;
   custom_days?: number[];
   category: ApiTaskCategory;
+  target_sets?: number;
 }
 
 export interface UpdateTaskData {
@@ -100,6 +103,7 @@ export interface UpdateTaskData {
   custom_days?: number[];
   category?: ApiTaskCategory;
   is_active?: boolean;
+  target_sets?: number;
 }
 
 let authToken: string | null = null;
@@ -168,6 +172,7 @@ export const api = {
     update: (id: string, data: UpdateTaskData) => request<ApiTask>(`/tasks/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: string) => request<{ deleted: boolean }>(`/tasks/${id}`, { method: 'DELETE' }),
     toggle: (id: string) => request<{ completed: boolean }>(`/tasks/${id}/toggle`, { method: 'PUT' }),
+    incrementSet: (id: string) => request<{ completed_sets: number }>(`/tasks/${id}/increment-set`, { method: 'POST' }),
     completions: (id: string) => request<string[]>(`/tasks/${id}/completions`),
   },
 };

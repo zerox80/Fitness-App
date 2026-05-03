@@ -32,73 +32,77 @@ function EmptyLabel() {
   return <Text style={styles.emptyLabel}> </Text>;
 }
 
+import { WebLayout } from '@/components/layout/WebLayout';
+
 export default function TabLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: tabColors.active,
-        tabBarInactiveTintColor: tabColors.inactive,
-        headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarLabelStyle: styles.tabBarLabel,
-        tabBarStyle: styles.tabBar,
-        tabBarItemStyle: styles.tabBarItem,
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Übersicht',
-          tabBarIcon: ({ color, focused }) => (
-            <View style={styles.iconStack}>
-              <Home size={25} color={color} fill={focused ? color : 'transparent'} strokeWidth={2.3} />
-            </View>
-          ),
+    <WebLayout>
+      <Tabs
+        screenOptions={{
+          tabBarActiveTintColor: tabColors.active,
+          tabBarInactiveTintColor: tabColors.inactive,
+          headerShown: false,
+          tabBarButton: HapticTab,
+          tabBarLabelStyle: styles.tabBarLabel,
+          tabBarStyle: Platform.OS === 'web' ? styles.tabBarHidden : styles.tabBar,
+          tabBarItemStyle: styles.tabBarItem,
         }}
-      />
-      <Tabs.Screen
-        name="tasks"
-        options={{
-          title: 'Aktivität',
-          tabBarIcon: ({ color }) => (
-            <View style={styles.iconStack}>
-              <Activity size={25} color={color} strokeWidth={2.1} />
-            </View>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="create"
-        options={{
-          title: '',
-          tabBarButton: CenterPlusButton,
-          tabBarLabel: EmptyLabel,
-          tabBarIcon: () => null,
-        }}
-      />
-      <Tabs.Screen
-        name="workout"
-        options={{
-          title: 'Trainings',
-          tabBarIcon: ({ color }) => (
-            <View style={styles.iconStack}>
-              <ClipboardList size={25} color={color} strokeWidth={2.1} />
-            </View>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profil',
-          tabBarIcon: ({ color }) => (
-            <View style={styles.iconStack}>
-              <User size={25} color={color} strokeWidth={2.1} />
-            </View>
-          ),
-        }}
-      />
-    </Tabs>
+      >
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: 'Übersicht',
+            tabBarIcon: ({ color, focused }) => (
+              <View style={styles.iconStack}>
+                <Home size={25} color={color} fill={focused ? color : 'transparent'} strokeWidth={2.3} />
+              </View>
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="tasks"
+          options={{
+            title: 'Aktivität',
+            tabBarIcon: ({ color }) => (
+              <View style={styles.iconStack}>
+                <Activity size={25} color={color} strokeWidth={2.1} />
+              </View>
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="create"
+          options={{
+            title: '',
+            tabBarButton: CenterPlusButton,
+            tabBarLabel: EmptyLabel,
+            tabBarIcon: () => null,
+          }}
+        />
+        <Tabs.Screen
+          name="workout"
+          options={{
+            title: 'Trainings',
+            tabBarIcon: ({ color }) => (
+              <View style={styles.iconStack}>
+                <ClipboardList size={25} color={color} strokeWidth={2.1} />
+              </View>
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: 'Profil',
+            tabBarIcon: ({ color }) => (
+              <View style={styles.iconStack}>
+                <User size={25} color={color} strokeWidth={2.1} />
+              </View>
+            ),
+          }}
+        />
+      </Tabs>
+    </WebLayout>
   );
 }
 

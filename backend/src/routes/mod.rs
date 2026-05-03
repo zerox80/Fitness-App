@@ -68,6 +68,10 @@ pub fn create_router(state: AppState) -> Router {
             put(tasks::toggle_completion),
         )
         .route(
+            "/api/tasks/{id}/increment-set",
+            post(tasks::increment_set),
+        )
+        .route(
             "/api/tasks/{id}/completions",
             get(tasks::get_task_completions),
         )

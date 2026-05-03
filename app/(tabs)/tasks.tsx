@@ -19,7 +19,7 @@ import { useTasks } from '@/hooks/useTasks';
 export default function TasksScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ create?: string }>();
-  const { tasks, loading, refetch, createTask, deleteTask, toggleTask } = useTasks();
+  const { tasks, loading, refetch, createTask, deleteTask, toggleTask, incrementSet } = useTasks();
   const [formVisible, setFormVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -122,6 +122,7 @@ export default function TasksScreen() {
                   <TaskCard
                     task={task}
                     onToggle={toggleTask}
+                    onIncrementSet={incrementSet}
                     onDelete={handleDelete}
                   />
                 </FadeIn>

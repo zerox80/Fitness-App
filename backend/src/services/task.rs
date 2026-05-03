@@ -29,6 +29,7 @@ pub async fn create_task(
         &req.recurrence,
         &custom_days,
         &req.category,
+        req.target_sets.unwrap_or(1),
     )
     .await
 }
@@ -56,6 +57,7 @@ pub async fn update_task(
         req.custom_days.as_deref(),
         req.category.as_ref(),
         req.is_active,
+        req.target_sets,
     )
     .await
 }
@@ -94,16 +96,53 @@ pub async fn toggle_task_completion(
         return Err(AppError::NotFound);
     }
 
-    let completed_ids = tasks::get_completions_for_date(&state.pool, user_id, date).await?;
-    let is_completed = completed_ids.contains(&task_id);
+    let completed_ids_with_sets = tasks::get_completions_for_date(&state.pool, user_id, date).await?;
+    let existing_completion = completed_ids_with_sets.iter().find(|(id, _)| *id == task_id);
 
-    if is_completed {
+    if let Some((_, _)) = existing_completion {
         tasks::uncomplete_task(&state.pool, task_id, user_id, date).await?;
         Ok(false)
     } else {
-        tasks::complete_task(&state.pool, task_id, user_id, date).await?;
+        tasks::complete_task(&state.pool, task_id, user_id, date, 1).await?;
         Ok(true)
     }
+}
+
+pub async fn increment_task_set(
+    state: &AppState,
+    task_id: Uuid,
+    user_id: Uuid,
+    date: NaiveDate,
+) -> Result<i32, AppError> {
+    let task = tasks::find_by_id(&state.pool, task_id, user_id).await?;
+    let task = task.ok_or(AppError::NotFound)?;
+
+    let completed_ids_with_sets = tasks::get_completions_for_date(&state.pool, user_id, date).await?;
+    let existing_sets = completed_ids_with_sets
+        .iter()
+        .find(|(id, _)| *id == task_id)
+        .map(|(_, sets)| *sets)
+        .unwrap_or(0);
+
+    let new_sets = if existing_sets >= task.target_sets {
+        // Already finished, toggle off? Or just stay at target.
+        // For increment, let's just stay at target or maybe wrap?
+        // User said "merk mir nicht wv sätze ich hab", so wrapping might be bad.
+        // Let's just cap at target or allow going over?
+        // Actually, if they click again, maybe they want to reset?
+        // But the user specifically asked for "anklicken wenn satz fertig".
+        0
+    } else {
+        existing_sets + 1
+    };
+
+    if new_sets == 0 {
+        tasks::uncomplete_task(&state.pool, task_id, user_id, date).await?;
+    } else {
+        tasks::complete_task(&state.pool, task_id, user_id, date, new_sets).await?;
+    }
+
+    Ok(new_sets)
 }
 
 pub async fn get_tasks_with_completion(
@@ -112,25 +151,30 @@ pub async fn get_tasks_with_completion(
     date: NaiveDate,
 ) -> Result<Vec<TaskWithCompletionStatus>, AppError> {
     let all_tasks = tasks::list_by_user(&state.pool, user_id).await?;
-    let completed_ids = tasks::get_completions_for_date(&state.pool, user_id, date).await?;
+    let completed_ids_with_sets = tasks::get_completions_for_date(&state.pool, user_id, date).await?;
 
     let weekday = date.weekday().num_days_from_monday() as i32;
 
     let filtered: Vec<TaskWithCompletionStatus> = all_tasks
         .into_iter()
         .filter(|task| task_is_scheduled(task, weekday))
-        .map(|task| TaskWithCompletionStatus {
-            completed_today: completed_ids.contains(&task.id),
-            id: task.id,
-            user_id: task.user_id,
-            title: task.title,
-            description: task.description,
-            recurrence: task.recurrence,
-            custom_days: task.custom_days,
-            category: task.category,
-            is_active: task.is_active,
-            created_at: task.created_at,
-            updated_at: task.updated_at,
+        .map(|task| {
+            let completion = completed_ids_with_sets.iter().find(|(id, _)| *id == task.id);
+            TaskWithCompletionStatus {
+                completed_today: completion.is_some(),
+                completed_sets_today: completion.map(|(_, sets)| *sets).unwrap_or(0),
+                id: task.id,
+                user_id: task.user_id,
+                title: task.title,
+                description: task.description,
+                recurrence: task.recurrence,
+                custom_days: task.custom_days,
+                category: task.category,
+                is_active: task.is_active,
+                target_sets: task.target_sets,
+                created_at: task.created_at,
+                updated_at: task.updated_at,
+            }
         })
         .collect();
 

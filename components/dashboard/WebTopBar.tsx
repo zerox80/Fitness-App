@@ -4,9 +4,9 @@ import { Bell, Search, User as UserIcon } from 'lucide-react-native';
 import { avatarUri, palette } from '@/constants/dashboard-constants';
 import { webStyles } from './dashboard-web.styles';
 
-export function WebTopBar() {
+export function WebTopBar({ collapsed }: { collapsed?: boolean }) {
   return (
-    <View style={webStyles.webTopBar}>
+    <View style={[webStyles.webTopBar, collapsed && { paddingHorizontal: 20 }]}>
       <View style={webStyles.searchBox}>
         <Search size={22} color={palette.muted} strokeWidth={2.1} />
         <Text style={webStyles.searchPlaceholder}>Suche nach Aktivitäten, Trainings...</Text>

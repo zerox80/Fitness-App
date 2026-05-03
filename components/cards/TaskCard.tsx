@@ -22,21 +22,35 @@ const CATEGORY_COLORS: Record<ApiTaskCategory, string> = {
 interface TaskCardProps {
   task: ApiTaskWithCompletion;
   onToggle: (id: string) => void;
+  onIncrementSet: (id: string) => void;
   onDelete: (id: string) => void;
 }
 
-export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
+export function TaskCard({ task, onToggle, onIncrementSet, onDelete }: TaskCardProps) {
   const Icon = CATEGORY_ICONS[task.category];
   const accentColor = CATEGORY_COLORS[task.category];
+
+  const handlePress = () => {
+    if (task.target_sets > 1) {
+      onIncrementSet(task.id);
+    } else {
+      onToggle(task.id);
+    }
+  };
 
   return (
     <View style={[styles.card, task.completed_today && styles.cardCompleted]}>
       <TouchableOpacity
         style={[styles.checkbox, task.completed_today && { backgroundColor: accentColor, borderColor: accentColor }]}
-        onPress={() => onToggle(task.id)}
+        onPress={handlePress}
         activeOpacity={0.7}
       >
-        {task.completed_today && <Check size={16} color="#FFFFFF" strokeWidth={3} />}
+        {task.completed_today && task.target_sets <= 1 && <Check size={16} color="#FFFFFF" strokeWidth={3} />}
+        {task.target_sets > 1 && (
+          <Text style={[styles.setCount, task.completed_today && { color: '#FFFFFF' }]}>
+            {task.completed_sets_today}
+          </Text>
+        )}
       </TouchableOpacity>
 
       <View style={styles.iconBox}>
@@ -56,6 +70,11 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
           <Text style={styles.recurrence}>
             {TASK_RECURRENCE_LABELS[task.recurrence]}
           </Text>
+          {task.target_sets > 1 && (
+            <Text style={[styles.setProgress, task.completed_today && task.completed_sets_today >= task.target_sets && { color: accentColor }]}>
+              • {task.completed_sets_today} / {task.target_sets} Sätze
+            </Text>
+          )}
         </View>
       </View>
 
@@ -140,5 +159,15 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  setCount: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: Colors.text,
+  },
+  setProgress: {
+    fontSize: 11,
+    color: Colors.textMuted,
+    fontWeight: '700',
   },
 });

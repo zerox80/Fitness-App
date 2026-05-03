@@ -13,33 +13,44 @@ import { TrainingList } from './TrainingList';
 import { WebSidebar } from './WebSidebar';
 import { WebTopBar } from './WebTopBar';
 
+import { useWindowDimensions } from 'react-native';
+
 export function WebDashboard({ data }: { data: DashboardData }) {
+  const { width } = useWindowDimensions();
+  const isMedium = width < 1100;
+
   return (
-    <View style={webStyles.webContent}>
-      <FadeIn delay={0}>
-        <View style={webStyles.webGreetingBlock}>
-          <Text style={webStyles.webGreeting}>Hallo, {data.name}! 👋</Text>
-          <Text style={webStyles.webSubtitle}>Schön, dass du dranbleibst.</Text>
+    <ScrollView 
+      style={{ flex: 1 }}
+      contentContainerStyle={[webStyles.webScrollContent, isMedium && { paddingHorizontal: 24 }]}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={webStyles.webContent}>
+        <FadeIn delay={0}>
+          <View style={webStyles.webGreetingBlock}>
+            <Text style={webStyles.webGreeting}>Hallo, {data.name}! 👋</Text>
+            <Text style={webStyles.webSubtitle}>Schön, dass du dranbleibst.</Text>
+          </View>
+        </FadeIn>
+
+        <View style={webStyles.webCardsRow}>
+          <FadeIn delay={80} style={webStyles.webOverviewFlex}>
+            <OverviewCard data={data} desktop />
+          </FadeIn>
+          <FadeIn delay={140} style={webStyles.webMetricCardFlex}>
+            <HeartCard desktop />
+          </FadeIn>
+          <FadeIn delay={200} style={webStyles.webMetricCardFlex}>
+            <WeekCard desktop />
+          </FadeIn>
         </View>
-      </FadeIn>
 
-              <View style={webStyles.webCardsRow}>
-                <FadeIn delay={80} style={webStyles.webOverviewFlex}>
-                  <OverviewCard data={data} desktop />
-                </FadeIn>
-                <FadeIn delay={140} style={webStyles.webMetricCardFlex}>
-                  <HeartCard desktop />
-                </FadeIn>
-                <FadeIn delay={200} style={webStyles.webMetricCardFlex}>
-                  <WeekCard desktop />
-                </FadeIn>
-              </View>
-
-              <FadeIn delay={260}>
-                <View style={webStyles.webTrainingSection}>
-                  <TrainingList desktop />
-                </View>
-              </FadeIn>
-    </View>
+        <FadeIn delay={260}>
+          <View style={webStyles.webTrainingSection}>
+            <TrainingList desktop />
+          </View>
+        </FadeIn>
+      </View>
+    </ScrollView>
   );
 }

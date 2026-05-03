@@ -17,6 +17,7 @@ function formatGermanDate(date: Date) {
 
 export default function HomeScreen() {
   const { user } = useAuth();
+  const { width } = useWindowDimensions();
   const [activity, setActivity] = useState<DailyActivity | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -56,6 +57,10 @@ export default function HomeScreen() {
     steps,
     onRefresh,
   };
+
+  if (Platform.OS === 'web' && width >= DESKTOP_BREAKPOINT) {
+    return <WebDashboard data={data} />;
+  }
 
   return <MobileHome data={data} />;
 }

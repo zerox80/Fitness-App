@@ -34,11 +34,12 @@ pub async fn create(
     recurrence: &TaskRecurrence,
     custom_days: &[i32],
     category: &TaskCategory,
+    target_sets: i32,
 ) -> Result<Task, AppError> {
     sqlx::query_as::<_, Task>(
         r#"
-        INSERT INTO tasks (user_id, title, description, recurrence, custom_days, category)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO tasks (user_id, title, description, recurrence, custom_days, category, target_sets)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
         "#,
     )
@@ -48,6 +49,7 @@ pub async fn create(
     .bind(recurrence)
     .bind(custom_days)
     .bind(category)
+    .bind(target_sets)
     .fetch_one(pool)
     .await
     .map_err(AppError::Database)
@@ -64,6 +66,7 @@ pub async fn update(
     custom_days: Option<&[i32]>,
     category: Option<&TaskCategory>,
     is_active: Option<bool>,
+    target_sets: Option<i32>,
 ) -> Result<Option<Task>, AppError> {
     sqlx::query_as::<_, Task>(
         r#"
@@ -75,6 +78,7 @@ pub async fn update(
             custom_days = COALESCE($6, custom_days),
             category = COALESCE($7, category),
             is_active = COALESCE($8, is_active),
+            target_sets = COALESCE($9, target_sets),
             updated_at = NOW()
         WHERE id = $1 AND user_id = $2
         RETURNING *
@@ -88,6 +92,7 @@ pub async fn update(
     .bind(custom_days)
     .bind(category)
     .bind(is_active)
+    .bind(target_sets)
     .fetch_optional(pool)
     .await
     .map_err(AppError::Database)
@@ -108,18 +113,21 @@ pub async fn complete_task(
     task_id: Uuid,
     user_id: Uuid,
     date: NaiveDate,
+    completed_sets: i32,
 ) -> Result<TaskCompletion, AppError> {
     sqlx::query_as::<_, TaskCompletion>(
         r#"
-        INSERT INTO task_completions (task_id, user_id, completed_date)
-        VALUES ($1, $2, $3)
-        ON CONFLICT (task_id, completed_date) DO NOTHING
+        INSERT INTO task_completions (task_id, user_id, completed_date, completed_sets)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (task_id, completed_date) DO UPDATE
+        SET completed_sets = EXCLUDED.completed_sets
         RETURNING *
         "#,
     )
     .bind(task_id)
     .bind(user_id)
     .bind(date)
+    .bind(completed_sets)
     .fetch_one(pool)
     .await
     .map_err(AppError::Database)
@@ -147,16 +155,16 @@ pub async fn get_completions_for_date(
     pool: &PgPool,
     user_id: Uuid,
     date: NaiveDate,
-) -> Result<Vec<Uuid>, AppError> {
-    let rows: Vec<(Uuid,)> = sqlx::query_as(
-        "SELECT task_id FROM task_completions WHERE user_id = $1 AND completed_date = $2",
+) -> Result<Vec<(Uuid, i32)>, AppError> {
+    let rows: Vec<(Uuid, i32)> = sqlx::query_as(
+        "SELECT task_id, completed_sets FROM task_completions WHERE user_id = $1 AND completed_date = $2",
     )
     .bind(user_id)
     .bind(date)
     .fetch_all(pool)
     .await
     .map_err(AppError::Database)?;
-    Ok(rows.into_iter().map(|(id,)| id).collect())
+    Ok(rows)
 }
 
 pub async fn get_completion_dates(
