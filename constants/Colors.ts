@@ -1,0 +1,18 @@
+export const Colors = {
+  background: '#F5F7F6',
+  surface: '#FFFFFF',
+  card: '#FFFFFF',
+  cardLight: '#F1F5F3',
+  glass: 'rgba(255, 255, 255, 0.88)',
+  glassBorder: 'rgba(26, 32, 42, 0.08)',
+  primary: '#20B77F',
+  secondary: '#22C7BC',
+  tertiary: '#FF5F70',
+  text: '#18202A',
+  textMuted: '#6D747E',
+  border: '#E5EAED',
+  transparent: 'transparent',
+  primaryGlow: 'rgba(32, 183, 127, 0.12)',
+  secondaryGlow: 'rgba(34, 199, 188, 0.12)',
+  tertiaryGlow: 'rgba(255, 95, 112, 0.12)',
+};

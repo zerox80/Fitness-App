@@ -31,10 +31,22 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
 
 # typescript
 *.tsbuildinfo
+
+# Rust backend
+backend/target/
+backend/Cargo.lock
+
+# IDE
+.vscode/
+.kilo/
+
+# Docker
+docker-compose.override.yml
 
 app-example
 
