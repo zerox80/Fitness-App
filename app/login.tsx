@@ -19,7 +19,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, register } = useAuth();
+  const { user, login, register } = useAuth();
 
   async function handleSubmit() {
     setError('');
