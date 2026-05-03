@@ -41,16 +41,18 @@ export function TaskCard({ task, onToggle, onIncrementSet, onDelete }: TaskCardP
   return (
     <View style={[styles.card, task.completed_today && styles.cardCompleted]}>
       <TouchableOpacity
-        style={[styles.checkbox, task.completed_today && { backgroundColor: accentColor, borderColor: accentColor }]}
+        style={styles.checkboxTouch}
         onPress={handlePress}
         activeOpacity={0.7}
       >
-        {task.completed_today && task.target_sets <= 1 && <Check size={16} color="#FFFFFF" strokeWidth={3} />}
-        {task.target_sets > 1 && (
-          <Text style={[styles.setCount, task.completed_today && { color: '#FFFFFF' }]}>
-            {task.completed_sets_today}
-          </Text>
-        )}
+        <View style={[styles.checkbox, task.completed_today && { backgroundColor: accentColor, borderColor: accentColor }]}>
+          {task.completed_today && task.target_sets <= 1 && <Check size={16} color="#FFFFFF" strokeWidth={3} />}
+          {task.target_sets > 1 && (
+            <Text style={[styles.setCount, task.completed_today && { color: '#FFFFFF' }]}>
+              {task.completed_sets_today}
+            </Text>
+          )}
+        </View>
       </TouchableOpacity>
 
       <View style={styles.iconBox}>
@@ -104,9 +106,14 @@ const styles = StyleSheet.create({
   cardCompleted: {
     opacity: 0.6,
   },
+  checkboxTouch: {
+    padding: 8,
+    marginLeft: -8,
+    marginRight: -8,
+  },
   checkbox: {
-    width: 28,
-    height: 28,
+    width: 32,
+    height: 32,
     borderRadius: 10,
     borderWidth: 2,
     borderColor: Colors.border,

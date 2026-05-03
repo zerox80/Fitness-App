@@ -20,7 +20,7 @@ export default function TasksScreenWeb() {
   const isMobile = width < MOBILE_BP;
   const router = useRouter();
   const params = useLocalSearchParams<{ create?: string }>();
-  const { tasks, loading, refetch, createTask, deleteTask, toggleTask } = useTasks();
+  const { tasks, loading, refetch, createTask, deleteTask, toggleTask, incrementSet } = useTasks();
   const [formVisible, setFormVisible] = useState(false);
 
   const completedCount = tasks.filter((t) => t.completed_today).length;
@@ -75,7 +75,7 @@ export default function TasksScreenWeb() {
           <View style={styles.taskGrid}>
             {tasks.map((task, i) => (
               <FadeIn key={task.id} delay={i * 50}>
-                <TaskCard task={task} onToggle={toggleTask} onDelete={deleteTask} />
+                <TaskCard task={task} onToggle={toggleTask} onIncrementSet={incrementSet} onDelete={deleteTask} />
               </FadeIn>
             ))}
           </View>
