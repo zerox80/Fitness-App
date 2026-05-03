@@ -5,6 +5,7 @@ import { Colors } from '@/constants/Colors';
 import { Workout } from '@/types';
 import { formatDate, formatDuration } from '@/utils/date';
 import { calculateVolume } from '@/utils/numbers';
+import { absoluteFill } from '@/utils/styles';
 
 interface WorkoutCardProps {
   workout: Workout;
@@ -31,7 +32,7 @@ export function WorkoutCard({ workout, onPress }: WorkoutCardProps) {
     <TouchableOpacity style={styles.card} onPress={() => onPress?.(workout)} activeOpacity={0.85}>
       <LinearGradient
         colors={[`${statusColor}06`, 'transparent']}
-        style={StyleSheet.absoluteFillObject}
+        style={absoluteFill}
       />
       <View style={styles.header}>
         <View style={[styles.statusDot, { backgroundColor: statusColor }]} />

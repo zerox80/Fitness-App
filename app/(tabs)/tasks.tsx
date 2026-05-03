@@ -15,6 +15,7 @@ import { TaskForm } from '@/components/forms/TaskForm';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { LoadingSpinner } from '@/components/feedback/LoadingSpinner';
 import { useTasks } from '@/hooks/useTasks';
+import { absoluteFill } from '@/utils/styles';
 
 export default function TasksScreen() {
   const router = useRouter();
@@ -83,7 +84,7 @@ export default function TasksScreen() {
               colors={['rgba(32,183,127,0.08)', 'rgba(34,199,188,0.05)', 'transparent']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={StyleSheet.absoluteFillObject}
+              style={absoluteFill}
             />
             <View style={styles.progressHeader}>
               <View style={styles.progressLeft}>

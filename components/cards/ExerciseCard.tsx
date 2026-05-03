@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/constants/Colors';
 import { Exercise } from '@/types';
+import { absoluteFill } from '@/utils/styles';
 
 interface ExerciseCardProps {
   exercise: Exercise;
@@ -22,7 +23,7 @@ export function ExerciseCard({ exercise, onPress }: ExerciseCardProps) {
     <TouchableOpacity style={styles.card} onPress={() => onPress?.(exercise)} activeOpacity={0.85}>
       <LinearGradient
         colors={[`${diffColor}05`, 'transparent']}
-        style={StyleSheet.absoluteFillObject}
+        style={absoluteFill}
       />
       <View style={styles.header}>
         <Text style={styles.name} numberOfLines={1}>

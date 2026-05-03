@@ -10,6 +10,7 @@ import { ErrorBanner } from '@/components/feedback/ErrorBanner';
 import { ProgressRing } from '@/components/ProgressRing';
 import { FadeIn } from '@/components/FadeIn';
 import { Colors } from '@/constants/Colors';
+import { absoluteFill } from '@/utils/styles';
 
 export default function StatsScreen() {
   const { stats, weeklyGoal, loading, error, refetch } = useStats();
@@ -74,7 +75,7 @@ export default function StatsScreen() {
                 <View style={styles.goalSection}>
                   <LinearGradient
                     colors={['rgba(32,183,127,0.08)', 'transparent']}
-                    style={StyleSheet.absoluteFillObject}
+                    style={absoluteFill}
                   />
                   <View style={styles.goalHeader}>
                     <View style={styles.goalIconBox}>
@@ -104,7 +105,7 @@ export default function StatsScreen() {
                 <View style={styles.favoriteSection}>
                   <LinearGradient
                     colors={['rgba(34,199,188,0.08)', 'transparent']}
-                    style={StyleSheet.absoluteFillObject}
+                    style={absoluteFill}
                   />
                   <Text style={styles.favoriteLabel}>Lieblingsübung</Text>
                   <Text style={styles.favoriteText}>{stats.favoriteExercise}</Text>

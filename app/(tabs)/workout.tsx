@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/constants/Colors';
 import { FadeIn } from '@/components/FadeIn';
 import { api, ApiWorkout } from '@/lib/api';
+import { absoluteFill } from '@/utils/styles';
 
 const CATEGORIES = [
   { label: 'All', value: undefined, icon: Zap, color: Colors.primary },
@@ -230,8 +231,8 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 22, fontWeight: '900', color: Colors.text, marginBottom: 16, letterSpacing: -0.5 },
 
   featuredCard: { height: 300, borderRadius: 28, overflow: 'hidden', marginBottom: 28, justifyContent: 'flex-end' },
-  featuredImage: { ...StyleSheet.absoluteFillObject },
-  featuredGradient: { ...StyleSheet.absoluteFillObject },
+  featuredImage: { ...absoluteFill },
+  featuredGradient: { ...absoluteFill },
   featuredContent: { padding: 24 },
   badge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, marginBottom: 12 },
   badgeText: { fontSize: 11, fontWeight: '900', color: '#FFFFFF', letterSpacing: 0.5 },
@@ -242,8 +243,8 @@ const styles = StyleSheet.create({
   playBtn: { position: 'absolute', right: 20, bottom: 20, width: 56, height: 56, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)' },
 
   listCard: { height: 130, borderRadius: 24, overflow: 'hidden', marginBottom: 14, justifyContent: 'flex-end' },
-  listImage: { ...StyleSheet.absoluteFillObject },
-  listOverlay: { ...StyleSheet.absoluteFillObject },
+  listImage: { ...absoluteFill },
+  listOverlay: { ...absoluteFill },
   listContent: { padding: 20 },
   listTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   badgeSm: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },

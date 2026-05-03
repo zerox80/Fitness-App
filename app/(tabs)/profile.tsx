@@ -11,6 +11,7 @@ import { Colors } from '@/constants/Colors';
 import { FadeIn } from '@/components/FadeIn';
 import { useAuth } from '@/lib/auth-context';
 import { api, UserStats } from '@/lib/api';
+import { absoluteFill } from '@/utils/styles';
 
 const SETTINGS = [
   { icon: Bell, title: 'Notifications', value: 'On', color: Colors.primary },
@@ -48,7 +49,7 @@ export default function ProfileScreen() {
 
           <FadeIn delay={100}>
             <View style={styles.guestCard}>
-              <LinearGradient colors={['rgba(32,183,127,0.08)', 'rgba(34,199,188,0.05)']} style={StyleSheet.absoluteFillObject} />
+              <LinearGradient colors={['rgba(32,183,127,0.08)', 'rgba(34,199,188,0.05)']} style={absoluteFill} />
               <View style={styles.guestIconBox}>
                 <Zap size={36} color={Colors.primary} />
               </View>

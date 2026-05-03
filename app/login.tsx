@@ -10,6 +10,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/constants/Colors';
 import { useAuth } from '@/lib/auth-context';
 import { FadeIn } from '@/components/FadeIn';
+import { absoluteFill } from '@/utils/styles';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -47,7 +48,7 @@ export default function LoginScreen() {
           colors={[Colors.primaryGlow, Colors.background, '#F8FAFC']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={StyleSheet.absoluteFillObject}
+          style={absoluteFill}
         />
       )}
 

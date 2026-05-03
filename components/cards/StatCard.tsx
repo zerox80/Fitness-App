@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/constants/Colors';
+import { absoluteFill } from '@/utils/styles';
 
 interface StatCardProps {
   title: string;
@@ -28,7 +29,7 @@ export function StatCard({ title, value, subtitle, trend, color = Colors.primary
     <View style={styles.card}>
       <LinearGradient
         colors={[`${color}08`, 'transparent']}
-        style={StyleSheet.absoluteFillObject}
+        style={absoluteFill}
       />
       <View style={[styles.accent, { backgroundColor: color }]} />
       <Text style={styles.title}>{title}</Text>

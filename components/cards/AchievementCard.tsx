@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/constants/Colors';
 import { Achievement } from '@/types';
+import { absoluteFill } from '@/utils/styles';
 
 interface AchievementCardProps {
   achievement: Achievement;
@@ -26,7 +27,7 @@ export function AchievementCard({ achievement }: AchievementCardProps) {
     <View style={[styles.card, isUnlocked && styles.unlocked]}>
       <LinearGradient
         colors={isUnlocked ? [`${Colors.primary}08`, 'transparent'] : ['transparent', 'transparent']}
-        style={StyleSheet.absoluteFillObject}
+        style={absoluteFill}
       />
       <View style={styles.header}>
         <View style={styles.iconWrap}>
