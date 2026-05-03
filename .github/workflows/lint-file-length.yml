@@ -1,0 +1,34 @@
+name: Lint File Length
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check-lines:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check line counts
+        run: |
+          errors=0
+          # Find TS, TSX, and RS files, excluding common build/dependency folders
+          files=$(find . -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.rs" \) -not -path "*/node_modules/*" -not -path "*/target/*" -not -path "*/.expo/*" -not -path "*/dist/*")
+          
+          for file in $files; do
+            # Use sed to remove trailing newlines and handle empty files correctly
+            count=$(grep -c $'' "$file")
+            if [ "$count" -gt 500 ]; then
+              echo "::error file=$file,line=1::File $file has $count lines, which exceeds the 500-line limit."
+              errors=$((errors + 1))
+            fi
+          done
+          
+          if [ "$errors" -gt 0 ]; then
+            echo "Total files exceeding limit: $errors"
+            exit 1
+          fi
+          echo "All files are within the 500-line limit."
