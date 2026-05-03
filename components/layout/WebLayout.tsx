@@ -19,13 +19,14 @@ export function WebLayout({ children }: WebLayoutProps) {
     return <>{children}</>;
   }
 
-  const isMedium = width < 1100;
-  const sidebarWidth = isMedium ? 80 : 270;
+  const isUltraWide = width >= 2000;
+  const isMedium = width < 1200;
+  const sidebarWidth = isMedium ? 80 : 280;
 
   return (
-    <SafeAreaView style={webStyles.webSafeArea} edges={['top']}>
+    <SafeAreaView style={[webStyles.webSafeArea, isUltraWide && { backgroundColor: '#F0F2F5' }]} edges={['top']}>
       <StatusBar style="dark" />
-      <View style={webStyles.webShell}>
+      <View style={[webStyles.webShell, isUltraWide && { maxWidth: 2200, alignSelf: 'center', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 50, elevation: 10 }]}>
         <WebSidebar collapsed={isMedium} />
         <View style={webStyles.webMain}>
           <WebTopBar collapsed={isMedium} />

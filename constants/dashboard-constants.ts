@@ -11,8 +11,9 @@ import {
 
 export const STEP_GOAL = 10000;
 export const DESKTOP_BREAKPOINT = 900;
-export const WIDE_BREAKPOINT = 650;
-export const WEB_CONTENT_MAX_WIDTH = 1280;
+export const WIDE_BREAKPOINT = 1200;
+export const ULTRA_WIDE_BREAKPOINT = 1800;
+export const WEB_CONTENT_MAX_WIDTH = 1600;
 
 export const palette = {
   background: '#F5F7F6',
@@ -31,6 +32,11 @@ export const palette = {
   redSoft: '#FFE2E5',
   shadow: '#C9D1D8',
   track: '#EBEEF1',
+  // Premium additions
+  accent: '#20B77F',
+  accentLight: '#E8F8F2',
+  glass: 'rgba(255, 255, 255, 0.8)',
+  glassBorder: 'rgba(255, 255, 255, 0.2)',
 };
 
 export const avatarUri = null;

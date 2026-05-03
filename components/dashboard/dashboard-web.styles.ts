@@ -160,14 +160,23 @@ export const webStyles = StyleSheet.create({
   },
   webScrollContent: {
     paddingHorizontal: 48,
-    paddingTop: 22,
-    paddingBottom: 42,
+    paddingTop: 34,
+    paddingBottom: 60,
   },
   webContent: {
     width: '100%',
     maxWidth: WEB_CONTENT_MAX_WIDTH,
     alignSelf: 'center',
     flex: 1,
+  },
+  webGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 20,
+    marginHorizontal: -10,
+  },
+  webGridItem: {
+    padding: 10,
   },
   webGreetingBlock: {
     marginBottom: 22,

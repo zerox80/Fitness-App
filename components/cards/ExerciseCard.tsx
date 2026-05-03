@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/constants/Colors';
 import { Exercise } from '@/types';
@@ -97,9 +97,16 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 18,
     marginBottom: 10,
+    marginHorizontal: 8,
     borderWidth: 1,
     borderColor: Colors.glassBorder,
     overflow: 'hidden',
+    ...Platform.select({
+      web: {
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        cursor: 'pointer',
+      }
+    })
   },
   header: {
     flexDirection: 'row',

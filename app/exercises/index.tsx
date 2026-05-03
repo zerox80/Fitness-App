@@ -23,16 +23,23 @@ const muscleGroupOptions: { label: string; value: MuscleGroup | 'all' }[] = [
   { label: 'Arme', value: 'biceps' },
 ];
 
+import { useWindowDimensions, Platform } from 'react-native';
+
 export default function ExercisesScreen() {
   const [search, setSearch] = useState('');
   const [muscleGroup, setMuscleGroup] = useState<MuscleGroup | 'all'>('all');
   const debouncedSearch = useDebounce(search, 300);
   const router = useRouter();
+  const { width } = useWindowDimensions();
 
   const { exercises, loading, error, refetch } = useExercises({
     muscleGroup: muscleGroup === 'all' ? undefined : muscleGroup,
     search: debouncedSearch || undefined,
   });
+
+  const numColumns = Platform.OS === 'web' 
+    ? (width > 1400 ? 3 : width > 800 ? 2 : 1)
+    : 1;
 
   const handlePress = (exercise: Exercise) => {
     console.log('Selected exercise:', exercise.name);
@@ -41,17 +48,22 @@ export default function ExercisesScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <FlatList
+        key={numColumns} // Force re-render when numColumns changes
         data={exercises}
+        numColumns={numColumns}
         keyExtractor={(item) => item.id}
         renderItem={({ item, index }) => (
-          <FadeIn delay={200 + index * 50}>
+          <FadeIn delay={200 + index * 50} style={numColumns > 1 ? { flex: 1/numColumns } : undefined}>
             <ExerciseCard exercise={item} onPress={handlePress} />
           </FadeIn>
         )}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[
+          styles.list,
+          numColumns > 1 && { paddingHorizontal: 12 }
+        ]}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
-          <>
+          <View style={numColumns > 1 ? { width: width > 1600 ? 1600 - 80 : width - 120, alignSelf: 'center' } : undefined}>
             <FadeIn delay={0}>
               <Text style={styles.header}>Übungen</Text>
             </FadeIn>
@@ -83,7 +95,7 @@ export default function ExercisesScreen() {
             </FadeIn>
             {error && <ErrorBanner message={error} onRetry={refetch} />}
             {loading && <LoadingSpinner message="Übungen werden geladen..." />}
-          </>
+          </View>
         }
         ListEmptyComponent={
           !loading ? (

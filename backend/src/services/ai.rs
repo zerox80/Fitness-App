@@ -50,7 +50,8 @@ impl AiService {
                     { "role": "system", "content": system_prompt },
                     { "role": "user", "content": user_prompt }
                 ],
-                "response_format": { "type": "json_object" }
+                "response_format": { "type": "json_object" },
+                "thinking": { "type": "disabled" }
             }))
             .send()
             .await
