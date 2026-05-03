@@ -137,14 +137,26 @@ mod tests {
 
     #[test]
     fn test_is_same_day_true() {
-        let a = Utc::now();
+        let a = DateTime::<Utc>::from_naive_utc_and_offset(
+            NaiveDate::from_ymd_opt(2026, 4, 22)
+                .unwrap()
+                .and_hms_opt(12, 0, 0)
+                .unwrap(),
+            Utc,
+        );
         let b = a + chrono::Duration::hours(5);
         assert!(is_same_day(a, b));
     }
 
     #[test]
     fn test_is_same_day_false() {
-        let a = Utc::now();
+        let a = DateTime::<Utc>::from_naive_utc_and_offset(
+            NaiveDate::from_ymd_opt(2026, 4, 22)
+                .unwrap()
+                .and_hms_opt(12, 0, 0)
+                .unwrap(),
+            Utc,
+        );
         let b = a + chrono::Duration::days(1);
         assert!(!is_same_day(a, b));
     }
