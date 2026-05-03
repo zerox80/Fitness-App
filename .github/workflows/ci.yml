@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Lint: File Length ──────────────────────────────────────────────
+  lint-file-length:
+    name: Lint · File Length
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check line counts (max 500)
+        run: |
+          errors=0
+          files=$(find . -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.rs" \) \
+            -not -path "*/node_modules/*" \
+            -not -path "*/target/*" \
+            -not -path "*/.expo/*" \
+            -not -path "*/dist/*")
+
+          for file in $files; do
+            count=$(grep -c $'' "$file")
+            if [ "$count" -gt 500 ]; then
+              echo "::error file=$file,line=1::File $file has $count lines (limit: 500)."
+              errors=$((errors + 1))
+            fi
+          done
+
+          if [ "$errors" -gt 0 ]; then
+            echo "❌ $errors file(s) exceed the 500-line limit."
+            exit 1
+          fi
+          echo "✅ All files are within the 500-line limit."
+
+  # ── Frontend: TypeScript & Vitest ─────────────────────────────────
+  frontend-tests:
+    name: Frontend · Vitest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Vitest
+        run: npm test
+
+  # ── Backend: Rust ─────────────────────────────────────────────────
+  backend-tests:
+    name: Backend · Cargo Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            backend/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('backend/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Run cargo test
+        run: cargo test --no-fail-fast
+
+      - name: Run cargo clippy
+        run: cargo clippy -- -D warnings
