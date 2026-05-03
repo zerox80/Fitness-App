@@ -32,8 +32,7 @@ export const palette = {
   track: '#EBEEF1',
 };
 
-export const avatarUri =
-  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=160&q=80';
+export const avatarUri = null;
 
 export const trainings = [
   { title: 'Laufen', meta: '30 Min · 5,2 km · Mittel', kcal: 320, icon: PersonStanding, color: '#64C80E' },
@@ -43,13 +42,13 @@ export const trainings = [
 ];
 
 export const weeklyProgress = [
-  { day: 'M', progress: 0.72, done: true },
-  { day: 'D', progress: 0.66, done: false },
-  { day: 'M', progress: 0.70, done: true },
-  { day: 'D', progress: 0.72, done: true },
-  { day: 'F', progress: 0.78, done: false },
-  { day: 'S', progress: 0.52, done: false },
-  { day: 'S', progress: 0.80, done: false, muted: true },
+  { day: 'M', progress: 0, done: false },
+  { day: 'D', progress: 0, done: false },
+  { day: 'M', progress: 0, done: false },
+  { day: 'D', progress: 0, done: false },
+  { day: 'F', progress: 0, done: false },
+  { day: 'S', progress: 0, done: false },
+  { day: 'S', progress: 0, done: false },
 ];
 
 export const sidebarItems = [

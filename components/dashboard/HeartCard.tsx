@@ -16,9 +16,9 @@ export function HeartCard({ desktop = false }: { desktop?: boolean }) {
         </View>
       </View>
       <Text style={[styles.heartValue, desktop && webStyles.webHeartValue]}>
-        128 <Text style={styles.heartUnit}>bpm</Text>
+        0 <Text style={styles.heartUnit}>bpm</Text>
       </Text>
-      <Text style={styles.cardMuted}>Durchschnitt</Text>
+      <Text style={styles.cardMuted}>Keine Daten</Text>
       <HeartRateChart compact={desktop} />
       <View style={styles.timeLabels}>
         <Text style={styles.timeLabel}>00:00</Text>

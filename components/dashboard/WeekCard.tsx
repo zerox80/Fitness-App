@@ -16,9 +16,9 @@ export function WeekCard({ desktop = false }: { desktop?: boolean }) {
         </View>
       </View>
       <Text style={[styles.weekValue, desktop && webStyles.webWeekValue]}>
-        4 <Text style={styles.weekUnit}>von 7</Text>
+        0 <Text style={styles.weekUnit}>von 7</Text>
       </Text>
-      <Text style={styles.cardMuted}>Ziele erreicht</Text>
+      <Text style={styles.cardMuted}>Diese Woche</Text>
       <View style={styles.weekBars}>
         {weeklyProgress.map((item, index) => (
           <View key={`${item.day}-${index}`} style={styles.weekBarItem}>

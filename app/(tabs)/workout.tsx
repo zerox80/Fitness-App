@@ -78,7 +78,9 @@ export default function WorkoutScreen() {
               <FadeIn delay={200}>
                 <Text style={styles.sectionTitle}>Featured</Text>
                 <TouchableOpacity style={styles.featuredCard} activeOpacity={0.9}>
-                  <Image source={{ uri: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=800&q=80' }} style={styles.featuredImage} />
+                  <View style={[styles.featuredImage, { backgroundColor: Colors.cardLight, alignItems: 'center', justifyContent: 'center' }]}>
+                    <Dumbbell size={80} color={Colors.glassBorder} />
+                  </View>
                   <LinearGradient colors={['transparent', 'rgba(0,0,0,0.75)']} style={styles.featuredGradient} />
                   <View style={styles.featuredContent}>
                     <View style={[styles.badge, { backgroundColor: Colors.tertiary }]}>
@@ -108,16 +110,14 @@ export default function WorkoutScreen() {
             {rest.map((w, i) => (
               <FadeIn key={w.id} delay={350 + i * 70}>
                 <TouchableOpacity style={styles.listCard} activeOpacity={0.85}>
-                  <Image source={{ uri: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=800&q=80' }} style={styles.listImage} />
+                  <View style={[styles.listImage, { backgroundColor: Colors.cardLight, alignItems: 'center', justifyContent: 'center' }]}>
+                    <Zap size={40} color={Colors.glassBorder} />
+                  </View>
                   <LinearGradient colors={['transparent', 'rgba(0,0,0,0.5)']} style={styles.listOverlay} />
                   <View style={styles.listContent}>
                     <View style={styles.listTop}>
                       <View style={[styles.badgeSm, { backgroundColor: w.completed_at ? Colors.primary : Colors.secondary }]}>
                         <Text style={styles.badgeSmText}>{w.completed_at ? 'COMPLETED' : w.intensity.toUpperCase()}</Text>
-                      </View>
-                      <View style={styles.rating}>
-                        <Star size={12} color={Colors.primary} fill={Colors.primary} />
-                        <Text style={styles.ratingText}>4.8</Text>
                       </View>
                     </View>
                     <Text style={styles.listTitle}>{w.title}</Text>
@@ -126,7 +126,7 @@ export default function WorkoutScreen() {
                       <Text style={styles.metaText}>{w.duration_minutes} min</Text>
                       <View style={styles.dotSep} />
                       <Flame size={13} color={Colors.textMuted} />
-                      <Text style={styles.metaText}>320 kcal</Text>
+                      <Text style={styles.metaText}>0 kcal</Text>
                     </View>
                   </View>
                 </TouchableOpacity>
