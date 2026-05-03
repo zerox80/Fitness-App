@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity } from 'react-native';
-import { Bell, Search } from 'lucide-react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { Bell, Search, User as UserIcon } from 'lucide-react-native';
 import { avatarUri, palette } from '@/constants/dashboard-constants';
 import { webStyles } from './dashboard-web.styles';
 
