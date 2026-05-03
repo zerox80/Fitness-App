@@ -6,7 +6,7 @@ use crate::{
     models::task::*,
     repository::tasks,
     state::AppState,
-    validators::task::{validate_custom_days, validate_task_title},
+    validators::task::{validate_custom_days, validate_target_sets, validate_task_title},
 };
 
 pub async fn create_task(
@@ -21,15 +21,20 @@ pub async fn create_task(
     }
 
     let custom_days = req.custom_days.unwrap_or_default();
+    let target_sets = req.target_sets.unwrap_or(1);
+    validate_target_sets(target_sets)?;
+
     tasks::create(
         &state.pool,
-        user_id,
-        &req.title,
-        req.description.as_deref(),
-        &req.recurrence,
-        &custom_days,
-        &req.category,
-        req.target_sets.unwrap_or(1),
+        tasks::CreateTaskParams {
+            user_id,
+            title: &req.title,
+            description: req.description.as_deref(),
+            recurrence: &req.recurrence,
+            custom_days: &custom_days,
+            category: &req.category,
+            target_sets,
+        },
     )
     .await
 }
@@ -46,18 +51,23 @@ pub async fn update_task(
     if let Some(ref days) = req.custom_days {
         validate_custom_days(days)?;
     }
+    if let Some(target_sets) = req.target_sets {
+        validate_target_sets(target_sets)?;
+    }
 
     tasks::update(
         &state.pool,
-        task_id,
-        user_id,
-        req.title.as_deref(),
-        req.description.as_deref(),
-        req.recurrence.as_ref(),
-        req.custom_days.as_deref(),
-        req.category.as_ref(),
-        req.is_active,
-        req.target_sets,
+        tasks::UpdateTaskParams {
+            id: task_id,
+            user_id,
+            title: req.title.as_deref(),
+            description: req.description.as_deref(),
+            recurrence: req.recurrence.as_ref(),
+            custom_days: req.custom_days.as_deref(),
+            category: req.category.as_ref(),
+            is_active: req.is_active,
+            target_sets: req.target_sets,
+        },
     )
     .await
 }

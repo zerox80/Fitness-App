@@ -7,6 +7,8 @@ import {
   RefreshControl,
   Platform,
   useWindowDimensions,
+  type StyleProp,
+  type ViewStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -26,7 +28,10 @@ export function MobileHome({ data }: { data: DashboardData }) {
   const isCompact = viewportWidth < 430;
   const isNarrow = viewportWidth < 380;
   const isWide = viewportWidth >= WIDE_BREAKPOINT;
-  const mobileFrameStyle = Platform.OS === 'web' ? styles.webMobileFrame : null;
+  const mobileFrameStyle: StyleProp<ViewStyle> = Platform.OS === 'web'
+    ? [styles.webMobileFrame, { width: Math.max(0, viewportWidth - 40) }]
+    : null;
+  const avatarSource = avatarUri ? { uri: avatarUri } : undefined;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -42,7 +47,7 @@ export function MobileHome({ data }: { data: DashboardData }) {
               <Text style={styles.greeting}>Hallo, {data.name}! 👋</Text>
               <Text style={styles.subtitle}>Schön, dass du dranbleibst.</Text>
             </View>
-            <Image source={{ uri: avatarUri }} style={styles.avatar} />
+            <Image source={avatarSource} style={styles.avatar} />
           </View>
         </FadeIn>
 

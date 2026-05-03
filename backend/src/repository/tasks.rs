@@ -3,6 +3,28 @@ use chrono::NaiveDate;
 use sqlx::PgPool;
 use uuid::Uuid;
 
+pub struct CreateTaskParams<'a> {
+    pub user_id: Uuid,
+    pub title: &'a str,
+    pub description: Option<&'a str>,
+    pub recurrence: &'a TaskRecurrence,
+    pub custom_days: &'a [i32],
+    pub category: &'a TaskCategory,
+    pub target_sets: i32,
+}
+
+pub struct UpdateTaskParams<'a> {
+    pub id: Uuid,
+    pub user_id: Uuid,
+    pub title: Option<&'a str>,
+    pub description: Option<&'a str>,
+    pub recurrence: Option<&'a TaskRecurrence>,
+    pub custom_days: Option<&'a [i32]>,
+    pub category: Option<&'a TaskCategory>,
+    pub is_active: Option<bool>,
+    pub target_sets: Option<i32>,
+}
+
 pub async fn list_by_user(pool: &PgPool, user_id: Uuid) -> Result<Vec<Task>, AppError> {
     sqlx::query_as::<_, Task>(
         "SELECT * FROM tasks WHERE user_id = $1 AND is_active = true ORDER BY created_at DESC",
@@ -26,16 +48,7 @@ pub async fn find_by_id(
         .map_err(AppError::Database)
 }
 
-pub async fn create(
-    pool: &PgPool,
-    user_id: Uuid,
-    title: &str,
-    description: Option<&str>,
-    recurrence: &TaskRecurrence,
-    custom_days: &[i32],
-    category: &TaskCategory,
-    target_sets: i32,
-) -> Result<Task, AppError> {
+pub async fn create(pool: &PgPool, params: CreateTaskParams<'_>) -> Result<Task, AppError> {
     sqlx::query_as::<_, Task>(
         r#"
         INSERT INTO tasks (user_id, title, description, recurrence, custom_days, category, target_sets)
@@ -43,31 +56,19 @@ pub async fn create(
         RETURNING *
         "#,
     )
-    .bind(user_id)
-    .bind(title)
-    .bind(description)
-    .bind(recurrence)
-    .bind(custom_days)
-    .bind(category)
-    .bind(target_sets)
+    .bind(params.user_id)
+    .bind(params.title)
+    .bind(params.description)
+    .bind(params.recurrence)
+    .bind(params.custom_days)
+    .bind(params.category)
+    .bind(params.target_sets)
     .fetch_one(pool)
     .await
     .map_err(AppError::Database)
 }
 
-#[allow(clippy::too_many_arguments)]
-pub async fn update(
-    pool: &PgPool,
-    id: Uuid,
-    user_id: Uuid,
-    title: Option<&str>,
-    description: Option<&str>,
-    recurrence: Option<&TaskRecurrence>,
-    custom_days: Option<&[i32]>,
-    category: Option<&TaskCategory>,
-    is_active: Option<bool>,
-    target_sets: Option<i32>,
-) -> Result<Option<Task>, AppError> {
+pub async fn update(pool: &PgPool, params: UpdateTaskParams<'_>) -> Result<Option<Task>, AppError> {
     sqlx::query_as::<_, Task>(
         r#"
         UPDATE tasks
@@ -84,15 +85,15 @@ pub async fn update(
         RETURNING *
         "#,
     )
-    .bind(id)
-    .bind(user_id)
-    .bind(title)
-    .bind(description)
-    .bind(recurrence)
-    .bind(custom_days)
-    .bind(category)
-    .bind(is_active)
-    .bind(target_sets)
+    .bind(params.id)
+    .bind(params.user_id)
+    .bind(params.title)
+    .bind(params.description)
+    .bind(params.recurrence)
+    .bind(params.custom_days)
+    .bind(params.category)
+    .bind(params.is_active)
+    .bind(params.target_sets)
     .fetch_optional(pool)
     .await
     .map_err(AppError::Database)

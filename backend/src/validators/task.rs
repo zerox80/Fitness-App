@@ -1,5 +1,8 @@
 use crate::error::AppError;
 
+pub const MIN_TARGET_SETS: i32 = 1;
+pub const MAX_TARGET_SETS: i32 = 50;
+
 pub fn validate_task_title(title: &str) -> Result<(), AppError> {
     if title.trim().is_empty() {
         return Err(AppError::Validation("Task title is required".to_string()));
@@ -32,6 +35,16 @@ pub fn validate_custom_days(days: &[i32]) -> Result<(), AppError> {
         return Err(AppError::Validation(
             "Custom days must not contain duplicates".to_string(),
         ));
+    }
+    Ok(())
+}
+
+pub fn validate_target_sets(target_sets: i32) -> Result<(), AppError> {
+    if !(MIN_TARGET_SETS..=MAX_TARGET_SETS).contains(&target_sets) {
+        return Err(AppError::Validation(format!(
+            "Target sets must be between {} and {}",
+            MIN_TARGET_SETS, MAX_TARGET_SETS
+        )));
     }
     Ok(())
 }
@@ -95,5 +108,30 @@ mod tests {
     #[test]
     fn test_validate_custom_days_all_week() {
         assert!(validate_custom_days(&[0, 1, 2, 3, 4, 5, 6]).is_ok());
+    }
+
+    #[test]
+    fn test_validate_target_sets_minimum() {
+        assert!(validate_target_sets(1).is_ok());
+    }
+
+    #[test]
+    fn test_validate_target_sets_maximum() {
+        assert!(validate_target_sets(50).is_ok());
+    }
+
+    #[test]
+    fn test_validate_target_sets_zero() {
+        assert!(validate_target_sets(0).is_err());
+    }
+
+    #[test]
+    fn test_validate_target_sets_negative() {
+        assert!(validate_target_sets(-1).is_err());
+    }
+
+    #[test]
+    fn test_validate_target_sets_too_high() {
+        assert!(validate_target_sets(51).is_err());
     }
 }

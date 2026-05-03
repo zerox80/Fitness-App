@@ -111,10 +111,11 @@ describe('useDebounce', () => {
     const { renderHook, act } = await import('@testing-library/react');
     const { useDebounce } = await import('@/hooks/useDebounce');
 
-    const obj1 = { a: 1 };
-    const obj2 = { b: 2 };
+    type DebouncedObject = { a?: number; b?: number };
+    const obj1: DebouncedObject = { a: 1 };
+    const obj2: DebouncedObject = { b: 2 };
     const { result, rerender } = renderHook(
-      ({ value }) => useDebounce(value, 300),
+      ({ value }: { value: DebouncedObject }) => useDebounce(value, 300),
       { initialProps: { value: obj1 } }
     );
 

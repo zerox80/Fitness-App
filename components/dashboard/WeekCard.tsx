@@ -29,7 +29,7 @@ export function WeekCard({ desktop = false, compact = false }: { desktop?: boole
                   styles.weekFill,
                   {
                     height: `${item.progress * 100}%`,
-                    backgroundColor: item.muted ? '#E6EAEE' : palette.green,
+                    backgroundColor: palette.green,
                   },
                 ]}
               />

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Bell, Search, User as UserIcon } from 'lucide-react-native';
-import { avatarUri, palette } from '@/constants/dashboard-constants';
+import { palette } from '@/constants/dashboard-constants';
 import { webStyles } from './dashboard-web.styles';
 
 export function WebTopBar({ collapsed }: { collapsed?: boolean }) {

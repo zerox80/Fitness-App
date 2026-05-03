@@ -39,7 +39,7 @@ export const palette = {
   glassBorder: 'rgba(255, 255, 255, 0.2)',
 };
 
-export const avatarUri = null;
+export const avatarUri: string | null = null;
 
 export const trainings = [
   { title: 'Laufen', meta: '30 Min · 5,2 km · Mittel', kcal: 320, icon: PersonStanding, color: '#64C80E' },

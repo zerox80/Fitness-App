@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, type TextStyle, type ViewStyle } from 'react-native';
 import { palette, WEB_CONTENT_MAX_WIDTH } from '@/constants/dashboard-constants';
 
 const webShadow = {
@@ -9,7 +9,61 @@ const webShadow = {
   elevation: 8,
 };
 
-export const webStyles = StyleSheet.create({
+type DashboardWebStyles = {
+  webSafeArea: ViewStyle;
+  webShell: ViewStyle;
+  webSidebar: ViewStyle;
+  logoRow: ViewStyle;
+  logoMark: ViewStyle;
+  logoTop: ViewStyle;
+  logoMiddle: ViewStyle;
+  logoBottom: ViewStyle;
+  logoText: TextStyle;
+  sidebarNav: ViewStyle;
+  sidebarItem: ViewStyle;
+  sidebarItemActive: ViewStyle;
+  sidebarText: TextStyle;
+  sidebarTextActive: TextStyle;
+  sidebarSettings: ViewStyle;
+  webMain: ViewStyle;
+  webTopBar: ViewStyle;
+  searchBox: ViewStyle;
+  searchPlaceholder: TextStyle;
+  topActions: ViewStyle;
+  notificationButton: ViewStyle;
+  webAvatar: ViewStyle;
+  webScrollContent: ViewStyle;
+  webContent: ViewStyle;
+  webGrid: ViewStyle;
+  webGridItem: ViewStyle;
+  webGreetingBlock: ViewStyle;
+  webGreeting: TextStyle;
+  webSubtitle: TextStyle;
+  webCardsRow: ViewStyle;
+  webOverviewFlex: ViewStyle;
+  webMetricCardFlex: ViewStyle;
+  webOverviewCard: ViewStyle;
+  webCardHeader: ViewStyle;
+  webCardTitle: TextStyle;
+  webOverviewBody: ViewStyle;
+  webStepRingArea: ViewStyle;
+  webStepsValue: TextStyle;
+  webStepsGoal: TextStyle;
+  webMetricsColumn: ViewStyle;
+  webSmallCard: ViewStyle;
+  webHeartValue: TextStyle;
+  webWeekSelector: ViewStyle;
+  webWeekValue: TextStyle;
+  webWeekTrack: ViewStyle;
+  webTrainingSection: ViewStyle;
+  webTrainingsHeader: ViewStyle;
+  webTrainingCard: ViewStyle;
+  webTrainingRow: ViewStyle;
+  webTrainingContent: ViewStyle;
+  webKcalBlock: ViewStyle;
+};
+
+export const webStyles = StyleSheet.create<DashboardWebStyles>({
   webSafeArea: {
     flex: 1,
     backgroundColor: palette.appBackground,

@@ -8,7 +8,7 @@ import { webStyles } from './dashboard-web.styles';
 export function TrainingList({ desktop = false }: { desktop?: boolean }) {
   const { width } = useWindowDimensions();
   const viewportWidth = Platform.OS === 'web' && typeof window !== 'undefined' ? window.innerWidth : width;
-  const isNarrow = viewportWidth < 380;
+  const isNarrow = viewportWidth <= 430;
 
   return (
     <>
@@ -18,24 +18,45 @@ export function TrainingList({ desktop = false }: { desktop?: boolean }) {
           <Text style={styles.showAll}>Alle anzeigen</Text>
         </TouchableOpacity>
       </View>
-      <View style={[styles.trainingCard, desktop && webStyles.webTrainingCard]}>
+      <View style={[styles.trainingCard, desktop && webStyles.webTrainingCard, isNarrow && { paddingHorizontal: 14 }]}>
         {trainings.map((training, index) => {
           const Icon = training.icon;
           return (
             <TouchableOpacity
               key={training.title}
-              style={[styles.trainingRow, desktop && webStyles.webTrainingRow, index === trainings.length - 1 && styles.trainingRowLast, isNarrow && { minHeight: 72, gap: 12 }]}
+              style={[
+                styles.trainingRow, 
+                desktop && webStyles.webTrainingRow, 
+                index === trainings.length - 1 && styles.trainingRowLast, 
+                isNarrow && styles.compactTrainingRow
+              ]}
               activeOpacity={0.75}
             >
-              <View style={[styles.trainingIcon, { backgroundColor: training.color }, isNarrow && { width: 40, height: 40, borderRadius: 20 }]}>
-                <Icon size={isNarrow ? 20 : 24} color="#FFFFFF" strokeWidth={2.3} />
+              <View style={[
+                styles.trainingIcon, 
+                { backgroundColor: training.color }, 
+                isNarrow && styles.compactTrainingIcon
+              ]}>
+                <Icon size={isNarrow ? 22 : 24} color="#FFFFFF" strokeWidth={2.3} />
               </View>
               <View style={[styles.trainingContent, desktop && webStyles.webTrainingContent]}>
-                <Text style={[styles.trainingTitle, isNarrow && { fontSize: 15 }]}>{training.title}</Text>
-                <Text style={[styles.trainingMeta, isNarrow && { fontSize: 12 }]}>{training.meta}</Text>
+                <Text 
+                  style={[styles.trainingTitle, isNarrow && styles.compactTrainingTitle]} 
+                  numberOfLines={1} 
+                  ellipsizeMode="tail"
+                >
+                  {training.title}
+                </Text>
+                <Text 
+                  style={[styles.trainingMeta, isNarrow && styles.compactTrainingMeta]} 
+                  numberOfLines={isNarrow ? 2 : 1} 
+                  ellipsizeMode="tail"
+                >
+                  {training.meta}
+                </Text>
               </View>
               <View style={[styles.kcalBlock, desktop && webStyles.webKcalBlock]}>
-                <Text style={[styles.kcalValue, isNarrow && { fontSize: 15 }]}>{training.kcal}</Text>
+                <Text style={[styles.kcalValue, isNarrow && { fontSize: 16 }]}>{training.kcal}</Text>
                 <Text style={styles.kcalUnit}>kcal</Text>
               </View>
               {!isNarrow && <ChevronRight size={22} color={palette.softMuted} />}

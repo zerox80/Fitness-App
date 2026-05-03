@@ -16,7 +16,7 @@ import { CreateTaskData } from '@/lib/api';
 interface TaskFormProps {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (data: CreateTaskData) => void;
+  onSubmit: (data: CreateTaskData) => Promise<void> | void;
 }
 
 export function TaskForm({ visible, onClose, onSubmit }: TaskFormProps) {
@@ -26,6 +26,8 @@ export function TaskForm({ visible, onClose, onSubmit }: TaskFormProps) {
   const [category, setCategory] = useState<TaskCategory>('general');
   const [customDays, setCustomDays] = useState<Weekday[]>([]);
   const [targetSets, setTargetSets] = useState('1');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const toggleDay = (day: Weekday) => {
     setCustomDays((prev) =>
@@ -33,17 +35,33 @@ export function TaskForm({ visible, onClose, onSubmit }: TaskFormProps) {
     );
   };
 
-  const handleSubmit = () => {
-    if (!title.trim()) return;
-    onSubmit({
-      title: title.trim(),
-      description: description.trim() || undefined,
-      recurrence,
-      category,
-      custom_days: recurrence === 'custom' ? customDays : undefined,
-      target_sets: parseInt(targetSets) || 1,
-    });
-    resetForm();
+  const handleSubmit = async () => {
+    if (!title.trim() || submitting) return;
+
+    const parsedTargetSets = Number.parseInt(targetSets, 10);
+    const nextTargetSets = Number.isNaN(parsedTargetSets) ? 1 : parsedTargetSets;
+    if (nextTargetSets < 1 || nextTargetSets > 50) {
+      setSubmitError('Anzahl Sätze muss zwischen 1 und 50 liegen.');
+      return;
+    }
+
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      await onSubmit({
+        title: title.trim(),
+        description: description.trim() || undefined,
+        recurrence,
+        category,
+        custom_days: recurrence === 'custom' ? customDays : undefined,
+        target_sets: nextTargetSets,
+      });
+      resetForm();
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Task konnte nicht erstellt werden.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const resetForm = () => {
@@ -53,6 +71,7 @@ export function TaskForm({ visible, onClose, onSubmit }: TaskFormProps) {
     setCategory('general');
     setCustomDays([]);
     setTargetSets('1');
+    setSubmitError(null);
   };
 
   const handleClose = () => {
@@ -148,6 +167,8 @@ export function TaskForm({ visible, onClose, onSubmit }: TaskFormProps) {
             keyboardType="number-pad"
             placeholder="z.B. 3"
           />
+
+          {submitError ? <Text style={styles.errorText}>{submitError}</Text> : null}
         </ScrollView>
 
         <View style={styles.footer}>
@@ -155,7 +176,8 @@ export function TaskForm({ visible, onClose, onSubmit }: TaskFormProps) {
             title="Task erstellen"
             onPress={handleSubmit}
             variant="primary"
-            disabled={!title.trim()}
+            loading={submitting}
+            disabled={!title.trim() || submitting}
           />
         </View>
       </KeyboardAvoidingView>
@@ -260,5 +282,12 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: Colors.glassBorder,
+  },
+  errorText: {
+    color: Colors.tertiary,
+    fontSize: 13,
+    fontWeight: '700',
+    marginBottom: 16,
+    textAlign: 'center',
   },
 });

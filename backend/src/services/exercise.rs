@@ -105,6 +105,8 @@ mod tests {
                 app_port: 3000,
                 jwt_secret: "test-secret".to_string(),
                 cors_origin: "*".to_string(),
+                trust_proxy_headers: false,
+                trusted_proxy_ips: vec![],
                 ai_api_key: None,
                 ai_api_base: "https://api.moonshot.ai/v1".to_string(),
                 ai_model: "moonshot-v1-8k".to_string(),
@@ -188,9 +190,8 @@ mod tests {
         // Validation passes (DB call will fail since no real DB, but that's a different error)
         let result = create_exercise(&state, None, req).await;
         assert!(result.is_err());
-        match result.unwrap_err() {
-            AppError::Validation(_) => panic!("Validation should pass for 200 chars"),
-            _ => {} // Expected: DB error since validation passed
+        if let AppError::Validation(_) = result.unwrap_err() {
+            panic!("Validation should pass for 200 chars");
         }
     }
 }

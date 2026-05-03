@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, ScrollView, TouchableOpacity, Text, useWindowDimensions, Platform, Modal, Pressable } from 'react-native';
-import { Slot, router, usePathname } from 'expo-router';
+import { Slot, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Menu, X } from 'lucide-react-native';
 import { WebSidebar } from '@/components/dashboard/WebSidebar';
@@ -14,18 +14,23 @@ export default function WebTabLayout() {
   const isMedium = isDesktop && width < 1100;
   const [drawerOpen, setDrawerOpen] = useState(false);
   const pathname = usePathname();
+  const isHome = pathname === '/' || pathname === '/(tabs)';
 
   if (!isDesktop) {
     return (
       <View style={{ flex: 1, backgroundColor: '#F7F8FA' }}>
         <StatusBar style="dark" />
         <MobileTopBar onMenuPress={() => setDrawerOpen(true)} />
-        <ScrollView
-          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32 }}
-          showsVerticalScrollIndicator={false}
-        >
+        {isHome ? (
           <Slot />
-        </ScrollView>
+        ) : (
+          <ScrollView
+            contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32 }}
+            showsVerticalScrollIndicator={false}
+          >
+            <Slot />
+          </ScrollView>
+        )}
         <MobileDrawer visible={drawerOpen} onClose={() => setDrawerOpen(false)} />
       </View>
     );

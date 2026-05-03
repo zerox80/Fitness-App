@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, type ImageStyle, type TextStyle, type ViewStyle } from 'react-native';
 import { palette } from '@/constants/dashboard-constants';
 
 const shadow = {
@@ -9,7 +9,93 @@ const shadow = {
   elevation: 8,
 };
 
-export const styles = StyleSheet.create({
+type DashboardStyles = {
+  container: ViewStyle;
+  scrollContent: ViewStyle;
+  header: ViewStyle;
+  headerCopy: ViewStyle;
+  greeting: TextStyle;
+  subtitle: TextStyle;
+  avatar: ImageStyle;
+  sectionHeader: ViewStyle;
+  mobileSection: ViewStyle;
+  webMobileFrame: ViewStyle;
+  sectionTitle: TextStyle;
+  dateRow: ViewStyle;
+  dateText: TextStyle;
+  webDateText: TextStyle;
+  overviewCard: ViewStyle;
+  overviewBody: ViewStyle;
+  compactOverviewCard: ViewStyle;
+  compactOverviewBody: ViewStyle;
+  stepRingArea: ViewStyle;
+  compactStepRingArea: ViewStyle;
+  stepRingContent: ViewStyle;
+  stepsValue: TextStyle;
+  compactStepsValue: TextStyle;
+  stepsGoal: TextStyle;
+  compactStepsGoal: TextStyle;
+  stepsPercent: TextStyle;
+  metricsColumn: ViewStyle;
+  compactMetricsColumn: ViewStyle;
+  metricRow: ViewStyle;
+  compactMetricRow: ViewStyle;
+  metricIcon: ViewStyle;
+  compactMetricIcon: ViewStyle;
+  metricLabel: TextStyle;
+  compactMetricLabel: TextStyle;
+  metricValue: TextStyle;
+  compactMetricValue: TextStyle;
+  metricUnit: TextStyle;
+  compactMetricUnit: TextStyle;
+  smallCardsRow: ViewStyle;
+  smallCardFlex: ViewStyle;
+  smallCard: ViewStyle;
+  smallCardHeader: ViewStyle;
+  cardTitle: TextStyle;
+  roundIcon: ViewStyle;
+  heartValue: TextStyle;
+  heartUnit: TextStyle;
+  cardMuted: TextStyle;
+  chartWrap: ViewStyle;
+  webChartWrap: ViewStyle;
+  heartBadge: ViewStyle;
+  heartBadgeText: TextStyle;
+  chartAxis: ViewStyle;
+  chartAxisText: TextStyle;
+  timeLabels: ViewStyle;
+  timeLabel: TextStyle;
+  weekHeader: ViewStyle;
+  weekSelector: ViewStyle;
+  weekSelectorText: TextStyle;
+  weekValue: TextStyle;
+  weekUnit: TextStyle;
+  weekBars: ViewStyle;
+  weekBarItem: ViewStyle;
+  checkSpace: ViewStyle;
+  checkMark: TextStyle;
+  weekTrack: ViewStyle;
+  weekFill: ViewStyle;
+  weekDay: TextStyle;
+  trainingsHeader: ViewStyle;
+  showAll: TextStyle;
+  trainingCard: ViewStyle;
+  trainingRow: ViewStyle;
+  compactTrainingRow: ViewStyle;
+  trainingRowLast: ViewStyle;
+  trainingIcon: ViewStyle;
+  compactTrainingIcon: ViewStyle;
+  trainingContent: ViewStyle;
+  trainingTitle: TextStyle;
+  compactTrainingTitle: TextStyle;
+  trainingMeta: TextStyle;
+  compactTrainingMeta: TextStyle;
+  kcalBlock: ViewStyle;
+  kcalValue: TextStyle;
+  kcalUnit: TextStyle;
+};
+
+export const styles = StyleSheet.create<DashboardStyles>({
   container: {
     flex: 1,
     backgroundColor: palette.background,
@@ -66,7 +152,6 @@ export const styles = StyleSheet.create({
     maxWidth: 560,
   },
   webMobileFrame: {
-    width: 'calc(100vw - 40px)',
     maxWidth: 560,
   },
   sectionTitle: {
@@ -410,6 +495,11 @@ export const styles = StyleSheet.create({
     gap: 16,
     paddingVertical: 12,
   },
+  compactTrainingRow: {
+    minHeight: 74,
+    gap: 12,
+    paddingVertical: 10,
+  },
   trainingRowLast: {
     borderBottomWidth: 0,
   },
@@ -419,24 +509,42 @@ export const styles = StyleSheet.create({
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
+  },
+  compactTrainingIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
   },
   trainingContent: {
     flex: 1,
+    minWidth: 0,
+    flexShrink: 1,
   },
   trainingTitle: {
     color: palette.text,
     fontSize: 18,
     fontWeight: '900',
     marginBottom: 4,
+    flexShrink: 1,
+  },
+  compactTrainingTitle: {
+    fontSize: 16,
+    marginBottom: 2,
   },
   trainingMeta: {
     color: palette.muted,
     fontSize: 14,
     fontWeight: '500',
+    flexShrink: 1,
+  },
+  compactTrainingMeta: {
+    fontSize: 13,
   },
   kcalBlock: {
-    minWidth: 42,
-    alignItems: 'flex-start',
+    minWidth: 64,
+    alignItems: 'flex-end',
+    flexShrink: 0,
   },
   kcalValue: {
     color: palette.text,
