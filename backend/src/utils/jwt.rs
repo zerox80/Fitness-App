@@ -19,7 +19,7 @@ pub fn generate_token(user_id: &Uuid, secret: &str, expiry_hours: i64) -> Result
         &claims,
         &EncodingKey::from_secret(secret.as_bytes()),
     )
-    .map_err(|_| AppError::Internal)
+    .map_err(|_| AppError::Internal("Token generation failed".to_string()))
 }
 
 #[allow(dead_code)]

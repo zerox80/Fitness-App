@@ -29,7 +29,7 @@ pub async fn register(state: &AppState, req: RegisterRequest) -> Result<AuthResp
     let argon2 = Argon2::default();
     let password_hash = argon2
         .hash_password(req.password.as_bytes(), &salt)
-        .map_err(|_| AppError::Internal)?
+        .map_err(|_| AppError::Internal("Password hashing failed".to_string()))?
         .to_string();
 
     let user = users::create(&state.pool, &req.email, &req.name, &password_hash).await?;
@@ -89,5 +89,5 @@ fn generate_token(user_id: &uuid::Uuid, secret: &str) -> Result<String, AppError
         &claims,
         &EncodingKey::from_secret(secret.as_bytes()),
     )
-    .map_err(|_| AppError::Internal)
+    .map_err(|_| AppError::Internal("Token generation failed".to_string()))
 }

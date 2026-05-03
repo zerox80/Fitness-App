@@ -16,8 +16,8 @@ pub enum AppError {
     #[error("Not found")]
     NotFound,
 
-    #[error("Internal server error")]
-    Internal,
+    #[error("Internal server error: {0}")]
+    Internal(String),
 }
 
 impl IntoResponse for AppError {
@@ -30,7 +30,7 @@ impl IntoResponse for AppError {
             AppError::Auth(msg) => (StatusCode::UNAUTHORIZED, msg),
             AppError::Validation(msg) => (StatusCode::BAD_REQUEST, msg),
             AppError::NotFound => (StatusCode::NOT_FOUND, "Resource not found".to_string()),
-            AppError::Internal => (
+            AppError::Internal(_) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 "Internal server error".to_string(),
             ),
@@ -67,8 +67,9 @@ mod tests {
 
     #[test]
     fn test_internal_error_message() {
-        let err = AppError::Internal;
+        let err = AppError::Internal("something broke".to_string());
         assert!(err.to_string().contains("Internal server error"));
+        assert!(err.to_string().contains("something broke"));
     }
 
     #[tokio::test]
@@ -106,7 +107,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_internal_into_response_status() {
-        let err = AppError::Internal;
+        let err = AppError::Internal("failure".to_string());
         let response = err.into_response();
         assert_eq!(response.status(), StatusCode::INTERNAL_SERVER_ERROR);
 
