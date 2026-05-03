@@ -1,10 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Platform, useWindowDimensions } from 'react-native';
-
 import { api, DailyActivity } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
-import { DashboardData, DESKTOP_BREAKPOINT, STEP_GOAL } from '@/constants/dashboard-constants';
-import { MobileHome } from '@/components/dashboard/MobileHome';
+import { DashboardData, STEP_GOAL } from '@/constants/dashboard-constants';
 import { WebDashboard } from '@/components/dashboard/WebDashboard';
 
 function formatGermanDate(date: Date) {
@@ -15,7 +12,7 @@ function formatGermanDate(date: Date) {
   });
 }
 
-export default function HomeScreen() {
+export default function HomeScreenWeb() {
   const { user } = useAuth();
   const [activity, setActivity] = useState<DailyActivity | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -57,5 +54,5 @@ export default function HomeScreen() {
     onRefresh,
   };
 
-  return <MobileHome data={data} />;
+  return <WebDashboard data={data} />;
 }

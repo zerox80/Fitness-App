@@ -33,17 +33,6 @@ function EmptyLabel() {
 }
 
 export default function TabLayout() {
-  const [hasMounted, setHasMounted] = React.useState(false);
-  const { width } = useWindowDimensions();
-  const viewportWidth = Platform.OS === 'web' && typeof window !== 'undefined' ? window.innerWidth : width;
-  const isDesktopWeb = Platform.OS === 'web' && viewportWidth >= 900;
-
-  React.useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
-  if (!hasMounted) return null;
-
   return (
     <Tabs
       screenOptions={{
@@ -52,7 +41,7 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarLabelStyle: styles.tabBarLabel,
-        tabBarStyle: isDesktopWeb ? styles.tabBarHidden : styles.tabBar,
+        tabBarStyle: styles.tabBar,
         tabBarItemStyle: styles.tabBarItem,
       }}
     >

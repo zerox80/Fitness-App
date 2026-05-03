@@ -15,20 +15,13 @@ import { WebTopBar } from './WebTopBar';
 
 export function WebDashboard({ data }: { data: DashboardData }) {
   return (
-    <SafeAreaView style={webStyles.webSafeArea} edges={['top']}>
-      <StatusBar style="dark" />
-      <View style={webStyles.webShell}>
-        <WebSidebar />
-        <View style={webStyles.webMain}>
-          <WebTopBar />
-          <ScrollView contentContainerStyle={webStyles.webScrollContent} showsVerticalScrollIndicator={false}>
-            <View style={webStyles.webContent}>
-              <FadeIn delay={0}>
-                <View style={webStyles.webGreetingBlock}>
-                  <Text style={webStyles.webGreeting}>Hallo, {data.name}! 👋</Text>
-                  <Text style={webStyles.webSubtitle}>Schön, dass du dranbleibst.</Text>
-                </View>
-              </FadeIn>
+    <View style={webStyles.webContent}>
+      <FadeIn delay={0}>
+        <View style={webStyles.webGreetingBlock}>
+          <Text style={webStyles.webGreeting}>Hallo, {data.name}! 👋</Text>
+          <Text style={webStyles.webSubtitle}>Schön, dass du dranbleibst.</Text>
+        </View>
+      </FadeIn>
 
               <View style={webStyles.webCardsRow}>
                 <FadeIn delay={80} style={webStyles.webOverviewFlex}>
@@ -47,10 +40,6 @@ export function WebDashboard({ data }: { data: DashboardData }) {
                   <TrainingList desktop />
                 </View>
               </FadeIn>
-            </View>
-          </ScrollView>
-        </View>
-      </View>
-    </SafeAreaView>
+    </View>
   );
 }
