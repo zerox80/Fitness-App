@@ -35,6 +35,31 @@ npm run reset-project
 
 This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
+## Production with external Nginx reverse proxy
+
+Docker Compose can run the database and backend, while Nginx runs directly on the server.
+
+Recommended production flow:
+
+```text
+Internet -> Nginx -> 127.0.0.1:3000 -> backend container -> db container
+```
+
+For this setup, publish the backend only on localhost:
+
+```yml
+ports:
+  - "127.0.0.1:3000:3000"
+```
+
+Then point Nginx to:
+
+```nginx
+proxy_pass http://127.0.0.1:3000;
+```
+
+See `docs/nginx-reverse-proxy.md` for the full setup.
+
 ## Learn more
 
 To learn more about developing your project with Expo, look at the following resources:

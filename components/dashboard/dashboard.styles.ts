@@ -29,7 +29,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 18,
-    marginBottom: 34,
+    marginBottom: 24,
   },
   headerCopy: {
     flex: 1,
@@ -59,7 +59,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 18,
+    marginBottom: 14,
   },
   mobileSection: {
     width: '100%',
@@ -99,6 +99,7 @@ export const styles = StyleSheet.create({
   overviewBody: {
     flex: 1,
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
   },
   compactOverviewCard: {
@@ -109,28 +110,34 @@ export const styles = StyleSheet.create({
     gap: 4,
   },
   stepRingArea: {
-    width: '46%',
+    minWidth: 170,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 10,
   },
   compactStepRingArea: {
-    width: '42%',
+    minWidth: 170,
   },
   stepRingContent: {
     position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   stepsValue: {
     color: palette.text,
-    fontSize: 34,
+    fontSize: 38,
     fontWeight: '900',
-    marginTop: 8,
-    lineHeight: 38,
+    marginTop: 4,
+    lineHeight: 42,
   },
   compactStepsValue: {
-    fontSize: 26,
-    lineHeight: 30,
-    marginTop: 6,
+    fontSize: 32,
+    lineHeight: 36,
+    marginTop: 2,
   },
   stepsGoal: {
     color: palette.muted,
@@ -145,12 +152,13 @@ export const styles = StyleSheet.create({
     color: palette.green,
     fontSize: 18,
     fontWeight: '900',
-    marginTop: 14,
+    marginTop: 4,
   },
   metricsColumn: {
     flex: 1,
+    minWidth: 150,
     gap: 22,
-    paddingLeft: 8,
+    paddingLeft: 24,
   },
   compactMetricsColumn: {
     gap: 18,
@@ -207,11 +215,13 @@ export const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 560,
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 14,
     marginBottom: 28,
   },
   smallCardFlex: {
     flex: 1,
+    minWidth: 160,
   },
   smallCard: {
     ...shadow,
@@ -261,7 +271,8 @@ export const styles = StyleSheet.create({
   chartWrap: {
     height: 110,
     marginTop: 4,
-    marginRight: 16,
+    marginLeft: 36,
+    marginRight: 4,
   },
   webChartWrap: {
     height: 116,
@@ -270,7 +281,7 @@ export const styles = StyleSheet.create({
   heartBadge: {
     position: 'absolute',
     top: 37,
-    left: '64%',
+    left: '60%',
     backgroundColor: palette.red,
     borderRadius: 12,
     paddingHorizontal: 8,
@@ -284,9 +295,11 @@ export const styles = StyleSheet.create({
   chartAxis: {
     position: 'absolute',
     top: 2,
-    right: -14,
+    left: -32,
+    width: 28,
     height: 94,
     justifyContent: 'space-between',
+    alignItems: 'flex-end',
   },
   chartAxisText: {
     color: palette.muted,
@@ -338,7 +351,8 @@ export const styles = StyleSheet.create({
     marginTop: 20,
   },
   weekBarItem: {
-    width: 22,
+    flex: 1,
+    maxWidth: 32,
     alignItems: 'center',
   },
   checkSpace: {
@@ -371,6 +385,7 @@ export const styles = StyleSheet.create({
     marginTop: 10,
   },
   trainingsHeader: {
+    width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -383,17 +398,19 @@ export const styles = StyleSheet.create({
   },
   trainingCard: {
     ...shadow,
+    width: '100%',
     borderRadius: 16,
     backgroundColor: palette.card,
     paddingHorizontal: 18,
   },
   trainingRow: {
-    minHeight: 82,
+    minHeight: 88,
     flexDirection: 'row',
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: palette.border,
-    gap: 14,
+    borderBottomColor: palette.background,
+    gap: 16,
+    paddingVertical: 12,
   },
   trainingRowLast: {
     borderBottomWidth: 0,
@@ -410,7 +427,7 @@ export const styles = StyleSheet.create({
   },
   trainingTitle: {
     color: palette.text,
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '900',
     marginBottom: 4,
   },
@@ -425,7 +442,7 @@ export const styles = StyleSheet.create({
   },
   kcalValue: {
     color: palette.text,
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '900',
   },
   kcalUnit: {

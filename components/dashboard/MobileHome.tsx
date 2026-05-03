@@ -34,7 +34,7 @@ export function MobileHome({ data }: { data: DashboardData }) {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={data.refreshing} onRefresh={data.onRefresh} tintColor={palette.green} />}
       >
-        <FadeIn delay={0}>
+        <FadeIn delay={0} style={{ width: '100%', alignItems: 'center' }}>
           <View style={[styles.header, mobileFrameStyle]}>
             <View style={styles.headerCopy}>
               <Text style={styles.greeting}>Hallo, {data.name}! 👋</Text>
@@ -44,20 +44,20 @@ export function MobileHome({ data }: { data: DashboardData }) {
           </View>
         </FadeIn>
 
-        <FadeIn delay={80}>
+        <FadeIn delay={80} style={{ width: '100%', alignItems: 'center' }}>
           <View style={[styles.sectionHeader, mobileFrameStyle]}>
             <Text style={styles.sectionTitle}>Heute im Überblick</Text>
             <DateRow dateLabel={data.dateLabel} />
           </View>
         </FadeIn>
 
-        <FadeIn delay={140}>
+        <FadeIn delay={140} style={{ width: '100%', alignItems: 'center' }}>
           <View style={[styles.mobileSection, mobileFrameStyle]}>
             <OverviewCard compact={isCompact} data={data} />
           </View>
         </FadeIn>
 
-        <View style={[styles.smallCardsRow, mobileFrameStyle]}>
+        <View style={[styles.smallCardsRow, mobileFrameStyle, { width: '100%' }]}>
           <FadeIn delay={220} style={styles.smallCardFlex}>
             <HeartCard />
           </FadeIn>
@@ -67,7 +67,7 @@ export function MobileHome({ data }: { data: DashboardData }) {
           </FadeIn>
         </View>
 
-        <FadeIn delay={340} style={[styles.mobileSection, mobileFrameStyle]}>
+        <FadeIn delay={340} style={[styles.mobileSection, mobileFrameStyle, { width: '100%' }]}>
           <TrainingList />
         </FadeIn>
       </ScrollView>

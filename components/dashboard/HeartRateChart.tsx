@@ -21,7 +21,7 @@ export function HeartRateChart({ compact = false }: { compact?: boolean }) {
         />
         <Circle cx={166} cy={44} r={5} fill={palette.red} />
       </Svg>
-      <View style={styles.heartBadge}>
+      <View style={[styles.heartBadge, { left: '70%' }]}>
         <Text style={styles.heartBadgeText}>128</Text>
       </View>
       <View style={styles.chartAxis}>

@@ -1,0 +1,10 @@
+# This is an example override file for local development.
+# To use it, copy it to `docker-compose.override.yml`.
+#
+# It exposes the PostgreSQL port to the host machine so you can 
+# connect to it with tools like pgAdmin, DBeaver, or direct psql.
+
+services:
+  db:
+    ports:
+      - "127.0.0.1:5432:5432"
