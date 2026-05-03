@@ -105,6 +105,9 @@ mod tests {
                 app_port: 3000,
                 jwt_secret: "test-secret".to_string(),
                 cors_origin: "*".to_string(),
+                ai_api_key: None,
+                ai_api_base: "https://api.moonshot.ai/v1".to_string(),
+                ai_model: "moonshot-v1-8k".to_string(),
             },
             rate_limiter: crate::middleware::rate_limit::RateLimiter::default(),
         }

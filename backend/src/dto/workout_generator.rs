@@ -47,8 +47,6 @@ fn deserialize_flexible_reps<'de, D>(deserializer: D) -> Result<String, D::Error
 where
     D: Deserializer<'de>,
 {
-    use serde::de;
-
     #[derive(Deserialize)]
     #[serde(untagged)]
     enum StringOrInt {
