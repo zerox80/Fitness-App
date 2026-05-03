@@ -19,6 +19,8 @@ const customLightTheme = {
   },
 };
 
+import { View, ActivityIndicator } from 'react-native';
+
 function RootLayoutNav() {
   const { user, isLoading } = useAuth();
   const segments = useSegments();
@@ -28,15 +30,24 @@ function RootLayoutNav() {
     if (isLoading) return;
 
     const inAuthGroup = segments[0] === '(tabs)';
+    const onLoginPage = segments[0] === 'login';
 
-    if (!user && inAuthGroup) {
-      // Redirect to login if not authenticated and trying to access tabs
+    if (!user && !onLoginPage) {
+      // Redirect to login if not authenticated and not already on login page
       router.replace('/login');
-    } else if (user && segments[0] === 'login') {
+    } else if (user && onLoginPage) {
       // Redirect to home if authenticated and on login screen
       router.replace('/(tabs)');
     }
   }, [user, isLoading, segments]);
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background }}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <Stack>
