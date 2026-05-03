@@ -1,7 +1,7 @@
 import { Tabs, router } from 'expo-router';
 import React from 'react';
 import { Activity, ClipboardList, Home, Plus, User } from 'lucide-react-native';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { HapticTab } from '@/components/haptic-tab';
 
@@ -33,6 +33,10 @@ function EmptyLabel() {
 }
 
 export default function TabLayout() {
+  const { width } = useWindowDimensions();
+  const viewportWidth = Platform.OS === 'web' && typeof window !== 'undefined' ? window.innerWidth : width;
+  const isDesktopWeb = Platform.OS === 'web' && viewportWidth >= 900;
+
   return (
     <Tabs
       screenOptions={{
@@ -41,7 +45,7 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarLabelStyle: styles.tabBarLabel,
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: [styles.tabBar, isDesktopWeb && styles.tabBarHidden],
         tabBarItemStyle: styles.tabBarItem,
       }}
     >
@@ -119,6 +123,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.18,
     shadowRadius: 22,
     elevation: 18,
+  },
+  tabBarHidden: {
+    display: 'none',
   },
   tabBarItem: {
     height: 58,
