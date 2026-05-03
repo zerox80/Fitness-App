@@ -8,7 +8,7 @@ interface GeneratedWorkoutModalProps {
   visible: boolean;
   onClose: () => void;
   workout: GeneratedWorkout | null;
-  onStart: () => void;
+  onStart: () => void | Promise<void>;
 }
 
 export function GeneratedWorkoutModal({ visible, onClose, workout, onStart }: GeneratedWorkoutModalProps) {

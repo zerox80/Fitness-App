@@ -237,7 +237,7 @@ export const webStyles = StyleSheet.create({
   },
   webSmallCard: {
     ...webShadow,
-    minHeight: 320,
+    minHeight: 290,
     borderRadius: 12,
     paddingHorizontal: 22,
     paddingTop: 22,

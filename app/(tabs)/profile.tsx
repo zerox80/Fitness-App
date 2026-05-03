@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Settings, ChevronRight, Bell, Heart, Shield, LogOut,
@@ -19,6 +19,8 @@ const SETTINGS = [
 ];
 
 export default function ProfileScreen() {
+  const { width } = useWindowDimensions();
+  const isWide = width >= 650;
   const { user, logout } = useAuth();
   const router = useRouter();
   const [stats, setStats] = useState<UserStats | null>(null);
@@ -39,9 +41,9 @@ export default function ProfileScreen() {
   if (!user) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, isWide && { maxWidth: 800 }]} showsVerticalScrollIndicator={false}>
           <FadeIn delay={0}>
-            <Text style={styles.pageTitle}>Profile</Text>
+            <Text style={[styles.pageTitle, isWide && { fontSize: 42 }]}>Profile</Text>
           </FadeIn>
 
           <FadeIn delay={100}>
@@ -94,7 +96,7 @@ export default function ProfileScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <FadeIn delay={0}>
           <View style={styles.header}>
-            <Text style={styles.pageTitle}>Profile</Text>
+            <Text style={[styles.pageTitle, isWide && { fontSize: 42 }]}>Profile</Text>
             <TouchableOpacity style={styles.iconBtn} activeOpacity={0.7}>
               <Settings size={22} color={Colors.text} />
             </TouchableOpacity>

@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Play, Clock, Dumbbell, Zap, Heart, Flame, Timer, Star } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/constants/Colors';
 import { FadeIn } from '@/components/FadeIn';
 import { api, ApiWorkout } from '@/lib/api';
-
-const { width: SCREEN_W } = Dimensions.get('window');
 
 const CATEGORIES = [
   { label: 'All', value: undefined, icon: Zap, color: Colors.primary },
@@ -22,6 +20,8 @@ import { GeneratedWorkoutModal } from '@/components/modals/GeneratedWorkoutModal
 import { GeneratedWorkout } from '@/lib/api';
 
 export default function WorkoutScreen() {
+  const { width } = useWindowDimensions();
+  const isWide = width >= 650;
   const [workouts, setWorkouts] = useState<ApiWorkout[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState(0);
@@ -29,6 +29,7 @@ export default function WorkoutScreen() {
   const [quickStartVisible, setQuickStartVisible] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [generatedWorkout, setGeneratedWorkout] = useState<GeneratedWorkout | null>(null);
+  const [generatedFocus, setGeneratedFocus] = useState('');
   const [resultVisible, setResultVisible] = useState(false);
 
   useEffect(() => { loadWorkouts(); }, [activeCategory]);
@@ -46,6 +47,7 @@ export default function WorkoutScreen() {
     try {
       const res = await api.workouts.generate({ duration_minutes: duration, focus, intensity });
       setGeneratedWorkout(res);
+      setGeneratedFocus(focus);
       setQuickStartVisible(false);
       setResultVisible(true);
     } catch (err) {
@@ -60,7 +62,7 @@ export default function WorkoutScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, isWide && { maxWidth: 1000 }]} showsVerticalScrollIndicator={false}>
         
         <FadeIn delay={0}>
           <View style={styles.header}>
@@ -184,9 +186,22 @@ export default function WorkoutScreen() {
         visible={resultVisible}
         onClose={() => setResultVisible(false)}
         workout={generatedWorkout}
-        onStart={() => {
+        onStart={async () => {
           setResultVisible(false);
-          alert('Training gestartet! (Platzhalter für Tracker)');
+          if (generatedWorkout) {
+            try {
+              await api.workouts.create({
+                title: generatedWorkout.title,
+                description: generatedWorkout.description,
+                duration_minutes: generatedWorkout.total_duration,
+                intensity: generatedWorkout.intensity.toLowerCase(),
+                category: generatedFocus.toLowerCase().replace(/\s+/g, '_'),
+              });
+              await loadWorkouts();
+            } catch (err) {
+              alert('Fehler beim Speichern: ' + (err instanceof Error ? err.message : 'Unbekannter Fehler'));
+            }
+          }
         }}
       />
     </SafeAreaView>

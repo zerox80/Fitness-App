@@ -225,13 +225,12 @@ export const styles = StyleSheet.create({
   },
   smallCard: {
     ...shadow,
-    minHeight: 306,
+    minHeight: 280,
     borderRadius: 16,
     backgroundColor: palette.card,
     paddingHorizontal: 12,
     paddingTop: 14,
-    paddingBottom: 12,
-    overflow: 'hidden',
+    paddingBottom: 18,
   },
   smallCardHeader: {
     flexDirection: 'row',
@@ -344,9 +343,8 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
   },
   weekBars: {
-    flex: 1,
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: 20,
   },

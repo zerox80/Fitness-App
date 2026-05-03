@@ -11,6 +11,7 @@ import {
 
 export const STEP_GOAL = 10000;
 export const DESKTOP_BREAKPOINT = 900;
+export const WIDE_BREAKPOINT = 650;
 export const WEB_CONTENT_MAX_WIDTH = 1280;
 
 export const palette = {

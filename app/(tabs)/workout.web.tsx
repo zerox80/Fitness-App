@@ -18,6 +18,7 @@ export default function WorkoutScreenWeb() {
   const [quickStartVisible, setQuickStartVisible] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [generatedWorkout, setGeneratedWorkout] = useState<GeneratedWorkout | null>(null);
+  const [generatedFocus, setGeneratedFocus] = useState('');
   const [resultVisible, setResultVisible] = useState(false);
 
   useEffect(() => { loadWorkouts(); }, []);
@@ -34,6 +35,7 @@ export default function WorkoutScreenWeb() {
     try {
       const res = await api.workouts.generate({ duration_minutes: duration, focus, intensity });
       setGeneratedWorkout(res);
+      setGeneratedFocus(focus);
       setQuickStartVisible(false);
       setResultVisible(true);
     } catch (err) {
@@ -112,9 +114,22 @@ export default function WorkoutScreenWeb() {
         visible={resultVisible}
         onClose={() => setResultVisible(false)}
         workout={generatedWorkout}
-        onStart={() => {
+        onStart={async () => {
           setResultVisible(false);
-          alert('Training gestartet! (Platzhalter für Tracker)');
+          if (generatedWorkout) {
+            try {
+              await api.workouts.create({
+                title: generatedWorkout.title,
+                description: generatedWorkout.description,
+                duration_minutes: generatedWorkout.total_duration,
+                intensity: generatedWorkout.intensity.toLowerCase(),
+                category: generatedFocus.toLowerCase().replace(/\s+/g, '_'),
+              });
+              await loadWorkouts();
+            } catch (err) {
+              alert('Fehler beim Speichern: ' + (err instanceof Error ? err.message : 'Unbekannter Fehler'));
+            }
+          }
         }}
       />
     </View>

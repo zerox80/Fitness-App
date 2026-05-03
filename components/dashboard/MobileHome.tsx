@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
 import { FadeIn } from '@/components/FadeIn';
-import { DashboardData, avatarUri, palette } from '@/constants/dashboard-constants';
+import { DashboardData, avatarUri, palette, WIDE_BREAKPOINT } from '@/constants/dashboard-constants';
 import { styles } from './dashboard.styles';
 import { OverviewCard } from './OverviewCard';
 import { HeartCard } from './HeartCard';
@@ -25,13 +25,14 @@ export function MobileHome({ data }: { data: DashboardData }) {
   const viewportWidth = Platform.OS === 'web' && typeof window !== 'undefined' ? window.innerWidth : width;
   const isCompact = viewportWidth < 430;
   const isNarrow = viewportWidth < 380;
+  const isWide = viewportWidth >= WIDE_BREAKPOINT;
   const mobileFrameStyle = Platform.OS === 'web' ? styles.webMobileFrame : null;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style="dark" />
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, isWide && { maxWidth: 800 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={data.refreshing} onRefresh={data.onRefresh} tintColor={palette.green} />}
       >

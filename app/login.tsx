@@ -15,6 +15,7 @@ export default function LoginScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const isDesktop = Platform.OS === 'web' && width >= 900;
+  const cardWidth = Math.min(480, Math.max(380, width * 0.42));
   
   const [isRegister, setIsRegister] = useState(false);
   const [name, setName] = useState('');
@@ -54,7 +55,7 @@ export default function LoginScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
         style={[styles.flex, isDesktop && styles.desktopFlex]}
       >
-        <FadeIn delay={0} style={isDesktop ? styles.desktopCard : styles.mobileContent}>
+        <FadeIn delay={0} style={isDesktop ? [styles.desktopCard, { width: cardWidth }] : styles.mobileContent}>
           <View style={styles.contentInner}>
             {user && (
               <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()} activeOpacity={0.7}>
@@ -147,7 +148,6 @@ const styles = StyleSheet.create({
   desktopFlex: { alignItems: 'center', justifyContent: 'center' },
   mobileContent: { flex: 1, justifyContent: 'center', padding: 32 },
   desktopCard: {
-    width: 460,
     backgroundColor: '#FFFFFF',
     borderRadius: 32,
     padding: 48,
