@@ -45,7 +45,7 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarLabelStyle: styles.tabBarLabel,
-        tabBarStyle: [styles.tabBar, isDesktopWeb && styles.tabBarHidden],
+        tabBarStyle: isDesktopWeb ? styles.tabBarHidden : styles.tabBar,
         tabBarItemStyle: styles.tabBarItem,
       }}
     >
@@ -126,6 +126,10 @@ const styles = StyleSheet.create({
   },
   tabBarHidden: {
     display: 'none',
+    height: 0,
+    opacity: 0,
+    position: 'absolute',
+    borderTopWidth: 0,
   },
   tabBarItem: {
     height: 58,
