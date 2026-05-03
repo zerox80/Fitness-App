@@ -25,6 +25,8 @@ expo-env.d.ts
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+*.log
+
 
 # macOS
 .DS_Store
@@ -44,6 +46,8 @@ backend/Cargo.lock
 # IDE
 .vscode/
 .kilo/
+.idea/
+
 
 # Docker
 docker-compose.override.yml
