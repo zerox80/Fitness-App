@@ -28,6 +28,7 @@
     },
     "plugins": [
       "expo-router",
+      "./plugins/with-android-gradle-path-fallback",
       [
         "expo-splash-screen",
         {
