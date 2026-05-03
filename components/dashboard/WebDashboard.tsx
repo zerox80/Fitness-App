@@ -12,7 +12,6 @@ import { TrainingList } from './TrainingList';
 export function WebDashboard({ data }: { data: DashboardData }) {
   const { width } = useWindowDimensions();
   const isMobile = width < DESKTOP_BREAKPOINT;
-  const isMedium = width < 1100;
 
   return (
     <View style={webStyles.webContent}>
