@@ -6,9 +6,7 @@ import { Menu, X } from 'lucide-react-native';
 import { WebSidebar } from '@/components/dashboard/WebSidebar';
 import { WebTopBar } from '@/components/dashboard/WebTopBar';
 import { webStyles } from '@/components/dashboard/dashboard-web.styles';
-import { palette } from '@/constants/dashboard-constants';
-
-const DESKTOP_BREAKPOINT = 900;
+import { palette, DESKTOP_BREAKPOINT } from '@/constants/dashboard-constants';
 
 export default function WebTabLayout() {
   const { width } = useWindowDimensions();

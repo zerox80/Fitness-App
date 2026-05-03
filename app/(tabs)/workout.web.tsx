@@ -3,16 +3,15 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, useWindowD
 import { Play, Clock, Dumbbell, Zap, Flame } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/constants/Colors';
+import { DESKTOP_BREAKPOINT } from '@/constants/dashboard-constants';
 import { FadeIn } from '@/components/FadeIn';
 import { api, ApiWorkout, GeneratedWorkout } from '@/lib/api';
 import { QuickStartModal } from '@/components/modals/QuickStartModal';
 import { GeneratedWorkoutModal } from '@/components/modals/GeneratedWorkoutModal';
 
-const MOBILE_BP = 600;
-
 export default function WorkoutScreenWeb() {
   const { width } = useWindowDimensions();
-  const isMobile = width < MOBILE_BP;
+  const isMobile = width < DESKTOP_BREAKPOINT;
   const [workouts, setWorkouts] = useState<ApiWorkout[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -44,10 +43,10 @@ export default function WorkoutScreenWeb() {
     }
   };
 
-  const cardWidth = isMobile ? '100%' : width < 900 ? 'calc(50% - 12px)' : 'calc(33.33% - 16px)';
+  const gridItemStyle = isMobile ? { width: '100%' as const } : { minWidth: 300, flex: 1 };
 
   return (
-    <View style={{ flex: 1 }}>
+    <View>
       <View style={[styles.webHeader, isMobile && { flexDirection: 'column', alignItems: 'flex-start', gap: 16 }]}>
         <View>
           <Text style={[styles.webTitle, isMobile && { fontSize: 24 }]}>Trainings-Bibliothek</Text>
@@ -64,7 +63,7 @@ export default function WorkoutScreenWeb() {
       ) : (
         <View style={styles.workoutGrid}>
           {workouts.map((w, i) => (
-            <FadeIn key={w.id} delay={i * 50} style={[styles.gridItem, { width: cardWidth as any }]}>
+            <FadeIn key={w.id} delay={i * 50} style={[styles.gridItem, gridItemStyle]}>
               <TouchableOpacity style={styles.webWorkoutCard} activeOpacity={0.85}>
                 <View style={styles.cardImagePlaceholder}>
                   <Dumbbell size={48} color={Colors.glassBorder} />
@@ -129,7 +128,7 @@ const styles = StyleSheet.create({
   startBtn: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: Colors.primary, paddingHorizontal: 28, paddingVertical: 14, borderRadius: 16, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4 },
   startBtnText: { color: '#FFFFFF', fontWeight: '800', fontSize: 15 },
   workoutGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 24 },
-  gridItem: { width: 'calc(33.33% - 16px)' },
+  gridItem: {},
   webWorkoutCard: { backgroundColor: '#FFFFFF', borderRadius: 24, overflow: 'hidden', borderWidth: 1, borderColor: Colors.glassBorder, height: '100%' },
   cardImagePlaceholder: { height: 180, backgroundColor: Colors.cardLight, alignItems: 'center', justifyContent: 'center' },
   cardContent: { padding: 24 },

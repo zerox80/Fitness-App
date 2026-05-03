@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { Settings, LogOut, Trophy, TrendingUp, Calendar, User, ChevronRight } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
-import { FadeIn } from '@/components/FadeIn';
+import { DESKTOP_BREAKPOINT } from '@/constants/dashboard-constants';
 import { useAuth } from '@/lib/auth-context';
 import { api, UserStats } from '@/lib/api';
 
-const MOBILE_BP = 600;
-
 export default function ProfileScreenWeb() {
   const { width } = useWindowDimensions();
-  const isMobile = width < MOBILE_BP;
+  const isMobile = width < DESKTOP_BREAKPOINT;
   const { user, logout } = useAuth();
   const [stats, setStats] = useState<UserStats | null>(null);
 
@@ -23,9 +21,9 @@ export default function ProfileScreenWeb() {
   if (!user) return null;
 
   return (
-    <View style={{ flex: 1 }}>
+    <View>
       <View style={styles.webHeader}>
-        <Text style={styles.webTitle}>Mein Profil</Text>
+        <Text style={[styles.webTitle, isMobile && { fontSize: 24 }]}>Mein Profil</Text>
         <TouchableOpacity style={styles.logoutBtn} onPress={logout} activeOpacity={0.8}>
           <LogOut size={20} color="#FF4B4B" />
           <Text style={styles.logoutText}>Abmelden</Text>
@@ -34,7 +32,7 @@ export default function ProfileScreenWeb() {
 
       <View style={[styles.profileGrid, isMobile && { flexDirection: 'column' }]}>
         {/* Left Column: Info & Stats */}
-        <View style={styles.leftCol}>
+        <View style={[styles.leftCol, isMobile && { flex: 0, width: '100%' }]}>
           <View style={[styles.userCard, isMobile && { flexDirection: 'column', alignItems: 'flex-start' }]}>
             <View style={styles.avatarBox}>
               <User size={60} color={Colors.textMuted} />
@@ -69,7 +67,7 @@ export default function ProfileScreenWeb() {
         </View>
 
         {/* Right Column: Settings */}
-        <View style={styles.rightCol}>
+        <View style={[styles.rightCol, isMobile && { flex: 0, width: '100%' }]}>
           <View style={styles.settingsCard}>
             <Text style={styles.cardTitle}>Einstellungen</Text>
             {[

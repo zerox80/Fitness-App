@@ -5,19 +5,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { Colors } from '@/constants/Colors';
+import { DESKTOP_BREAKPOINT } from '@/constants/dashboard-constants';
 import { FadeIn } from '@/components/FadeIn';
 import { TaskCard } from '@/components/cards/TaskCard';
 import { TaskForm } from '@/components/forms/TaskForm';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { LoadingSpinner } from '@/components/feedback/LoadingSpinner';
 import { useTasks } from '@/hooks/useTasks';
-import { WebLayout } from '@/components/layout/WebLayout';
-
-const MOBILE_BP = 600;
 
 export default function TasksScreenWeb() {
   const { width } = useWindowDimensions();
-  const isMobile = width < MOBILE_BP;
+  const isMobile = width < DESKTOP_BREAKPOINT;
   const router = useRouter();
   const params = useLocalSearchParams<{ create?: string }>();
   const { tasks, loading, refetch, createTask, deleteTask, toggleTask, incrementSet } = useTasks();
