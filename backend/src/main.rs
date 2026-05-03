@@ -27,6 +27,9 @@ use crate::{
 
 #[tokio::main]
 async fn main() {
+    // Immediate stdout output to debug Docker startup issues
+    println!("FitPulse backend starting up...");
+
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
@@ -35,15 +38,26 @@ async fn main() {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
+    tracing::info!("Logger initialized.");
+
     let config = Config::from_env();
     let pool = create_pool(&config.database_url)
         .await
-        .expect("Failed to connect to database");
+        .unwrap_or_else(|e| {
+            eprintln!("CRITICAL ERROR: Could not connect to database: {}", e);
+            std::process::exit(1);
+        });
 
+    tracing::info!("Database connection established. Running migrations...");
     sqlx::migrate!("./migrations")
         .run(&pool)
         .await
-        .expect("Failed to run migrations");
+        .unwrap_or_else(|e| {
+            eprintln!("CRITICAL ERROR: Migration failed: {}", e);
+            std::process::exit(1);
+        });
+
+    tracing::info!("Migrations completed successfully.");
 
     tracing::info!("Database migrations completed");
 

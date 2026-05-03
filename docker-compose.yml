@@ -24,6 +24,7 @@ services:
       - APP_PORT=3000
       - JWT_SECRET=${JWT_SECRET}
       - CORS_ORIGIN=${CORS_ORIGIN}
+      - RUST_LOG=debug
     env_file:
       - .env
     ports:
