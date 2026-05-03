@@ -41,6 +41,27 @@ export interface CreateWorkoutData {
   category: string;
 }
 
+export interface GenerateWorkoutRequest {
+  duration_minutes: number;
+  focus: string;
+  intensity: string;
+}
+
+export interface GeneratedExercise {
+  name: string;
+  sets: number;
+  reps: string;
+  rest_seconds: number;
+}
+
+export interface GeneratedWorkout {
+  title: string;
+  description: string;
+  exercises: GeneratedExercise[];
+  total_duration: number;
+  intensity: string;
+}
+
 export interface UserStats {
   total_workouts: number;
   total_minutes: number;
@@ -154,6 +175,7 @@ export const api = {
       return request<ApiWorkout[]>(`/workouts${qs ? `?${qs}` : ''}`);
     },
     create: (data: CreateWorkoutData) => request<ApiWorkout>('/workouts', { method: 'POST', body: JSON.stringify(data) }),
+    generate: (data: GenerateWorkoutRequest) => request<GeneratedWorkout>('/workouts/generate', { method: 'POST', body: JSON.stringify(data) }),
     complete: (id: string) => request<ApiWorkout>(`/workouts/${id}/complete`, { method: 'PUT' }),
     delete: (id: string) => request<{ deleted: boolean }>(`/workouts/${id}`, { method: 'DELETE' }),
   },

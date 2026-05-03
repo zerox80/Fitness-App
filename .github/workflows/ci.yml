@@ -116,6 +116,8 @@ jobs:
 
       - name: Build Android Release
         working-directory: android
+        env:
+          EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL }}
         run: ./gradlew assembleRelease --no-daemon
 
       - name: Upload APK

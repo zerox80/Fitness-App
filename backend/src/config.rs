@@ -6,6 +6,9 @@ pub struct Config {
     pub app_port: u16,
     pub jwt_secret: String,
     pub cors_origin: String,
+    pub ai_api_key: Option<String>,
+    pub ai_api_base: String,
+    pub ai_model: String,
 }
 
 impl Config {
@@ -20,6 +23,9 @@ impl Config {
                 .expect("APP_PORT must be a valid u16"),
             jwt_secret: env::var("JWT_SECRET").expect("JWT_SECRET must be set"),
             cors_origin: env::var("CORS_ORIGIN").unwrap_or_else(|_| "*".to_string()),
+            ai_api_key: env::var("MOONSHOT_API_KEY").ok(),
+            ai_api_base: env::var("MOONSHOT_API_BASE").unwrap_or_else(|_| "https://api.moonshot.cn/v1".to_string()),
+            ai_model: env::var("MOONSHOT_MODEL").unwrap_or_else(|_| "moonshot-v1-8k".to_string()),
         }
     }
 }

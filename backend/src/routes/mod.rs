@@ -26,6 +26,7 @@ pub fn create_router(state: AppState) -> Router {
             "/api/workouts",
             get(workouts::list_workouts).post(workouts::create_workout),
         )
+        .route("/api/workouts/generate", post(workouts::generate_workout))
         .route(
             "/api/workouts/{id}",
             get(workouts::get_workout)

@@ -2,13 +2,23 @@ use axum::{extract::State, Json};
 use uuid::Uuid;
 
 use crate::{
-    dto::WorkoutFilterParams,
+    dto::{WorkoutFilterParams, GenerateWorkoutRequest},
     error::AppError,
     middleware::auth::AuthUser,
     models::{CreateWorkoutRequest, UpdateWorkoutRequest, Workout},
-    services::workout,
+    services::{workout, ai::AiService},
     state::AppState,
 };
+
+pub async fn generate_workout(
+    State(state): State<AppState>,
+    axum::Extension(_auth_user): axum::Extension<AuthUser>,
+    Json(req): Json<GenerateWorkoutRequest>,
+) -> Result<Json<crate::dto::GeneratedWorkout>, AppError> {
+    let ai_service = AiService::new(&state.config).map_err(|e| AppError::Internal(e.to_string()))?;
+    let workout = ai_service.generate_workout(&req).await.map_err(|e| AppError::Internal(e.to_string()))?;
+    Ok(Json(workout))
+}
 
 pub async fn list_workouts(
     State(state): State<AppState>,

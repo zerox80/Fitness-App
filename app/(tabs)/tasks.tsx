@@ -152,6 +152,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 24,
     paddingBottom: 150,
+    maxWidth: 800,
+    width: '100%',
+    alignSelf: 'center',
   },
   header: {
     flexDirection: 'row',

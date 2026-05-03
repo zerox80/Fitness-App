@@ -17,10 +17,19 @@ const CATEGORIES = [
   { label: 'Recovery', value: 'recovery', icon: Timer, color: Colors.textMuted },
 ];
 
+import { QuickStartModal } from '@/components/modals/QuickStartModal';
+import { GeneratedWorkoutModal } from '@/components/modals/GeneratedWorkoutModal';
+import { GeneratedWorkout } from '@/lib/api';
+
 export default function WorkoutScreen() {
   const [workouts, setWorkouts] = useState<ApiWorkout[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState(0);
+
+  const [quickStartVisible, setQuickStartVisible] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [generatedWorkout, setGeneratedWorkout] = useState<GeneratedWorkout | null>(null);
+  const [resultVisible, setResultVisible] = useState(false);
 
   useEffect(() => { loadWorkouts(); }, [activeCategory]);
 
@@ -31,6 +40,20 @@ export default function WorkoutScreen() {
     } catch {}
     finally { setLoading(false); }
   }
+
+  const handleGenerate = async (duration: number, focus: string, intensity: string) => {
+    setGenerating(true);
+    try {
+      const res = await api.workouts.generate({ duration_minutes: duration, focus, intensity });
+      setGeneratedWorkout(res);
+      setQuickStartVisible(false);
+      setResultVisible(true);
+    } catch (err) {
+      alert('Fehler bei der Generierung: ' + (err instanceof Error ? err.message : 'Unbekannter Fehler'));
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const featured = workouts[0];
   const rest = workouts.slice(1);
@@ -45,7 +68,11 @@ export default function WorkoutScreen() {
               <Text style={styles.overline}>YOUR PROGRAM</Text>
               <Text style={styles.title}>Workouts</Text>
             </View>
-            <TouchableOpacity style={styles.quickBtn} activeOpacity={0.8}>
+            <TouchableOpacity 
+              style={styles.quickBtn} 
+              activeOpacity={0.8}
+              onPress={() => setQuickStartVisible(true)}
+            >
               <Play size={16} color="#FFFFFF" fill="#FFFFFF" />
             </TouchableOpacity>
           </View>
@@ -145,13 +172,36 @@ export default function WorkoutScreen() {
           </>
         )}
       </ScrollView>
+
+      <QuickStartModal
+        visible={quickStartVisible}
+        onClose={() => setQuickStartVisible(false)}
+        onGenerate={handleGenerate}
+        loading={generating}
+      />
+
+      <GeneratedWorkoutModal
+        visible={resultVisible}
+        onClose={() => setResultVisible(false)}
+        workout={generatedWorkout}
+        onStart={() => {
+          setResultVisible(false);
+          alert('Training gestartet! (Platzhalter für Tracker)');
+        }}
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  scrollContent: { paddingHorizontal: 24, paddingBottom: 150 },
+  scrollContent: { 
+    paddingHorizontal: 24, 
+    paddingBottom: 150,
+    maxWidth: 800,
+    width: '100%',
+    alignSelf: 'center'
+  },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 12, marginBottom: 28 },
   overline: { fontSize: 12, fontWeight: '800', color: Colors.primary, letterSpacing: 1.5, marginBottom: 6 },
   title: { fontSize: 36, fontWeight: '900', color: Colors.text, letterSpacing: -1.2 },
