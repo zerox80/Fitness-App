@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, useWindowDimensions } from 'react-native';
 import { Settings, LogOut, Trophy, TrendingUp, Calendar, User, ChevronRight } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { FadeIn } from '@/components/FadeIn';
 import { useAuth } from '@/lib/auth-context';
 import { api, UserStats } from '@/lib/api';
 
+const MOBILE_BP = 600;
+
 export default function ProfileScreenWeb() {
+  const { width } = useWindowDimensions();
+  const isMobile = width < MOBILE_BP;
   const { user, logout } = useAuth();
   const [stats, setStats] = useState<UserStats | null>(null);
 
@@ -28,15 +32,15 @@ export default function ProfileScreenWeb() {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.profileGrid}>
+      <View style={[styles.profileGrid, isMobile && { flexDirection: 'column' }]}>
         {/* Left Column: Info & Stats */}
         <View style={styles.leftCol}>
-          <View style={styles.userCard}>
+          <View style={[styles.userCard, isMobile && { flexDirection: 'column', alignItems: 'flex-start' }]}>
             <View style={styles.avatarBox}>
               <User size={60} color={Colors.textMuted} />
             </View>
             <View>
-              <Text style={styles.userName}>{user.name}</Text>
+              <Text style={[styles.userName, isMobile && { fontSize: 22 }]}>{user.name}</Text>
               <Text style={styles.userEmail}>{user.email}</Text>
               <View style={styles.proBadge}>
                 <Text style={styles.proBadgeText}>PRO MITGLIED</Text>
@@ -44,7 +48,7 @@ export default function ProfileScreenWeb() {
             </View>
           </View>
 
-          <View style={styles.statsRow}>
+          <View style={[styles.statsRow, isMobile && { flexWrap: 'wrap' }]}>
             {[
               { label: 'Trainings', value: stats?.total_workouts ?? 0, icon: Trophy, color: Colors.primary },
               { label: 'Minuten', value: stats?.total_minutes ?? 0, icon: TrendingUp, color: Colors.secondary },
@@ -52,7 +56,7 @@ export default function ProfileScreenWeb() {
             ].map((s, i) => {
               const Icon = s.icon;
               return (
-                <View key={i} style={styles.statCard}>
+                <View key={i} style={[styles.statCard, isMobile && { minWidth: '45%' }]}>
                   <View style={[styles.iconBox, { backgroundColor: `${s.color}15` }]}>
                     <Icon size={24} color={s.color} />
                   </View>

@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { Play, Clock, Dumbbell, Zap, Flame } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/constants/Colors';
 import { FadeIn } from '@/components/FadeIn';
 import { api, ApiWorkout } from '@/lib/api';
 
+const MOBILE_BP = 600;
+
 export default function WorkoutScreenWeb() {
+  const { width } = useWindowDimensions();
+  const isMobile = width < MOBILE_BP;
   const [workouts, setWorkouts] = useState<ApiWorkout[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -19,11 +23,13 @@ export default function WorkoutScreenWeb() {
     finally { setLoading(false); }
   }
 
+  const cardWidth = isMobile ? '100%' : width < 900 ? 'calc(50% - 12px)' : 'calc(33.33% - 16px)';
+
   return (
     <View style={{ flex: 1 }}>
-      <View style={styles.webHeader}>
+      <View style={[styles.webHeader, isMobile && { flexDirection: 'column', alignItems: 'flex-start', gap: 16 }]}>
         <View>
-          <Text style={styles.webTitle}>Trainings-Bibliothek</Text>
+          <Text style={[styles.webTitle, isMobile && { fontSize: 24 }]}>Trainings-Bibliothek</Text>
           <Text style={styles.webSubtitle}>Wähle ein Training aus und starte deine Session.</Text>
         </View>
         <TouchableOpacity style={styles.startBtn} activeOpacity={0.8}>
@@ -37,7 +43,7 @@ export default function WorkoutScreenWeb() {
       ) : (
         <View style={styles.workoutGrid}>
           {workouts.map((w, i) => (
-            <FadeIn key={w.id} delay={i * 50} style={styles.gridItem}>
+            <FadeIn key={w.id} delay={i * 50} style={[styles.gridItem, { width: cardWidth as any }]}>
               <TouchableOpacity style={styles.webWorkoutCard} activeOpacity={0.85}>
                 <View style={styles.cardImagePlaceholder}>
                   <Dumbbell size={48} color={Colors.glassBorder} />

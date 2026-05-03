@@ -1,0 +1,77 @@
+version: 2
+updates:
+  # Frontend: npm
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Berlin
+    open-pull-requests-limit: 10
+    reviewers:
+      - zerox80
+    labels:
+      - dependencies
+      - frontend
+    groups:
+      expo:
+        patterns:
+          - "expo*"
+          - "@expo/*"
+      react:
+        patterns:
+          - "react*"
+          - "@react-navigation/*"
+          - "react-native*"
+      dev-deps:
+        dependency-type: development
+        patterns:
+          - "*eslint*"
+          - "vitest"
+          - "@testing-library/*"
+          - "typescript"
+          - "jsdom"
+
+  # Backend: Cargo
+  - package-ecosystem: cargo
+    directory: /backend
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Berlin
+    open-pull-requests-limit: 10
+    reviewers:
+      - zerox80
+    labels:
+      - dependencies
+      - backend
+    groups:
+      axum-ecosystem:
+        patterns:
+          - "axum*"
+          - "tower*"
+      database:
+        patterns:
+          - "sqlx*"
+          - "chrono"
+          - "uuid"
+      auth:
+        patterns:
+          - "jsonwebtoken"
+          - "argon2"
+          - "rand"
+
+  # GitHub Actions
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Berlin
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - ci

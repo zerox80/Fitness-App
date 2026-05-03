@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { Plus, CircleCheck as CheckCircle2 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -13,7 +13,11 @@ import { LoadingSpinner } from '@/components/feedback/LoadingSpinner';
 import { useTasks } from '@/hooks/useTasks';
 import { WebLayout } from '@/components/layout/WebLayout';
 
+const MOBILE_BP = 600;
+
 export default function TasksScreenWeb() {
+  const { width } = useWindowDimensions();
+  const isMobile = width < MOBILE_BP;
   const router = useRouter();
   const params = useLocalSearchParams<{ create?: string }>();
   const { tasks, loading, refetch, createTask, deleteTask, toggleTask } = useTasks();
@@ -32,9 +36,9 @@ export default function TasksScreenWeb() {
 
   return (
     <View style={{ flex: 1 }}>
-      <View style={styles.webHeader}>
+      <View style={[styles.webHeader, isMobile && { flexDirection: 'column', alignItems: 'flex-start', gap: 16 }]}>
         <View>
-          <Text style={styles.webTitle}>Tägliche Tasks</Text>
+          <Text style={[styles.webTitle, isMobile && { fontSize: 24 }]}>Tägliche Tasks</Text>
           <Text style={styles.webSubtitle}>{completedCount} von {totalCount} heute erledigt</Text>
         </View>
         <TouchableOpacity style={styles.addBtn} onPress={() => setFormVisible(true)} activeOpacity={0.7}>
