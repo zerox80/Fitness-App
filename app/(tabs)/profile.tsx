@@ -106,8 +106,8 @@ export default function ProfileScreen() {
             <View style={styles.avatarWrap}>
               <View style={[styles.ringOuter, { borderColor: Colors.tertiary }]} />
               <View style={[styles.ringInner, { borderColor: Colors.primary }]} />
-              <View style={styles.avatarBox}>
-                <Image source={{ uri: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80' }} style={styles.avatar} />
+              <View style={[styles.avatarBox, { backgroundColor: Colors.cardLight, alignItems: 'center', justifyContent: 'center' }]}>
+                <User size={60} color={Colors.textMuted} />
               </View>
             </View>
             <Text style={styles.name}>{user.name}</Text>

@@ -15,7 +15,9 @@ export function WebTopBar() {
         <TouchableOpacity activeOpacity={0.75} style={webStyles.notificationButton}>
           <Bell size={25} color="#4A5564" strokeWidth={2.1} />
         </TouchableOpacity>
-        <Image source={{ uri: avatarUri }} style={webStyles.webAvatar} />
+        <View style={[webStyles.webAvatar, { backgroundColor: palette.border, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }]}>
+          <UserIcon size={24} color={palette.muted} />
+        </View>
       </View>
     </View>
   );
