@@ -17,6 +17,7 @@ fn default_per_page() -> i64 {
     20
 }
 
+#[allow(dead_code)]
 impl PaginationParams {
     pub fn offset(&self) -> i64 {
         (self.page.max(1) - 1) * self.per_page.clamp(1, 100)
@@ -28,6 +29,7 @@ impl PaginationParams {
 }
 
 #[derive(Serialize, Debug)]
+#[allow(dead_code)]
 pub struct PaginatedResponse<T> {
     pub data: Vec<T>,
     pub page: i64,
@@ -36,6 +38,7 @@ pub struct PaginatedResponse<T> {
     pub total_pages: i64,
 }
 
+#[allow(dead_code)]
 impl<T> PaginatedResponse<T> {
     pub fn new(data: Vec<T>, page: i64, per_page: i64, total: i64) -> Self {
         let total_pages = if total == 0 {
