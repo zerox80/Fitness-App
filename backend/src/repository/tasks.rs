@@ -35,11 +35,7 @@ pub async fn list_by_user(pool: &PgPool, user_id: Uuid) -> Result<Vec<Task>, App
     .map_err(AppError::Database)
 }
 
-pub async fn find_by_id(
-    pool: &PgPool,
-    id: Uuid,
-    user_id: Uuid,
-) -> Result<Option<Task>, AppError> {
+pub async fn find_by_id(pool: &PgPool, id: Uuid, user_id: Uuid) -> Result<Option<Task>, AppError> {
     sqlx::query_as::<_, Task>("SELECT * FROM tasks WHERE id = $1 AND user_id = $2")
         .bind(id)
         .bind(user_id)
@@ -174,7 +170,15 @@ pub async fn get_completion_dates(
     user_id: Uuid,
 ) -> Result<Vec<NaiveDate>, AppError> {
     let rows: Vec<(NaiveDate,)> = sqlx::query_as(
-        "SELECT completed_date FROM task_completions WHERE task_id = $1 AND user_id = $2 ORDER BY completed_date DESC",
+        r#"
+        SELECT tc.completed_date
+        FROM task_completions tc
+        JOIN tasks t ON t.id = tc.task_id
+        WHERE tc.task_id = $1
+          AND tc.user_id = $2
+          AND tc.completed_sets >= t.target_sets
+        ORDER BY tc.completed_date DESC
+        "#,
     )
     .bind(task_id)
     .bind(user_id)

@@ -16,6 +16,7 @@ import { EmptyState } from '@/components/feedback/EmptyState';
 import { LoadingSpinner } from '@/components/feedback/LoadingSpinner';
 import { useTasks } from '@/hooks/useTasks';
 import { absoluteFill } from '@/utils/styles';
+import { getCompletedTaskCount, getDailyTaskProgress } from '@/utils/taskProgress';
 
 export default function TasksScreen() {
   const router = useRouter();
@@ -24,9 +25,9 @@ export default function TasksScreen() {
   const [formVisible, setFormVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  const completedCount = tasks.filter((t) => t.completed_today).length;
+  const completedCount = getCompletedTaskCount(tasks);
   const totalCount = tasks.length;
-  const progress = totalCount > 0 ? completedCount / totalCount : 0;
+  const progress = getDailyTaskProgress(tasks);
 
   const onRefresh = async () => {
     setRefreshing(true);

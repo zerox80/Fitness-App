@@ -12,6 +12,7 @@ import { TaskForm } from '@/components/forms/TaskForm';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { LoadingSpinner } from '@/components/feedback/LoadingSpinner';
 import { useTasks } from '@/hooks/useTasks';
+import { getCompletedTaskCount, getDailyTaskProgress } from '@/utils/taskProgress';
 
 export default function TasksScreenWeb() {
   const { width } = useWindowDimensions();
@@ -21,9 +22,9 @@ export default function TasksScreenWeb() {
   const { tasks, loading, refetch, createTask, deleteTask, toggleTask, incrementSet } = useTasks();
   const [formVisible, setFormVisible] = useState(false);
 
-  const completedCount = tasks.filter((t) => t.completed_today).length;
+  const completedCount = getCompletedTaskCount(tasks);
   const totalCount = tasks.length;
-  const progress = totalCount > 0 ? completedCount / totalCount : 0;
+  const progress = getDailyTaskProgress(tasks);
 
   useEffect(() => {
     if (params.create === '1') {

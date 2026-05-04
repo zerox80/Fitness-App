@@ -72,10 +72,7 @@ pub async fn update_task(
     .await
 }
 
-pub async fn get_user_tasks(
-    state: &AppState,
-    user_id: Uuid,
-) -> Result<Vec<Task>, AppError> {
+pub async fn get_user_tasks(state: &AppState, user_id: Uuid) -> Result<Vec<Task>, AppError> {
     tasks::list_by_user(&state.pool, user_id).await
 }
 
@@ -87,11 +84,7 @@ pub async fn get_task_by_id(
     tasks::find_by_id(&state.pool, task_id, user_id).await
 }
 
-pub async fn delete_task(
-    state: &AppState,
-    task_id: Uuid,
-    user_id: Uuid,
-) -> Result<u64, AppError> {
+pub async fn delete_task(state: &AppState, task_id: Uuid, user_id: Uuid) -> Result<u64, AppError> {
     tasks::delete(&state.pool, task_id, user_id).await
 }
 
@@ -106,8 +99,11 @@ pub async fn toggle_task_completion(
         return Err(AppError::NotFound);
     }
 
-    let completed_ids_with_sets = tasks::get_completions_for_date(&state.pool, user_id, date).await?;
-    let existing_completion = completed_ids_with_sets.iter().find(|(id, _)| *id == task_id);
+    let completed_ids_with_sets =
+        tasks::get_completions_for_date(&state.pool, user_id, date).await?;
+    let existing_completion = completed_ids_with_sets
+        .iter()
+        .find(|(id, _)| *id == task_id);
 
     if let Some((_, _)) = existing_completion {
         tasks::uncomplete_task(&state.pool, task_id, user_id, date).await?;
@@ -127,7 +123,8 @@ pub async fn increment_task_set(
     let task = tasks::find_by_id(&state.pool, task_id, user_id).await?;
     let task = task.ok_or(AppError::NotFound)?;
 
-    let completed_ids_with_sets = tasks::get_completions_for_date(&state.pool, user_id, date).await?;
+    let completed_ids_with_sets =
+        tasks::get_completions_for_date(&state.pool, user_id, date).await?;
     let existing_sets = completed_ids_with_sets
         .iter()
         .find(|(id, _)| *id == task_id)
@@ -161,7 +158,8 @@ pub async fn get_tasks_with_completion(
     date: NaiveDate,
 ) -> Result<Vec<TaskWithCompletionStatus>, AppError> {
     let all_tasks = tasks::list_by_user(&state.pool, user_id).await?;
-    let completed_ids_with_sets = tasks::get_completions_for_date(&state.pool, user_id, date).await?;
+    let completed_ids_with_sets =
+        tasks::get_completions_for_date(&state.pool, user_id, date).await?;
 
     let weekday = date.weekday().num_days_from_monday() as i32;
 
@@ -169,10 +167,16 @@ pub async fn get_tasks_with_completion(
         .into_iter()
         .filter(|task| task_is_scheduled(task, weekday))
         .map(|task| {
-            let completion = completed_ids_with_sets.iter().find(|(id, _)| *id == task.id);
+            let completion = completed_ids_with_sets
+                .iter()
+                .find(|(id, _)| *id == task.id);
+            let completed_sets_today = completion.map(|(_, sets)| *sets).unwrap_or(0);
+            let completed_today =
+                task_completion_is_complete(completed_sets_today, task.target_sets);
+
             TaskWithCompletionStatus {
-                completed_today: completion.is_some(),
-                completed_sets_today: completion.map(|(_, sets)| *sets).unwrap_or(0),
+                completed_today,
+                completed_sets_today,
                 id: task.id,
                 user_id: task.user_id,
                 title: task.title,
@@ -203,10 +207,32 @@ fn task_is_scheduled(task: &Task, weekday: i32) -> bool {
     }
 }
 
+fn task_completion_is_complete(completed_sets: i32, target_sets: i32) -> bool {
+    completed_sets >= target_sets
+}
+
 pub async fn get_completion_dates(
     state: &AppState,
     task_id: Uuid,
     user_id: Uuid,
 ) -> Result<Vec<NaiveDate>, AppError> {
     tasks::get_completion_dates(&state.pool, task_id, user_id).await
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn task_completion_requires_target_sets() {
+        assert!(!task_completion_is_complete(0, 4));
+        assert!(!task_completion_is_complete(1, 4));
+        assert!(!task_completion_is_complete(3, 4));
+    }
+
+    #[test]
+    fn task_completion_is_complete_at_or_above_target_sets() {
+        assert!(task_completion_is_complete(4, 4));
+        assert!(task_completion_is_complete(5, 4));
+    }
 }

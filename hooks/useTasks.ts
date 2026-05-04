@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { api, ApiTaskWithCompletion, CreateTaskData, UpdateTaskData } from '@/lib/api';
+import { isTaskFullyCompleted } from '@/utils/taskProgress';
 
 export function useTasks() {
   const [tasks, setTasks] = useState<ApiTaskWithCompletion[]>([]);
@@ -41,7 +42,21 @@ export function useTasks() {
   const toggleTask = useCallback(async (id: string) => {
     const result = await api.tasks.toggle(id);
     setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, completed_today: result.completed, completed_sets_today: result.completed ? 1 : 0 } : t))
+      prev.map((t) => {
+        if (t.id !== id) {
+          return t;
+        }
+
+        const updatedTask = {
+          ...t,
+          completed_sets_today: result.completed ? 1 : 0,
+        };
+
+        return {
+          ...updatedTask,
+          completed_today: isTaskFullyCompleted(updatedTask),
+        };
+      })
     );
     return result.completed;
   }, []);
@@ -49,15 +64,21 @@ export function useTasks() {
   const incrementSet = useCallback(async (id: string) => {
     const result = await api.tasks.incrementSet(id);
     setTasks((prev) =>
-      prev.map((t) =>
-        t.id === id
-          ? {
-              ...t,
-              completed_today: result.completed_sets > 0,
-              completed_sets_today: result.completed_sets,
-            }
-          : t
-      )
+      prev.map((t) => {
+        if (t.id !== id) {
+          return t;
+        }
+
+        const updatedTask = {
+          ...t,
+          completed_sets_today: result.completed_sets,
+        };
+
+        return {
+          ...updatedTask,
+          completed_today: isTaskFullyCompleted(updatedTask),
+        };
+      })
     );
     return result.completed_sets;
   }, []);
