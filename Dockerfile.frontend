@@ -8,7 +8,7 @@ COPY package*.json ./
 RUN npm config set fetch-retries 5 \
   && npm config set fetch-retry-mintimeout 20000 \
   && npm config set fetch-retry-maxtimeout 120000 \
-  && npm ci --omit=dev --no-audit --no-fund
+  && npm install --omit=dev --no-audit --no-fund --prefer-offline
 
 # Copy the rest of the application code
 COPY . .
