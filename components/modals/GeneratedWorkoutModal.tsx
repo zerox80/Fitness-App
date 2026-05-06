@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView } from 'react-native';
+import { Modal, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { X, Clock, Zap, Play, List } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 import { GeneratedWorkout } from '@/lib/api';
@@ -12,19 +12,22 @@ interface GeneratedWorkoutModalProps {
 }
 
 export function GeneratedWorkoutModal({ visible, onClose, workout, onStart }: GeneratedWorkoutModalProps) {
+  const { width } = useWindowDimensions();
+  const isDesktop = Platform.OS === 'web' && width >= 900;
+
   if (!workout) return null;
 
   return (
-    <Modal visible={visible} transparent animationType="slide">
-      <View style={styles.overlay}>
-        <View style={styles.content}>
+    <Modal visible={visible} transparent animationType={isDesktop ? 'fade' : 'slide'} onRequestClose={onClose}>
+      <View style={[styles.overlay, isDesktop ? styles.centerOverlay : styles.bottomOverlay]}>
+        <View style={[styles.content, isDesktop ? styles.desktopContent : styles.sheetContent]}>
           <View style={styles.header}>
-            <View>
-              <Text style={styles.overline}>AI GENERIERT</Text>
+            <View style={styles.headerCopy}>
+              <Text style={styles.overline}>Trainingsvorschlag</Text>
               <Text style={styles.title}>{workout.title}</Text>
             </View>
-            <TouchableOpacity onPress={onClose}>
-              <X size={24} color={Colors.textMuted} />
+            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+              <X size={22} color={Colors.textMuted} />
             </TouchableOpacity>
           </View>
 
@@ -34,7 +37,7 @@ export function GeneratedWorkoutModal({ visible, onClose, workout, onStart }: Ge
               <Text style={styles.metaText}>{workout.total_duration} min</Text>
             </View>
             <View style={styles.metaItem}>
-              <Zap size={16} color={Colors.tertiary} />
+              <Zap size={16} color={Colors.secondary} />
               <Text style={styles.metaText}>{workout.intensity}</Text>
             </View>
           </View>
@@ -47,24 +50,24 @@ export function GeneratedWorkoutModal({ visible, onClose, workout, onStart }: Ge
           </View>
 
           <ScrollView style={styles.exerciseList} showsVerticalScrollIndicator={false}>
-            {workout.exercises.map((ex, idx) => (
-              <View key={idx} style={styles.exerciseCard}>
+            {workout.exercises.map((exercise, index) => (
+              <View key={`${exercise.name}-${index}`} style={styles.exerciseCard}>
                 <View style={styles.exerciseInfo}>
-                  <Text style={styles.exerciseName}>{ex.name}</Text>
+                  <Text style={styles.exerciseName}>{exercise.name}</Text>
                   <Text style={styles.exerciseSub}>
-                    {ex.sets} Sätze × {ex.reps}
+                    {exercise.sets} Sätze × {exercise.reps}
                   </Text>
                 </View>
                 <View style={styles.restBadge}>
-                  <Text style={styles.restText}>{ex.rest_seconds}s Pause</Text>
+                  <Text style={styles.restText}>{exercise.rest_seconds}s Pause</Text>
                 </View>
               </View>
             ))}
           </ScrollView>
 
-          <TouchableOpacity style={styles.startBtn} onPress={onStart}>
-            <Play size={20} color="#FFFFFF" fill="#FFFFFF" />
-            <Text style={styles.startBtnText}>Training starten</Text>
+          <TouchableOpacity style={styles.startBtn} onPress={onStart} activeOpacity={0.85}>
+            <Play size={19} color="#FFFFFF" fill="#FFFFFF" />
+            <Text style={styles.startBtnText}>Training speichern</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -75,50 +78,84 @@ export function GeneratedWorkoutModal({ visible, onClose, workout, onStart }: Ge
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(23,33,43,0.36)',
+    padding: 18,
+  },
+  centerOverlay: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bottomOverlay: {
     justifyContent: 'flex-end',
     alignItems: 'center',
   },
   content: {
     backgroundColor: Colors.background,
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    padding: 24,
-    height: '85%',
     width: '100%',
-    maxWidth: 600,
+    borderWidth: 1,
+    borderColor: Colors.borderSoft,
+  },
+  desktopContent: {
+    maxWidth: 620,
+    maxHeight: '86%',
+    borderRadius: 16,
+    padding: 24,
+  },
+  sheetContent: {
+    height: '86%',
+    maxWidth: 620,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    padding: 20,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 20,
+    gap: 16,
+    marginBottom: 18,
+  },
+  headerCopy: {
+    flex: 1,
+    minWidth: 0,
+  },
+  closeBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: Colors.cardLight,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   overline: {
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '700',
     color: Colors.primary,
-    letterSpacing: 1.2,
     marginBottom: 4,
+    textTransform: 'uppercase',
   },
   title: {
-    fontSize: 28,
-    fontWeight: '900',
+    fontSize: 24,
+    fontWeight: '800',
     color: Colors.text,
+    lineHeight: 30,
   },
   metaRow: {
     flexDirection: 'row',
-    gap: 16,
-    marginBottom: 20,
+    gap: 10,
+    marginBottom: 18,
+    flexWrap: 'wrap',
   },
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: Colors.cardLight,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    backgroundColor: Colors.card,
+    paddingHorizontal: 11,
+    paddingVertical: 7,
     borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.borderSoft,
   },
   metaText: {
     fontSize: 14,
@@ -129,13 +166,13 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: Colors.textMuted,
     lineHeight: 22,
-    marginBottom: 24,
+    marginBottom: 22,
   },
   listHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   listTitle: {
     fontSize: 18,
@@ -144,38 +181,41 @@ const styles = StyleSheet.create({
   },
   exerciseList: {
     flex: 1,
-    marginBottom: 20,
+    marginBottom: 16,
   },
   exerciseCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: Colors.card,
-    padding: 16,
-    borderRadius: 18,
-    marginBottom: 10,
+    padding: 14,
+    borderRadius: 12,
+    marginBottom: 8,
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.borderSoft,
+    gap: 12,
   },
   exerciseInfo: {
     flex: 1,
+    minWidth: 0,
   },
   exerciseName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: Colors.text,
     marginBottom: 2,
   },
   exerciseSub: {
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.textMuted,
     fontWeight: '600',
   },
   restBadge: {
-    backgroundColor: 'rgba(32,183,127,0.1)',
-    paddingHorizontal: 10,
+    backgroundColor: Colors.primaryGlow,
+    paddingHorizontal: 9,
     paddingVertical: 4,
     borderRadius: 8,
+    flexShrink: 0,
   },
   restText: {
     fontSize: 12,
@@ -184,21 +224,16 @@ const styles = StyleSheet.create({
   },
   startBtn: {
     backgroundColor: Colors.primary,
-    height: 64,
-    borderRadius: 22,
+    height: 54,
+    borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
-    elevation: 8,
+    gap: 10,
   },
   startBtnText: {
     color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '900',
+    fontSize: 16,
+    fontWeight: '800',
   },
 });

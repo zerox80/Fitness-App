@@ -1,8 +1,7 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { TrendingUp, Dumbbell, Timer, Flame, Calendar, Target } from 'lucide-react-native';
+import { Target } from 'lucide-react-native';
 import { useStats } from '@/hooks/useStats';
 import { StatCard } from '@/components/cards/StatCard';
 import { LoadingSpinner } from '@/components/feedback/LoadingSpinner';
@@ -10,7 +9,6 @@ import { ErrorBanner } from '@/components/feedback/ErrorBanner';
 import { ProgressRing } from '@/components/ProgressRing';
 import { FadeIn } from '@/components/FadeIn';
 import { Colors } from '@/constants/Colors';
-import { absoluteFill } from '@/utils/styles';
 
 export default function StatsScreen() {
   const { stats, weeklyGoal, loading, error, refetch } = useStats();
@@ -73,10 +71,6 @@ export default function StatsScreen() {
             {weeklyGoal && (
               <FadeIn delay={300}>
                 <View style={styles.goalSection}>
-                  <LinearGradient
-                    colors={['rgba(32,183,127,0.08)', 'transparent']}
-                    style={absoluteFill}
-                  />
                   <View style={styles.goalHeader}>
                     <View style={styles.goalIconBox}>
                       <Target size={18} color={Colors.primary} />
@@ -103,10 +97,6 @@ export default function StatsScreen() {
             {stats.favoriteExercise && (
               <FadeIn delay={400}>
                 <View style={styles.favoriteSection}>
-                  <LinearGradient
-                    colors={['rgba(34,199,188,0.08)', 'transparent']}
-                    style={absoluteFill}
-                  />
                   <Text style={styles.favoriteLabel}>Lieblingsübung</Text>
                   <Text style={styles.favoriteText}>{stats.favoriteExercise}</Text>
                 </View>
@@ -125,14 +115,14 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   scroll: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     paddingBottom: 150,
   },
   header: {
     color: Colors.text,
-    fontSize: 36,
-    fontWeight: '900',
-    letterSpacing: -1.2,
+    fontSize: 30,
+    fontWeight: '800',
+    lineHeight: 36,
     marginTop: 12,
     marginBottom: 24,
   },
@@ -143,11 +133,11 @@ const styles = StyleSheet.create({
   },
   goalSection: {
     marginTop: 16,
-    backgroundColor: Colors.glass,
-    borderRadius: 28,
-    padding: 24,
+    backgroundColor: Colors.card,
+    borderRadius: 14,
+    padding: 18,
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.borderSoft,
     overflow: 'hidden',
   },
   goalHeader: {
@@ -167,8 +157,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: Colors.text,
     fontSize: 18,
-    fontWeight: '900',
-    letterSpacing: -0.3,
+    fontWeight: '800',
   },
   goalRow: {
     flexDirection: 'row',
@@ -181,12 +170,12 @@ const styles = StyleSheet.create({
   goalDivider: {
     width: 1,
     height: 80,
-    backgroundColor: Colors.glassBorder,
+    backgroundColor: Colors.borderSoft,
   },
   goalValue: {
     color: Colors.text,
     fontSize: 14,
-    fontWeight: '900',
+    fontWeight: '800',
     marginTop: 8,
   },
   goalLabel: {
@@ -197,11 +186,11 @@ const styles = StyleSheet.create({
   },
   favoriteSection: {
     marginTop: 16,
-    backgroundColor: Colors.glass,
-    borderRadius: 28,
-    padding: 24,
+    backgroundColor: Colors.card,
+    borderRadius: 14,
+    padding: 18,
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.borderSoft,
     overflow: 'hidden',
   },
   favoriteLabel: {
@@ -209,13 +198,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '800',
     textTransform: 'uppercase',
-    letterSpacing: 0.8,
     marginBottom: 8,
   },
   favoriteText: {
     color: Colors.secondary,
     fontSize: 22,
-    fontWeight: '900',
-    letterSpacing: -0.3,
+    fontWeight: '800',
   },
 });

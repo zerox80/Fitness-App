@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { Plus, CircleCheck as CheckCircle2 } from 'lucide-react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { Colors } from '@/constants/Colors';
@@ -19,7 +18,7 @@ export default function TasksScreenWeb() {
   const isMobile = width < DESKTOP_BREAKPOINT;
   const router = useRouter();
   const params = useLocalSearchParams<{ create?: string }>();
-  const { tasks, loading, refetch, createTask, deleteTask, toggleTask, incrementSet } = useTasks();
+  const { tasks, loading, createTask, deleteTask, toggleTask, incrementSet } = useTasks();
   const [formVisible, setFormVisible] = useState(false);
 
   const completedCount = getCompletedTaskCount(tasks);
@@ -37,12 +36,12 @@ export default function TasksScreenWeb() {
     <View style={{ flex: 1 }}>
       <View style={[styles.webHeader, isMobile && { flexDirection: 'column', alignItems: 'flex-start', gap: 16 }]}>
         <View>
-          <Text style={[styles.webTitle, isMobile && { fontSize: 24 }]}>Tägliche Tasks</Text>
+          <Text style={[styles.webTitle, isMobile && { fontSize: 24 }]}>Tägliche Aufgaben</Text>
           <Text style={styles.webSubtitle}>{completedCount} von {totalCount} heute erledigt</Text>
         </View>
         <TouchableOpacity style={styles.addBtn} onPress={() => setFormVisible(true)} activeOpacity={0.7}>
           <Plus size={22} color="#FFFFFF" />
-          <Text style={styles.addBtnText}>Task hinzufügen</Text>
+          <Text style={styles.addBtnText}>Aufgabe hinzufügen</Text>
         </TouchableOpacity>
       </View>
 
@@ -56,20 +55,16 @@ export default function TasksScreenWeb() {
             <Text style={styles.progressValue}>{Math.round(progress * 100)}%</Text>
           </View>
           <View style={styles.barBg}>
-            <LinearGradient
-              colors={[Colors.primary, '#a8cc00']}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-              style={[styles.barFill, { width: `${Math.max(progress * 100, 2)}%` }]}
-            />
+            <View style={[styles.barFill, { width: `${Math.max(progress * 100, 2)}%` }]} />
           </View>
         </View>
       </View>
 
       <View style={styles.listContainer}>
         {loading ? (
-          <LoadingSpinner message="Tasks laden..." />
+          <LoadingSpinner message="Aufgaben laden..." />
         ) : tasks.length === 0 ? (
-          <EmptyState icon="✅" title="Alles erledigt!" subtitle="Keine offenen Tasks für heute." />
+          <EmptyState title="Alles erledigt" subtitle="Keine offenen Aufgaben für heute." />
         ) : (
           <View style={styles.taskGrid}>
             {tasks.map((task, i) => (
@@ -94,19 +89,19 @@ export default function TasksScreenWeb() {
 }
 
 const styles = StyleSheet.create({
-  webHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 },
-  webTitle: { fontSize: 32, fontWeight: '900', color: Colors.text, letterSpacing: -1 },
+  webHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 },
+  webTitle: { fontSize: 30, fontWeight: '800', color: Colors.text },
   webSubtitle: { fontSize: 16, color: Colors.textMuted, fontWeight: '500', marginTop: 4 },
-  addBtn: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: Colors.primary, paddingHorizontal: 24, paddingVertical: 14, borderRadius: 16, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4 },
+  addBtn: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: Colors.primary, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12 },
   addBtnText: { color: '#FFFFFF', fontWeight: '800', fontSize: 15 },
-  progressSection: { marginBottom: 40 },
-  progressCard: { backgroundColor: '#FFFFFF', borderRadius: 24, padding: 24, borderWidth: 1, borderColor: Colors.glassBorder },
+  progressSection: { marginBottom: 28 },
+  progressCard: { backgroundColor: Colors.card, borderRadius: 14, padding: 18, borderWidth: 1, borderColor: Colors.borderSoft },
   progressHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  progressLabel: { fontSize: 16, fontWeight: '700', color: Colors.text },
-  progressValue: { fontSize: 24, fontWeight: '900', color: Colors.primary },
+  progressLabel: { fontSize: 16, fontWeight: '600', color: Colors.text },
+  progressValue: { fontSize: 24, fontWeight: '800', color: Colors.primary },
   barBg: { height: 12, borderRadius: 6, backgroundColor: Colors.cardLight, overflow: 'hidden' },
-  barFill: { height: '100%', borderRadius: 6 },
+  barFill: { height: '100%', borderRadius: 6, backgroundColor: Colors.primary },
   listContainer: { paddingBottom: 100 },
-  taskGrid: { gap: 16 },
+  taskGrid: { gap: 10 },
 });

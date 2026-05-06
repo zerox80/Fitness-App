@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Dumbbell } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
 
 interface EmptyStateProps {
@@ -12,7 +13,7 @@ export function EmptyState({ icon = '🏋️', title, subtitle }: EmptyStateProp
   return (
     <View style={styles.container}>
       <View style={styles.iconWrap}>
-        <Text style={styles.icon}>{icon}</Text>
+        {icon ? <Text style={styles.icon}>{icon}</Text> : <Dumbbell size={28} color={Colors.textMuted} />}
       </View>
       <Text style={styles.title}>{title}</Text>
       {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
@@ -25,28 +26,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 56,
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
   },
   iconWrap: {
-    width: 80,
-    height: 80,
-    borderRadius: 28,
-    backgroundColor: Colors.glass,
+    width: 58,
+    height: 58,
+    borderRadius: 16,
+    backgroundColor: Colors.cardLight,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.borderSoft,
   },
   icon: {
-    fontSize: 36,
+    fontSize: 26,
   },
   title: {
     color: Colors.text,
-    fontSize: 18,
-    fontWeight: '900',
+    fontSize: 17,
+    fontWeight: '800',
     textAlign: 'center',
-    letterSpacing: -0.3,
   },
   subtitle: {
     color: Colors.textMuted,

@@ -4,7 +4,7 @@ import { Settings } from 'lucide-react-native';
 import { palette, sidebarItems } from '@/constants/dashboard-constants';
 import { webStyles } from './dashboard-web.styles';
 
-import { router } from 'expo-router';
+import { router, usePathname } from 'expo-router';
 
 function WebLogo({ collapsed }: { collapsed?: boolean }) {
   return (
@@ -20,6 +20,7 @@ function WebLogo({ collapsed }: { collapsed?: boolean }) {
 }
 
 export function WebSidebar({ collapsed }: { collapsed?: boolean }) {
+  const pathname = usePathname();
   const navigateTo = (label: string) => {
     switch (label) {
       case 'Übersicht': router.push('/(tabs)'); break;
@@ -30,25 +31,34 @@ export function WebSidebar({ collapsed }: { collapsed?: boolean }) {
     }
   };
 
+  const isActive = (label: string) => {
+    if (label === 'Übersicht') return pathname === '/' || pathname === '/(tabs)' || pathname === '/(tabs)/';
+    if (label === 'Aktivität') return pathname.includes('/tasks');
+    if (label === 'Trainings') return pathname.includes('/workout');
+    if (label === 'Profil') return pathname.includes('/profile');
+    return false;
+  };
+
   return (
     <View style={[webStyles.webSidebar, collapsed && { width: 80, paddingHorizontal: 0 }]}>
       <WebLogo collapsed={collapsed} />
       <View style={webStyles.sidebarNav}>
         {sidebarItems.map((item) => {
           const Icon = item.icon;
+          const active = isActive(item.label);
           return (
             <TouchableOpacity 
               key={item.label} 
               activeOpacity={0.75} 
               style={[
                 webStyles.sidebarItem, 
-                item.active && webStyles.sidebarItemActive,
+                active && webStyles.sidebarItemActive,
                 collapsed && { paddingHorizontal: 0, justifyContent: 'center', borderLeftWidth: 0 }
               ]}
               onPress={() => navigateTo(item.label)}
             >
-              <Icon size={23} color={item.active ? palette.greenDark : palette.muted} fill={item.active ? palette.greenDark : 'transparent'} strokeWidth={2.1} />
-              {!collapsed && <Text style={[webStyles.sidebarText, item.active && webStyles.sidebarTextActive]}>{item.label}</Text>}
+              <Icon size={22} color={active ? palette.greenDark : palette.muted} fill={active ? palette.greenDark : 'transparent'} strokeWidth={2.1} />
+              {!collapsed && <Text style={[webStyles.sidebarText, active && webStyles.sidebarTextActive]}>{item.label}</Text>}
             </TouchableOpacity>
           );
         })}

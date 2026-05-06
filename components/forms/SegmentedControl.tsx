@@ -39,17 +39,17 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     backgroundColor: Colors.card,
-    borderRadius: 16,
+    borderRadius: 12,
     padding: 4,
     gap: 4,
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.borderSoft,
   },
   segment: {
     flex: 1,
     paddingVertical: 10,
     alignItems: 'center',
-    borderRadius: 12,
+    borderRadius: 9,
   },
   activeSegment: {
     backgroundColor: Colors.primary,
@@ -57,10 +57,10 @@ const styles = StyleSheet.create({
   label: {
     color: Colors.textMuted,
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   activeLabel: {
     color: '#FFFFFF',
-    fontWeight: '900',
+    fontWeight: '800',
   },
 });

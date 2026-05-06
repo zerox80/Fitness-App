@@ -26,19 +26,19 @@ export function ErrorBanner({ message, onRetry }: ErrorBannerProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: `${Colors.tertiary}10`,
-    borderRadius: 24,
-    padding: 20,
+    backgroundColor: Colors.tertiaryGlow,
+    borderRadius: 14,
+    padding: 16,
     marginVertical: 12,
-    alignItems: 'center',
+    alignItems: 'flex-start',
     borderWidth: 1,
-    borderColor: `${Colors.tertiary}20`,
+    borderColor: '#F0C9CD',
   },
   iconBox: {
     width: 48,
     height: 48,
-    borderRadius: 16,
-    backgroundColor: `${Colors.tertiary}15`,
+    borderRadius: 12,
+    backgroundColor: '#F4D6DA',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
   message: {
     color: Colors.text,
     fontSize: 14,
-    textAlign: 'center',
+    textAlign: 'left',
     marginBottom: 14,
     fontWeight: '600',
     lineHeight: 20,
@@ -55,12 +55,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.tertiary,
     paddingHorizontal: 20,
     paddingVertical: 10,
-    borderRadius: 14,
+    borderRadius: 10,
   },
   retryText: {
-    color: Colors.text,
+    color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '900',
-    letterSpacing: 0.2,
+    fontWeight: '800',
   },
 });

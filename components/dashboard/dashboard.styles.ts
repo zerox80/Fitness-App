@@ -4,10 +4,10 @@ import type { DashboardStyles } from './dashboard.styles.types';
 
 const shadow = {
   shadowColor: palette.shadow,
-  shadowOffset: { width: 0, height: 14 },
-  shadowOpacity: 0.28,
-  shadowRadius: 24,
-  elevation: 8,
+  shadowOffset: { width: 0, height: 8 },
+  shadowOpacity: 0.08,
+  shadowRadius: 18,
+  elevation: 2,
 };
 
 export const styles = StyleSheet.create<DashboardStyles>({
@@ -17,7 +17,7 @@ export const styles = StyleSheet.create<DashboardStyles>({
   },
   scrollContent: {
     width: '100%',
-    maxWidth: 600,
+    maxWidth: 680,
     paddingHorizontal: 20,
     paddingBottom: 128,
     alignItems: 'center',
@@ -25,7 +25,7 @@ export const styles = StyleSheet.create<DashboardStyles>({
   },
   header: {
     width: '100%',
-    maxWidth: 560,
+    maxWidth: 640,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -39,7 +39,7 @@ export const styles = StyleSheet.create<DashboardStyles>({
   greeting: {
     color: palette.text,
     fontSize: 24,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 30,
   },
   subtitle: {
@@ -56,7 +56,7 @@ export const styles = StyleSheet.create<DashboardStyles>({
   },
   sectionHeader: {
     width: '100%',
-    maxWidth: 560,
+    maxWidth: 640,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -64,15 +64,15 @@ export const styles = StyleSheet.create<DashboardStyles>({
   },
   mobileSection: {
     width: '100%',
-    maxWidth: 560,
+    maxWidth: 640,
   },
   webMobileFrame: {
-    maxWidth: 560,
+    maxWidth: 640,
   },
   sectionTitle: {
     color: palette.text,
-    fontSize: 22,
-    fontWeight: '900',
+    fontSize: 21,
+    fontWeight: '800',
   },
   dateRow: {
     flexDirection: 'row',
@@ -82,7 +82,7 @@ export const styles = StyleSheet.create<DashboardStyles>({
   dateText: {
     color: palette.greenDark,
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   webDateText: {
     fontSize: 15,
@@ -91,7 +91,7 @@ export const styles = StyleSheet.create<DashboardStyles>({
     ...shadow,
     width: '100%',
     minHeight: 310,
-    borderRadius: 20,
+    borderRadius: 14,
     backgroundColor: palette.card,
     padding: 16,
     marginBottom: 18,
@@ -130,7 +130,7 @@ export const styles = StyleSheet.create<DashboardStyles>({
   stepsValue: {
     color: palette.text,
     fontSize: 38,
-    fontWeight: '900',
+    fontWeight: '800',
     marginTop: 4,
     lineHeight: 42,
   },
@@ -196,7 +196,7 @@ export const styles = StyleSheet.create<DashboardStyles>({
   metricValue: {
     color: palette.text,
     fontSize: 27,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 31,
   },
   compactMetricValue: {
@@ -213,7 +213,7 @@ export const styles = StyleSheet.create<DashboardStyles>({
   },
   smallCardsRow: {
     width: '100%',
-    maxWidth: 560,
+    maxWidth: 640,
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 14,
@@ -226,7 +226,7 @@ export const styles = StyleSheet.create<DashboardStyles>({
   smallCard: {
     ...shadow,
     minHeight: 280,
-    borderRadius: 16,
+    borderRadius: 14,
     backgroundColor: palette.card,
     paddingHorizontal: 12,
     paddingTop: 14,
@@ -240,7 +240,7 @@ export const styles = StyleSheet.create<DashboardStyles>({
   cardTitle: {
     color: palette.text,
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   roundIcon: {
     width: 42,
@@ -252,7 +252,7 @@ export const styles = StyleSheet.create<DashboardStyles>({
   heartValue: {
     color: palette.text,
     fontSize: 28,
-    fontWeight: '900',
+    fontWeight: '800',
     marginTop: 16,
     lineHeight: 32,
   },
@@ -289,7 +289,7 @@ export const styles = StyleSheet.create<DashboardStyles>({
   heartBadgeText: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   chartAxis: {
     position: 'absolute',
@@ -328,12 +328,12 @@ export const styles = StyleSheet.create<DashboardStyles>({
   weekSelectorText: {
     color: palette.greenDark,
     fontSize: 11,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   weekValue: {
     color: palette.text,
     fontSize: 32,
-    fontWeight: '900',
+    fontWeight: '800',
     marginTop: 2,
     lineHeight: 36,
   },
@@ -361,7 +361,7 @@ export const styles = StyleSheet.create<DashboardStyles>({
   checkMark: {
     color: palette.green,
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 20,
   },
   weekTrack: {
@@ -392,12 +392,12 @@ export const styles = StyleSheet.create<DashboardStyles>({
   showAll: {
     color: palette.greenDark,
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   trainingCard: {
     ...shadow,
     width: '100%',
-    borderRadius: 16,
+    borderRadius: 14,
     backgroundColor: palette.card,
     paddingHorizontal: 18,
   },
@@ -439,7 +439,7 @@ export const styles = StyleSheet.create<DashboardStyles>({
   trainingTitle: {
     color: palette.text,
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '800',
     marginBottom: 4,
     flexShrink: 1,
   },
@@ -464,7 +464,7 @@ export const styles = StyleSheet.create<DashboardStyles>({
   kcalValue: {
     color: palette.text,
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   kcalUnit: {
     color: palette.muted,

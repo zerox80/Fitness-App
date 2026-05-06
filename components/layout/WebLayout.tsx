@@ -6,6 +6,7 @@ import { WebSidebar } from '@/components/dashboard/WebSidebar';
 import { WebTopBar } from '@/components/dashboard/WebTopBar';
 import { webStyles } from '@/components/dashboard/dashboard-web.styles';
 import { DESKTOP_BREAKPOINT } from '@/constants/dashboard-constants';
+import { Colors } from '@/constants/Colors';
 
 interface WebLayoutProps {
   children: React.ReactNode;
@@ -24,9 +25,9 @@ export function WebLayout({ children }: WebLayoutProps) {
   const sidebarWidth = isMedium ? 80 : 280;
 
   return (
-    <SafeAreaView style={[webStyles.webSafeArea, isUltraWide && { backgroundColor: '#F0F2F5' }]} edges={['top']}>
+    <SafeAreaView style={[webStyles.webSafeArea, isUltraWide && { backgroundColor: Colors.background }]} edges={['top']}>
       <StatusBar style="dark" />
-      <View style={[webStyles.webShell, isUltraWide && { maxWidth: 2200, alignSelf: 'center', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 50, elevation: 10 }]}>
+      <View style={[webStyles.webShell, isUltraWide && { maxWidth: 2200, alignSelf: 'center' }]}>
         <WebSidebar collapsed={isMedium} />
         <View style={webStyles.webMain}>
           <WebTopBar collapsed={isMedium} />

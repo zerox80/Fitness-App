@@ -2,11 +2,11 @@ import { StyleSheet, type TextStyle, type ViewStyle } from 'react-native';
 import { palette, WEB_CONTENT_MAX_WIDTH } from '@/constants/dashboard-constants';
 
 const webShadow = {
-  shadowColor: '#D9DFE5',
-  shadowOffset: { width: 0, height: 16 },
-  shadowOpacity: 0.35,
-  shadowRadius: 30,
-  elevation: 8,
+  shadowColor: palette.shadow,
+  shadowOffset: { width: 0, height: 8 },
+  shadowOpacity: 0.08,
+  shadowRadius: 18,
+  elevation: 2,
 };
 
 type DashboardWebStyles = {
@@ -75,18 +75,18 @@ export const webStyles = StyleSheet.create<DashboardWebStyles>({
   },
   webSidebar: {
     width: 270,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: palette.card,
     borderRightWidth: 1,
-    borderRightColor: '#E3E7EB',
-    paddingHorizontal: 24,
-    paddingTop: 30,
+    borderRightColor: palette.border,
+    paddingHorizontal: 18,
+    paddingTop: 26,
     paddingBottom: 34,
   },
   logoRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginBottom: 46,
+    marginBottom: 34,
   },
   logoMark: {
     width: 34,
@@ -101,7 +101,7 @@ export const webStyles = StyleSheet.create<DashboardWebStyles>({
     borderTopLeftRadius: 4,
     borderTopRightRadius: 4,
     borderBottomRightRadius: 4,
-    backgroundColor: '#42D88E',
+    backgroundColor: palette.green,
   },
   logoMiddle: {
     position: 'absolute',
@@ -126,54 +126,54 @@ export const webStyles = StyleSheet.create<DashboardWebStyles>({
   logoText: {
     color: palette.text,
     fontSize: 25,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   sidebarNav: {
-    gap: 16,
+    gap: 8,
   },
   sidebarItem: {
-    minHeight: 58,
-    borderRadius: 14,
+    minHeight: 48,
+    borderRadius: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
-    paddingHorizontal: 24,
+    gap: 14,
+    paddingHorizontal: 16,
   },
   sidebarItemActive: {
-    backgroundColor: '#EFF7F2',
-    borderLeftWidth: 4,
-    borderLeftColor: '#BDEEDB',
-    paddingLeft: 20,
+    backgroundColor: palette.greenSoft,
+    borderLeftWidth: 0,
+    paddingLeft: 16,
   },
   sidebarText: {
-    color: '#566172',
-    fontSize: 16,
-    fontWeight: '700',
+    color: palette.muted,
+    fontSize: 15,
+    fontWeight: '600',
   },
   sidebarTextActive: {
     color: palette.greenDark,
   },
   sidebarSettings: {
     marginTop: 'auto',
-    minHeight: 58,
-    borderRadius: 14,
+    minHeight: 48,
+    borderRadius: 10,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
   },
   webMain: {
     flex: 1,
   },
   webTopBar: {
-    height: 78,
-    backgroundColor: '#FFFFFF',
+    minHeight: 70,
+    backgroundColor: palette.card,
     borderBottomWidth: 1,
-    borderBottomColor: '#E3E7EB',
+    borderBottomColor: palette.border,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 30,
+    justifyContent: 'space-between',
+    paddingHorizontal: 28,
+    gap: 16,
   },
   searchBox: {
     flex: 1,
@@ -194,11 +194,9 @@ export const webStyles = StyleSheet.create<DashboardWebStyles>({
     fontWeight: '500',
   },
   topActions: {
-    position: 'absolute',
-    right: 32,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 20,
+    gap: 14,
   },
   notificationButton: {
     width: 38,
@@ -207,14 +205,14 @@ export const webStyles = StyleSheet.create<DashboardWebStyles>({
     justifyContent: 'center',
   },
   webAvatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     backgroundColor: palette.track,
   },
   webScrollContent: {
-    paddingHorizontal: 48,
-    paddingTop: 34,
+    paddingHorizontal: 40,
+    paddingTop: 30,
     paddingBottom: 60,
   },
   webContent: {
@@ -238,12 +236,12 @@ export const webStyles = StyleSheet.create<DashboardWebStyles>({
   webGreeting: {
     color: palette.text,
     fontSize: 32,
-    fontWeight: '900',
+    fontWeight: '800',
     lineHeight: 38,
   },
   webSubtitle: {
     color: palette.muted,
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '500',
     marginTop: 4,
   },
@@ -263,9 +261,9 @@ export const webStyles = StyleSheet.create<DashboardWebStyles>({
   },
   webOverviewCard: {
     ...webShadow,
-    minHeight: 320,
-    borderRadius: 12,
-    padding: 22,
+    minHeight: 310,
+    borderRadius: 14,
+    padding: 20,
     marginBottom: 0,
   },
   webCardHeader: {
@@ -277,7 +275,7 @@ export const webStyles = StyleSheet.create<DashboardWebStyles>({
   webCardTitle: {
     color: palette.text,
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '800',
   },
   webOverviewBody: {
     alignItems: 'center',
@@ -300,10 +298,10 @@ export const webStyles = StyleSheet.create<DashboardWebStyles>({
   },
   webSmallCard: {
     ...webShadow,
-    minHeight: 290,
-    borderRadius: 12,
-    paddingHorizontal: 22,
-    paddingTop: 22,
+    minHeight: 280,
+    borderRadius: 14,
+    paddingHorizontal: 20,
+    paddingTop: 20,
     paddingBottom: 18,
   },
   webHeartValue: {
@@ -326,8 +324,8 @@ export const webStyles = StyleSheet.create<DashboardWebStyles>({
   },
   webTrainingsHeader: {
     marginBottom: 0,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
     backgroundColor: palette.card,
     paddingHorizontal: 22,
     paddingTop: 18,
@@ -338,8 +336,8 @@ export const webStyles = StyleSheet.create<DashboardWebStyles>({
     ...webShadow,
     borderTopLeftRadius: 0,
     borderTopRightRadius: 0,
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
     paddingHorizontal: 22,
   },
   webTrainingRow: {

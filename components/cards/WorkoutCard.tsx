@@ -1,11 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/constants/Colors';
 import { Workout } from '@/types';
 import { formatDate, formatDuration } from '@/utils/date';
 import { calculateVolume } from '@/utils/numbers';
-import { absoluteFill } from '@/utils/styles';
 
 interface WorkoutCardProps {
   workout: Workout;
@@ -30,17 +28,13 @@ export function WorkoutCard({ workout, onPress }: WorkoutCardProps) {
 
   return (
     <TouchableOpacity style={styles.card} onPress={() => onPress?.(workout)} activeOpacity={0.85}>
-      <LinearGradient
-        colors={[`${statusColor}06`, 'transparent']}
-        style={absoluteFill}
-      />
       <View style={styles.header}>
         <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
         <Text style={styles.title} numberOfLines={1}>
           {workout.title}
         </Text>
         <View style={[styles.badge, { backgroundColor: `${statusColor}18` }]}>
-          <Text style={[styles.badgeText, { color: statusColor }]}>{workout.status === 'completed' ? 'Done' : workout.status === 'in_progress' ? 'Active' : workout.type.toUpperCase()}</Text>
+          <Text style={[styles.badgeText, { color: statusColor }]}>{workout.status === 'completed' ? 'Erledigt' : workout.status === 'in_progress' ? 'Aktiv' : workout.type.toUpperCase()}</Text>
         </View>
       </View>
       {workout.description && (
@@ -59,11 +53,11 @@ export function WorkoutCard({ workout, onPress }: WorkoutCardProps) {
         )}
         <View style={styles.metaItem}>
           <Text style={styles.metaValue}>{totalSets}</Text>
-          <Text style={styles.metaLabel}>Sets</Text>
+          <Text style={styles.metaLabel}>Sätze</Text>
         </View>
         <View style={styles.metaItem}>
           <Text style={styles.metaValue}>{totalVolume.toFixed(0)}</Text>
-          <Text style={styles.metaLabel}>kg Vol</Text>
+          <Text style={styles.metaLabel}>kg Volumen</Text>
         </View>
       </View>
       {workout.tags.length > 0 && (
@@ -81,12 +75,12 @@ export function WorkoutCard({ workout, onPress }: WorkoutCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.glass,
-    borderRadius: 24,
-    padding: 20,
-    marginBottom: 12,
+    backgroundColor: Colors.card,
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 10,
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.borderSoft,
     overflow: 'hidden',
   },
   header: {
@@ -103,9 +97,8 @@ const styles = StyleSheet.create({
   title: {
     color: Colors.text,
     fontSize: 17,
-    fontWeight: '900',
+    fontWeight: '800',
     flex: 1,
-    letterSpacing: -0.3,
   },
   badge: {
     paddingHorizontal: 10,
@@ -115,8 +108,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 0.3,
+    fontWeight: '800',
   },
   description: {
     color: Colors.textMuted,
@@ -157,7 +149,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.borderSoft,
   },
   tagText: {
     color: Colors.textMuted,

@@ -1,22 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  Settings, ChevronRight, Bell, Heart, Shield, LogOut,
-  Trophy, TrendingUp, Calendar, Zap, User, Flame, Dumbbell, Timer
-} from 'lucide-react-native';
+import { Bell, Calendar, ChevronRight, LogOut, Shield, Trophy, TrendingUp, User } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
+
 import { Colors } from '@/constants/Colors';
 import { FadeIn } from '@/components/FadeIn';
 import { useAuth } from '@/lib/auth-context';
 import { api, UserStats } from '@/lib/api';
-import { absoluteFill } from '@/utils/styles';
 
 const SETTINGS = [
-  { icon: Bell, title: 'Notifications', value: 'On', color: Colors.primary },
-  { icon: Heart, title: 'Health Data', value: 'Connected', color: Colors.tertiary },
-  { icon: Shield, title: 'Privacy', value: '', color: Colors.secondary },
+  { icon: Bell, title: 'Benachrichtigungen', value: 'Aktiv', color: Colors.primary },
+  { icon: Shield, title: 'Datenschutz', value: '', color: Colors.secondary },
+  { icon: User, title: 'Konto verwalten', value: '', color: Colors.textMuted },
 ];
 
 export default function ProfileScreen() {
@@ -26,127 +22,100 @@ export default function ProfileScreen() {
   const router = useRouter();
   const [stats, setStats] = useState<UserStats | null>(null);
 
-  useEffect(() => { if (user) loadStats(); }, [user]);
+  useEffect(() => {
+    if (user) loadStats();
+  }, [user]);
 
   async function loadStats() {
-    try { setStats(await api.stats.get()); } catch {}
+    try {
+      setStats(await api.stats.get());
+    } catch {
+      setStats(null);
+    }
   }
 
   const displayStats = [
-    { label: 'Workouts', value: (stats?.total_workouts ?? 0).toString(), icon: Trophy, color: Colors.primary, glow: Colors.primaryGlow },
-    { label: 'Minutes', value: (stats?.total_minutes ?? 0).toLocaleString(), icon: TrendingUp, color: Colors.secondary, glow: Colors.secondaryGlow },
-    { label: 'Streak', value: (stats?.current_streak ?? 0).toString(), icon: Calendar, color: Colors.tertiary, glow: Colors.tertiaryGlow },
+    { label: 'Trainings', value: stats?.total_workouts ?? 0, icon: Trophy, color: Colors.primary },
+    { label: 'Minuten', value: stats?.total_minutes ?? 0, icon: TrendingUp, color: Colors.secondary },
+    { label: 'Serie', value: stats?.current_streak ?? 0, icon: Calendar, color: Colors.tertiary },
   ];
 
-  // ─── GUEST ───
   if (!user) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <ScrollView contentContainerStyle={[styles.scrollContent, isWide && { maxWidth: 800 }]} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, isWide && styles.wideContent]} showsVerticalScrollIndicator={false}>
           <FadeIn delay={0}>
-            <Text style={[styles.pageTitle, isWide && { fontSize: 42 }]}>Profile</Text>
+            <Text style={styles.pageTitle}>Profil</Text>
           </FadeIn>
 
           <FadeIn delay={100}>
             <View style={styles.guestCard}>
-              <LinearGradient colors={['rgba(32,183,127,0.08)', 'rgba(34,199,188,0.05)']} style={absoluteFill} />
-              <View style={styles.guestIconBox}>
-                <Zap size={36} color={Colors.primary} />
+              <View style={styles.avatarBox}>
+                <User size={40} color={Colors.textMuted} />
               </View>
-              <Text style={styles.guestTitle}>Welcome to FitPulse</Text>
-              <Text style={styles.guestSub}>Sign in to sync workouts, track progress, and unlock all features.</Text>
-              <TouchableOpacity style={styles.loginBtn} activeOpacity={0.8} onPress={() => router.push('/login')}>
-                <Text style={styles.loginBtnText}>Sign In</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.registerBtn} activeOpacity={0.8} onPress={() => router.push('/login')}>
-                <Text style={styles.registerBtnText}>Create Account</Text>
+              <Text style={styles.guestTitle}>FitPulse nutzen</Text>
+              <Text style={styles.guestSub}>Melde dich an, um Trainings und Fortschritt zu synchronisieren.</Text>
+              <TouchableOpacity style={styles.primaryBtn} activeOpacity={0.85} onPress={() => router.push('/login')}>
+                <Text style={styles.primaryBtnText}>Anmelden</Text>
               </TouchableOpacity>
             </View>
-          </FadeIn>
-
-          <FadeIn delay={200}>
-            <View style={styles.guestStatsRow}>
-              {[
-                { icon: Dumbbell, label: 'Workouts', value: '0', color: Colors.primary, glow: Colors.primaryGlow },
-                { icon: Timer, label: 'Minutes', value: '0', color: Colors.secondary, glow: Colors.secondaryGlow },
-                { icon: Flame, label: 'Calories', value: '0', color: Colors.tertiary, glow: Colors.tertiaryGlow },
-              ].map((s, i) => {
-                const Icon = s.icon;
-                return (
-                  <View key={i} style={[styles.guestStatBox, { backgroundColor: s.glow }]}>
-                    <Icon size={22} color={s.color} />
-                    <Text style={styles.guestStatValue}>{s.value}</Text>
-                    <Text style={styles.guestStatLabel}>{s.label}</Text>
-                  </View>
-                );
-              })}
-            </View>
-          </FadeIn>
-
-          <FadeIn delay={300}>
-            <Text style={styles.version}>FitPulse v1.0.0</Text>
           </FadeIn>
         </ScrollView>
       </SafeAreaView>
     );
   }
 
-  // ─── LOGGED IN ───
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, isWide && styles.wideContent]} showsVerticalScrollIndicator={false}>
         <FadeIn delay={0}>
           <View style={styles.header}>
-            <Text style={[styles.pageTitle, isWide && { fontSize: 42 }]}>Profile</Text>
-            <TouchableOpacity style={styles.iconBtn} activeOpacity={0.7}>
-              <Settings size={22} color={Colors.text} />
-            </TouchableOpacity>
+            <View>
+              <Text style={styles.pageTitle}>Profil</Text>
+              <Text style={styles.pageSubtitle}>{user.email}</Text>
+            </View>
           </View>
         </FadeIn>
 
         <FadeIn delay={100}>
-          <View style={styles.profileSection}>
-            <View style={styles.avatarWrap}>
-              <View style={[styles.ringOuter, { borderColor: Colors.tertiary }]} />
-              <View style={[styles.ringInner, { borderColor: Colors.primary }]} />
-              <View style={[styles.avatarBox, { backgroundColor: Colors.cardLight, alignItems: 'center', justifyContent: 'center' }]}>
-                <User size={60} color={Colors.textMuted} />
-              </View>
+          <View style={[styles.userCard, isWide && styles.userCardWide]}>
+            <View style={styles.avatarBox}>
+              <User size={42} color={Colors.textMuted} />
             </View>
-            <Text style={styles.name}>{user.name}</Text>
-            <View style={styles.proBadge}>
-              <Text style={styles.proBadgeText}>PRO MEMBER</Text>
+            <View style={styles.userCopy}>
+              <Text style={styles.name}>{user.name}</Text>
+              <Text style={styles.memberText}>Mitglied seit {new Date().getFullYear()}</Text>
             </View>
           </View>
         </FadeIn>
 
-        <FadeIn delay={200}>
-          <View style={styles.statsRow}>
-            {displayStats.map((s, i) => {
-              const Icon = s.icon;
+        <FadeIn delay={180}>
+          <View style={[styles.statsRow, !isWide && styles.statsWrap]}>
+            {displayStats.map((item) => {
+              const Icon = item.icon;
               return (
-                <View key={i} style={[styles.statBox, { backgroundColor: s.glow }]}>
-                  <View style={styles.statIconBox}>
-                    <Icon size={18} color={s.color} />
+                <View key={item.label} style={[styles.statBox, !isWide && styles.statBoxMobile]}>
+                  <View style={[styles.statIconBox, { backgroundColor: `${item.color}16` }]}>
+                    <Icon size={20} color={item.color} />
                   </View>
-                  <Text style={styles.statNumber}>{s.value}</Text>
-                  <Text style={styles.statLabel}>{s.label}</Text>
+                  <Text style={styles.statNumber}>{item.value}</Text>
+                  <Text style={styles.statLabel}>{item.label}</Text>
                 </View>
               );
             })}
           </View>
         </FadeIn>
 
-        <FadeIn delay={300}>
-          <Text style={styles.sectionTitle}>Settings</Text>
+        <FadeIn delay={260}>
+          <Text style={styles.sectionTitle}>Einstellungen</Text>
           <View style={styles.settingsCard}>
-            {SETTINGS.map((item, idx) => {
+            {SETTINGS.map((item) => {
               const Icon = item.icon;
               return (
-                <TouchableOpacity key={idx} style={[styles.settingItem, idx === SETTINGS.length - 1 && { borderBottomWidth: 0 }]} activeOpacity={0.7}>
+                <TouchableOpacity key={item.title} style={styles.settingItem} activeOpacity={0.7}>
                   <View style={styles.settingLeft}>
-                    <View style={[styles.settingIconBox, { backgroundColor: `${item.color}15` }]}>
-                      <Icon size={20} color={item.color} />
+                    <View style={[styles.settingIconBox, { backgroundColor: `${item.color}14` }]}>
+                      <Icon size={19} color={item.color} />
                     </View>
                     <Text style={styles.settingTitle}>{item.title}</Text>
                   </View>
@@ -158,20 +127,18 @@ export default function ProfileScreen() {
               );
             })}
 
-            <TouchableOpacity style={[styles.settingItem, { borderBottomWidth: 0 }]} activeOpacity={0.7} onPress={logout}>
+            <TouchableOpacity style={[styles.settingItem, styles.lastItem]} activeOpacity={0.7} onPress={logout}>
               <View style={styles.settingLeft}>
-                <View style={[styles.settingIconBox, { backgroundColor: 'rgba(142,142,147,0.08)' }]}>
-                  <LogOut size={20} color={Colors.textMuted} />
+                <View style={styles.logoutIconBox}>
+                  <LogOut size={19} color={Colors.tertiary} />
                 </View>
-                <Text style={[styles.settingTitle, { color: Colors.textMuted }]}>Log Out</Text>
+                <Text style={[styles.settingTitle, { color: Colors.tertiary }]}>Abmelden</Text>
               </View>
             </TouchableOpacity>
           </View>
         </FadeIn>
 
-        <FadeIn delay={400}>
-          <Text style={styles.version}>FitPulse v1.0.0</Text>
-        </FadeIn>
+        <Text style={styles.version}>FitPulse v1.0.0</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -179,47 +146,38 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  scrollContent: { paddingHorizontal: 24, paddingBottom: 150 },
-  pageTitle: { fontSize: 36, fontWeight: '900', color: Colors.text, letterSpacing: -1.2, marginTop: 12, marginBottom: 28 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, marginBottom: 28 },
-  iconBtn: { width: 44, height: 44, borderRadius: 14, backgroundColor: Colors.card, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: Colors.glassBorder },
-
-  // Guest
-  guestCard: { backgroundColor: Colors.glass, borderRadius: 32, padding: 32, alignItems: 'center', borderWidth: 1, borderColor: Colors.glassBorder, marginBottom: 24, overflow: 'hidden' },
-  guestIconBox: { width: 80, height: 80, borderRadius: 26, backgroundColor: Colors.primaryGlow, alignItems: 'center', justifyContent: 'center', marginBottom: 24, borderWidth: 1, borderColor: Colors.glassBorder },
-  guestTitle: { fontSize: 24, fontWeight: '900', color: Colors.text, marginBottom: 8, letterSpacing: -0.5 },
-  guestSub: { fontSize: 15, color: Colors.textMuted, textAlign: 'center', marginBottom: 28, fontWeight: '500', lineHeight: 22 },
-  loginBtn: { backgroundColor: Colors.primary, borderRadius: 16, paddingVertical: 16, paddingHorizontal: 48, alignItems: 'center', width: '100%', marginBottom: 12, shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12, elevation: 4 },
-  loginBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '900', letterSpacing: 0.3 },
-  registerBtn: { backgroundColor: Colors.card, borderRadius: 16, paddingVertical: 16, paddingHorizontal: 48, alignItems: 'center', width: '100%', borderWidth: 1, borderColor: Colors.glassBorder },
-  registerBtnText: { color: Colors.text, fontSize: 16, fontWeight: '800' },
-  guestStatsRow: { flexDirection: 'row', gap: 12, marginBottom: 32 },
-  guestStatBox: { flex: 1, borderRadius: 24, paddingVertical: 20, alignItems: 'center', borderWidth: 1, borderColor: Colors.glassBorder },
-  guestStatValue: { fontSize: 20, fontWeight: '900', color: Colors.text, marginTop: 8, marginBottom: 2 },
-  guestStatLabel: { fontSize: 12, color: Colors.textMuted, fontWeight: '700' },
-
-  // Logged in
-  profileSection: { alignItems: 'center', marginBottom: 32 },
-  avatarWrap: { width: 130, height: 130, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
-  avatarBox: { width: 110, height: 110, borderRadius: 34, overflow: 'hidden', borderWidth: 3, borderColor: Colors.card },
-  avatar: { width: '100%', height: '100%', borderRadius: 32 },
-  ringOuter: { position: 'absolute', width: 128, height: 128, borderRadius: 42, borderWidth: 3, opacity: 0.5 },
-  ringInner: { position: 'absolute', width: 118, height: 118, borderRadius: 38, borderWidth: 2, opacity: 0.35 },
-  name: { fontSize: 26, fontWeight: '900', color: Colors.text, marginBottom: 10, letterSpacing: -0.5 },
-  proBadge: { backgroundColor: Colors.primary, paddingHorizontal: 14, paddingVertical: 5, borderRadius: 10 },
-  proBadgeText: { fontSize: 11, fontWeight: '900', color: '#FFFFFF', letterSpacing: 0.5 },
-  statsRow: { flexDirection: 'row', gap: 12, marginBottom: 32 },
-  statBox: { flex: 1, borderRadius: 24, paddingVertical: 18, alignItems: 'center', borderWidth: 1, borderColor: Colors.glassBorder },
-  statIconBox: { width: 40, height: 40, borderRadius: 13, backgroundColor: Colors.card, alignItems: 'center', justifyContent: 'center', marginBottom: 8, borderWidth: 1, borderColor: Colors.glassBorder },
-  statNumber: { fontSize: 20, fontWeight: '900', color: Colors.text, marginBottom: 2 },
-  statLabel: { fontSize: 12, color: Colors.textMuted, fontWeight: '700' },
-  sectionTitle: { fontSize: 22, fontWeight: '900', color: Colors.text, marginBottom: 16, letterSpacing: -0.5 },
-  settingsCard: { backgroundColor: Colors.glass, borderRadius: 28, paddingHorizontal: 20, borderWidth: 1, borderColor: Colors.glassBorder, overflow: 'hidden' },
-  settingItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: Colors.glassBorder },
-  settingLeft: { flexDirection: 'row', alignItems: 'center' },
-  settingIconBox: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 14 },
-  settingTitle: { fontSize: 16, fontWeight: '800', color: Colors.text },
-  settingRight: { flexDirection: 'row', alignItems: 'center' },
-  settingValue: { fontSize: 14, marginRight: 8, color: Colors.textMuted, fontWeight: '700' },
-  version: { textAlign: 'center', marginTop: 24, fontSize: 12, color: Colors.textMuted, fontWeight: '600' },
+  scrollContent: { paddingHorizontal: 20, paddingBottom: 150, width: '100%', maxWidth: 860, alignSelf: 'center' },
+  wideContent: { maxWidth: 960 },
+  header: { marginTop: 12, marginBottom: 20 },
+  pageTitle: { fontSize: 30, fontWeight: '800', color: Colors.text, lineHeight: 36 },
+  pageSubtitle: { fontSize: 15, color: Colors.textMuted, fontWeight: '500', marginTop: 4 },
+  userCard: { backgroundColor: Colors.card, borderRadius: 14, padding: 18, borderWidth: 1, borderColor: Colors.borderSoft, flexDirection: 'row', alignItems: 'center', gap: 16, marginBottom: 14 },
+  userCardWide: { padding: 22 },
+  avatarBox: { width: 72, height: 72, borderRadius: 18, backgroundColor: Colors.cardLight, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: Colors.borderSoft },
+  userCopy: { flex: 1, minWidth: 0 },
+  name: { fontSize: 22, fontWeight: '800', color: Colors.text, marginBottom: 4 },
+  memberText: { fontSize: 14, fontWeight: '500', color: Colors.textMuted },
+  guestCard: { backgroundColor: Colors.card, borderRadius: 14, padding: 22, borderWidth: 1, borderColor: Colors.borderSoft, alignItems: 'center', marginTop: 18 },
+  guestTitle: { fontSize: 22, fontWeight: '800', color: Colors.text, marginTop: 18, marginBottom: 6 },
+  guestSub: { fontSize: 15, color: Colors.textMuted, textAlign: 'center', lineHeight: 21, marginBottom: 22 },
+  primaryBtn: { backgroundColor: Colors.primary, borderRadius: 12, minHeight: 48, paddingHorizontal: 26, alignItems: 'center', justifyContent: 'center', width: '100%' },
+  primaryBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '800' },
+  statsRow: { flexDirection: 'row', gap: 10, marginBottom: 26 },
+  statsWrap: { flexWrap: 'wrap' },
+  statBox: { flex: 1, backgroundColor: Colors.card, borderRadius: 14, padding: 16, borderWidth: 1, borderColor: Colors.borderSoft },
+  statBoxMobile: { minWidth: '31%' },
+  statIconBox: { width: 38, height: 38, borderRadius: 11, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
+  statNumber: { fontSize: 24, fontWeight: '800', color: Colors.text },
+  statLabel: { fontSize: 13, color: Colors.textMuted, fontWeight: '600', marginTop: 2 },
+  sectionTitle: { fontSize: 20, fontWeight: '800', color: Colors.text, marginBottom: 12 },
+  settingsCard: { backgroundColor: Colors.card, borderRadius: 14, paddingHorizontal: 16, borderWidth: 1, borderColor: Colors.borderSoft, overflow: 'hidden' },
+  settingItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: Colors.borderSoft },
+  lastItem: { borderBottomWidth: 0 },
+  settingLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  settingIconBox: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  logoutIconBox: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.tertiaryGlow },
+  settingTitle: { fontSize: 15, fontWeight: '700', color: Colors.text },
+  settingRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  settingValue: { fontSize: 13, color: Colors.textMuted, fontWeight: '600' },
+  version: { textAlign: 'center', marginTop: 24, fontSize: 12, color: Colors.textMuted, fontWeight: '500' },
 });

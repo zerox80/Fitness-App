@@ -97,13 +97,13 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.glass,
-    borderRadius: 20,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: Colors.card,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 10,
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
-    gap: 12,
+    borderColor: Colors.borderSoft,
+    gap: 10,
   },
   cardCompleted: {
     opacity: 0.6,
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
   checkbox: {
     width: 32,
     height: 32,
-    borderRadius: 10,
+    borderRadius: 9,
     borderWidth: 2,
     borderColor: Colors.border,
     alignItems: 'center',
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
   iconBox: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 10,
     backgroundColor: Colors.cardLight,
     alignItems: 'center',
     justifyContent: 'center',
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 15,
-    fontWeight: '800',
+    fontWeight: '700',
     color: Colors.text,
     marginBottom: 4,
   },
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
   deleteBtn: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },

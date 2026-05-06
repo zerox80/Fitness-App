@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { Platform, View } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -16,6 +17,24 @@ interface FadeInProps {
 }
 
 export function FadeIn({
+  children,
+  delay = 0,
+  duration = 700,
+  translateY = 24,
+  style,
+}: FadeInProps) {
+  if (Platform.OS === 'web') {
+    return <View style={style}>{children}</View>;
+  }
+
+  return (
+    <NativeFadeIn delay={delay} duration={duration} translateY={translateY} style={style}>
+      {children}
+    </NativeFadeIn>
+  );
+}
+
+function NativeFadeIn({
   children,
   delay = 0,
   duration = 700,

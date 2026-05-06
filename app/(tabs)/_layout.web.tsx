@@ -7,6 +7,7 @@ import { WebSidebar } from '@/components/dashboard/WebSidebar';
 import { WebTopBar } from '@/components/dashboard/WebTopBar';
 import { webStyles } from '@/components/dashboard/dashboard-web.styles';
 import { palette, DESKTOP_BREAKPOINT } from '@/constants/dashboard-constants';
+import { Colors } from '@/constants/Colors';
 
 export default function WebTabLayout() {
   const { width } = useWindowDimensions();
@@ -18,14 +19,14 @@ export default function WebTabLayout() {
 
   if (!isDesktop) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#F7F8FA' }}>
+      <View style={{ flex: 1, backgroundColor: Colors.background }}>
         <StatusBar style="dark" />
         <MobileTopBar onMenuPress={() => setDrawerOpen(true)} />
         {isHome ? (
           <Slot />
         ) : (
           <ScrollView
-            contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32 }}
+            contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 18, paddingBottom: 40 }}
             showsVerticalScrollIndicator={false}
           >
             <Slot />
@@ -37,7 +38,7 @@ export default function WebTabLayout() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F7F8FA' }}>
+    <View style={{ flex: 1, backgroundColor: Colors.background }}>
       <StatusBar style="dark" />
       <View style={webStyles.webShell}>
         <WebSidebar collapsed={isMedium} />
@@ -60,10 +61,10 @@ export default function WebTabLayout() {
 function MobileTopBar({ onMenuPress }: { onMenuPress: () => void }) {
   return (
     <View style={{
-      height: 56,
-      backgroundColor: '#FFFFFF',
+      height: 58,
+      backgroundColor: Colors.card,
       borderBottomWidth: 1,
-      borderBottomColor: '#E3E7EB',
+      borderBottomColor: Colors.borderSoft,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -72,7 +73,7 @@ function MobileTopBar({ onMenuPress }: { onMenuPress: () => void }) {
       <TouchableOpacity onPress={onMenuPress} activeOpacity={0.7} style={{ padding: 4 }}>
         <Menu size={24} color={palette.text} />
       </TouchableOpacity>
-      <Text style={{ fontSize: 18, fontWeight: '900', color: palette.text }}>FitPulse</Text>
+      <Text style={{ fontSize: 18, fontWeight: '800', color: palette.text }}>FitPulse</Text>
       <View style={{ width: 32 }} />
     </View>
   );
@@ -81,8 +82,8 @@ function MobileTopBar({ onMenuPress }: { onMenuPress: () => void }) {
 function MobileDrawer({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)' }} onPress={onClose}>
-        <Pressable style={{ width: 280, height: '100%', backgroundColor: '#FFFFFF' }} onPress={(e) => e.stopPropagation()}>
+      <Pressable style={{ flex: 1, backgroundColor: 'rgba(23,33,43,0.28)' }} onPress={onClose}>
+        <Pressable style={{ width: 280, height: '100%', backgroundColor: Colors.card }} onPress={(e) => e.stopPropagation()}>
           <View style={{ flexDirection: 'row', justifyContent: 'flex-end', padding: 16 }}>
             <TouchableOpacity onPress={onClose} activeOpacity={0.7}>
               <X size={24} color={palette.text} />

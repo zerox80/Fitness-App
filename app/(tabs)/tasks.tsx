@@ -5,7 +5,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Plus, CircleCheck as CheckCircle2 } from 'lucide-react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { Colors } from '@/constants/Colors';
@@ -15,7 +14,6 @@ import { TaskForm } from '@/components/forms/TaskForm';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { LoadingSpinner } from '@/components/feedback/LoadingSpinner';
 import { useTasks } from '@/hooks/useTasks';
-import { absoluteFill } from '@/utils/styles';
 import { getCompletedTaskCount, getDailyTaskProgress } from '@/utils/taskProgress';
 
 export default function TasksScreen() {
@@ -63,7 +61,7 @@ export default function TasksScreen() {
         <FadeIn delay={0}>
           <View style={styles.header}>
             <View>
-              <Text style={styles.title}>Tägliche Tasks</Text>
+              <Text style={styles.title}>Tägliche Aufgaben</Text>
               <Text style={styles.subtitle}>
                 {completedCount} von {totalCount} erledigt
               </Text>
@@ -81,12 +79,6 @@ export default function TasksScreen() {
         {/* Progress Bar */}
         <FadeIn delay={80}>
           <View style={styles.progressCard}>
-            <LinearGradient
-              colors={['rgba(32,183,127,0.08)', 'rgba(34,199,188,0.05)', 'transparent']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={absoluteFill}
-            />
             <View style={styles.progressHeader}>
               <View style={styles.progressLeft}>
                 <CheckCircle2 size={20} color={Colors.primary} />
@@ -97,12 +89,7 @@ export default function TasksScreen() {
               </Text>
             </View>
             <View style={styles.barBg}>
-              <LinearGradient
-                colors={[Colors.primary, '#a8cc00']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={[styles.barFill, { width: `${Math.max(progress * 100, 2)}%` }]}
-              />
+              <View style={[styles.barFill, { width: `${Math.max(progress * 100, 2)}%` }]} />
             </View>
           </View>
         </FadeIn>
@@ -111,13 +98,9 @@ export default function TasksScreen() {
         <FadeIn delay={160}>
           <View style={styles.listSection}>
             {loading ? (
-              <LoadingSpinner message="Tasks laden..." />
+              <LoadingSpinner message="Aufgaben laden..." />
             ) : tasks.length === 0 ? (
-              <EmptyState
-                icon="✅"
-                title="Keine Tasks vorhanden"
-                subtitle="Erstelle deinen ersten Task um loszulegen!"
-              />
+              <EmptyState title="Keine Aufgaben vorhanden" subtitle="Erstelle deine erste Aufgabe, um loszulegen." />
             ) : (
               tasks.map((task, i) => (
                 <FadeIn key={task.id} delay={200 + i * 60}>
@@ -152,9 +135,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   scrollContent: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     paddingBottom: 150,
-    maxWidth: 800,
+    maxWidth: 860,
     width: '100%',
     alignSelf: 'center',
   },
@@ -166,32 +149,31 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   title: {
-    fontSize: 32,
-    fontWeight: '900',
+    fontSize: 30,
+    fontWeight: '800',
     color: Colors.text,
-    letterSpacing: -0.8,
   },
   subtitle: {
     fontSize: 14,
     color: Colors.textMuted,
-    fontWeight: '600',
+    fontWeight: '500',
     marginTop: 4,
   },
   addBtn: {
     width: 48,
     height: 48,
-    borderRadius: 16,
+    borderRadius: 12,
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   progressCard: {
-    backgroundColor: Colors.glass,
-    borderRadius: 24,
-    padding: 20,
-    marginBottom: 28,
+    backgroundColor: Colors.card,
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 24,
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.borderSoft,
     overflow: 'hidden',
   },
   progressHeader: {
@@ -207,12 +189,12 @@ const styles = StyleSheet.create({
   },
   progressLabel: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
     color: Colors.text,
   },
   progressValue: {
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '800',
     color: Colors.primary,
   },
   barBg: {
@@ -224,6 +206,7 @@ const styles = StyleSheet.create({
   barFill: {
     height: '100%',
     borderRadius: 5,
+    backgroundColor: Colors.primary,
   },
   listSection: {
     gap: 0,

@@ -1,46 +1,103 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, useWindowDimensions } from 'react-native';
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Play, Clock, Dumbbell, Zap, Heart, Flame, Timer, Star } from 'lucide-react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Clock, Dumbbell, Flame, HeartPulse, Play, Timer, Zap } from 'lucide-react-native';
+
 import { Colors } from '@/constants/Colors';
 import { FadeIn } from '@/components/FadeIn';
-import { api, ApiWorkout } from '@/lib/api';
-import { absoluteFill } from '@/utils/styles';
-
-const CATEGORIES = [
-  { label: 'All', value: undefined, icon: Zap, color: Colors.primary },
-  { label: 'HIIT', value: 'hiit', icon: Flame, color: Colors.tertiary },
-  { label: 'Strength', value: 'strength', icon: Dumbbell, color: Colors.primary },
-  { label: 'Cardio', value: 'cardio', icon: Heart, color: Colors.secondary },
-  { label: 'Recovery', value: 'recovery', icon: Timer, color: Colors.textMuted },
-];
-
 import { QuickStartModal } from '@/components/modals/QuickStartModal';
 import { GeneratedWorkoutModal } from '@/components/modals/GeneratedWorkoutModal';
-import { GeneratedWorkout } from '@/lib/api';
+import { api, ApiWorkout, GeneratedWorkout } from '@/lib/api';
+
+const CATEGORIES = [
+  { label: 'Alle', value: undefined, icon: Zap, color: Colors.primary },
+  { label: 'HIIT', value: 'hiit', icon: Flame, color: Colors.tertiary },
+  { label: 'Kraft', value: 'strength', icon: Dumbbell, color: Colors.primary },
+  { label: 'Cardio', value: 'cardio', icon: HeartPulse, color: Colors.secondary },
+  { label: 'Regeneration', value: 'recovery', icon: Timer, color: Colors.textMuted },
+];
+
+function formatCategory(value: string) {
+  const match = CATEGORIES.find((category) => category.value === value);
+  return match?.label ?? value;
+}
+
+function formatIntensity(value: string) {
+  const map: Record<string, string> = {
+    low: 'Leicht',
+    medium: 'Mittel',
+    high: 'Intensiv',
+  };
+  return map[value.toLowerCase()] ?? value;
+}
+
+function WorkoutDataCard({ workout }: { workout: ApiWorkout }) {
+  return (
+    <TouchableOpacity style={styles.workoutCard} activeOpacity={0.85}>
+      <View style={styles.workoutIconBox}>
+        <Dumbbell size={24} color={Colors.primary} />
+      </View>
+      <View style={styles.workoutBody}>
+        <View style={styles.cardMetaRow}>
+          <View style={styles.metaPill}>
+            <Text style={styles.metaPillText}>{formatCategory(workout.category)}</Text>
+          </View>
+          <Text style={styles.intensityText}>{formatIntensity(workout.intensity)}</Text>
+        </View>
+        <Text style={styles.workoutTitle} numberOfLines={2}>{workout.title}</Text>
+        <View style={styles.metricsRow}>
+          <View style={styles.metricItem}>
+            <Clock size={15} color={Colors.textMuted} />
+            <Text style={styles.metricText}>{workout.duration_minutes} Min</Text>
+          </View>
+          <View style={styles.metricItem}>
+            <Flame size={15} color={Colors.textMuted} />
+            <Text style={styles.metricText}>0 kcal</Text>
+          </View>
+        </View>
+      </View>
+      <View style={styles.cardAction}>
+        <Play size={18} color={Colors.primary} fill={Colors.primary} />
+      </View>
+    </TouchableOpacity>
+  );
+}
 
 export default function WorkoutScreen() {
   const { width } = useWindowDimensions();
   const isWide = width >= 650;
+  const isCompact = width < 380;
   const [workouts, setWorkouts] = useState<ApiWorkout[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState(0);
-
   const [quickStartVisible, setQuickStartVisible] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [generatedWorkout, setGeneratedWorkout] = useState<GeneratedWorkout | null>(null);
   const [generatedFocus, setGeneratedFocus] = useState('');
   const [resultVisible, setResultVisible] = useState(false);
 
-  useEffect(() => { loadWorkouts(); }, [activeCategory]);
+  useEffect(() => {
+    loadWorkouts();
+  }, [activeCategory]);
 
   async function loadWorkouts() {
+    setLoading(true);
     try {
       const category = CATEGORIES[activeCategory]?.value;
       setWorkouts(await api.workouts.list(category ? { category } : undefined));
-    } catch {}
-    finally { setLoading(false); }
+    } catch {
+      setWorkouts([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   const handleGenerate = async (duration: number, focus: string, intensity: string) => {
@@ -52,45 +109,37 @@ export default function WorkoutScreen() {
       setQuickStartVisible(false);
       setResultVisible(true);
     } catch (err) {
-      alert('Fehler bei der Generierung: ' + (err instanceof Error ? err.message : 'Unbekannter Fehler'));
+      alert('Fehler bei der Planung: ' + (err instanceof Error ? err.message : 'Unbekannter Fehler'));
     } finally {
       setGenerating(false);
     }
   };
 
-  const featured = workouts[0];
-  const rest = workouts.slice(1);
-
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView contentContainerStyle={[styles.scrollContent, isWide && { maxWidth: 1000 }]} showsVerticalScrollIndicator={false}>
-        
+      <ScrollView contentContainerStyle={[styles.scrollContent, isWide && styles.scrollWide]} showsVerticalScrollIndicator={false}>
         <FadeIn delay={0}>
           <View style={styles.header}>
-            <View>
-              <Text style={styles.overline}>YOUR PROGRAM</Text>
-              <Text style={styles.title}>Workouts</Text>
+            <View style={styles.headerCopy}>
+              <Text style={styles.title}>Trainings</Text>
+              <Text style={styles.subtitle}>Plane und starte passende Einheiten.</Text>
             </View>
-            <TouchableOpacity 
-              style={styles.quickBtn} 
-              activeOpacity={0.8}
-              onPress={() => setQuickStartVisible(true)}
-            >
-              <Play size={16} color="#FFFFFF" fill="#FFFFFF" />
+            <TouchableOpacity style={styles.quickBtn} activeOpacity={0.85} onPress={() => setQuickStartVisible(true)}>
+              <Play size={18} color="#FFFFFF" fill="#FFFFFF" />
+              {!isCompact && <Text style={styles.quickBtnText}>Schnellstart</Text>}
             </TouchableOpacity>
           </View>
         </FadeIn>
 
-        {/* Categories */}
-        <FadeIn delay={100}>
+        <FadeIn delay={80}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catScroll}>
             <View style={styles.catRow}>
-              {CATEGORIES.map((cat, idx) => {
-                const active = idx === activeCategory;
+              {CATEGORIES.map((cat, index) => {
+                const active = index === activeCategory;
                 const Icon = cat.icon;
                 return (
-                  <TouchableOpacity key={idx} style={[styles.chip, active && styles.chipActive]} activeOpacity={0.8} onPress={() => setActiveCategory(idx)}>
-                    <Icon size={14} color={active ? '#FFFFFF' : cat.color} />
+                  <TouchableOpacity key={cat.label} style={[styles.chip, active && styles.chipActive]} activeOpacity={0.8} onPress={() => setActiveCategory(index)}>
+                    <Icon size={15} color={active ? '#FFFFFF' : cat.color} />
                     <Text style={[styles.chipText, active && styles.chipTextActive]}>{cat.label}</Text>
                   </TouchableOpacity>
                 );
@@ -99,89 +148,30 @@ export default function WorkoutScreen() {
           </ScrollView>
         </FadeIn>
 
+        <FadeIn delay={140}>
+          <Text style={styles.sectionTitle}>Vorgeschlagen</Text>
+        </FadeIn>
+
         {loading ? (
-          <ActivityIndicator color={Colors.primary} style={{ marginTop: 60 }} />
+          <ActivityIndicator color={Colors.primary} style={{ marginTop: 48 }} />
+        ) : workouts.length === 0 ? (
+          <FadeIn delay={160}>
+            <View style={styles.emptyBox}>
+              <Dumbbell size={34} color={Colors.textMuted} />
+              <Text style={styles.emptyTitle}>Noch keine Trainings</Text>
+              <Text style={styles.emptySub}>Starte mit einem Schnellstart und speichere deinen Vorschlag.</Text>
+            </View>
+          </FadeIn>
         ) : (
-          <>
-            {/* Featured */}
-            {featured && (
-              <FadeIn delay={200}>
-                <Text style={styles.sectionTitle}>Featured</Text>
-                <TouchableOpacity style={styles.featuredCard} activeOpacity={0.9}>
-                  <View style={[styles.featuredImage, { backgroundColor: Colors.cardLight, alignItems: 'center', justifyContent: 'center' }]}>
-                    <Dumbbell size={80} color={Colors.glassBorder} />
-                  </View>
-                  <LinearGradient colors={['transparent', 'rgba(0,0,0,0.75)']} style={styles.featuredGradient} />
-                  <View style={styles.featuredContent}>
-                    <View style={[styles.badge, { backgroundColor: Colors.tertiary }]}>
-                      <Text style={styles.badgeText}>{featured.intensity.toUpperCase()}</Text>
-                    </View>
-                    <Text style={styles.featuredTitle}>{featured.title}</Text>
-                    <View style={styles.featuredMeta}>
-                      <Clock size={14} color={Colors.textMuted} />
-                      <Text style={styles.metaText}>{featured.duration_minutes} min</Text>
-                      <View style={styles.dotSep} />
-                      <Dumbbell size={14} color={Colors.textMuted} />
-                      <Text style={styles.metaText}>{featured.category}</Text>
-                    </View>
-                  </View>
-                  <View style={styles.playBtn}>
-                    <Play size={24} color={Colors.text} fill={Colors.text} />
-                  </View>
-                </TouchableOpacity>
-              </FadeIn>
-            )}
-
-            {/* List */}
-            <FadeIn delay={300}>
-              <Text style={styles.sectionTitle}>Recommended</Text>
+          workouts.map((workout, index) => (
+            <FadeIn key={workout.id} delay={160 + index * 50}>
+              <WorkoutDataCard workout={workout} />
             </FadeIn>
-
-            {rest.map((w, i) => (
-              <FadeIn key={w.id} delay={350 + i * 70}>
-                <TouchableOpacity style={styles.listCard} activeOpacity={0.85}>
-                  <View style={[styles.listImage, { backgroundColor: Colors.cardLight, alignItems: 'center', justifyContent: 'center' }]}>
-                    <Zap size={40} color={Colors.glassBorder} />
-                  </View>
-                  <LinearGradient colors={['transparent', 'rgba(0,0,0,0.5)']} style={styles.listOverlay} />
-                  <View style={styles.listContent}>
-                    <View style={styles.listTop}>
-                      <View style={[styles.badgeSm, { backgroundColor: w.completed_at ? Colors.primary : Colors.secondary }]}>
-                        <Text style={styles.badgeSmText}>{w.completed_at ? 'COMPLETED' : w.intensity.toUpperCase()}</Text>
-                      </View>
-                    </View>
-                    <Text style={styles.listTitle}>{w.title}</Text>
-                    <View style={styles.listMeta}>
-                      <Clock size={13} color={Colors.textMuted} />
-                      <Text style={styles.metaText}>{w.duration_minutes} min</Text>
-                      <View style={styles.dotSep} />
-                      <Flame size={13} color={Colors.textMuted} />
-                      <Text style={styles.metaText}>0 kcal</Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              </FadeIn>
-            ))}
-
-            {workouts.length === 0 && (
-              <FadeIn delay={200}>
-                <View style={styles.empty}>
-                  <Dumbbell size={40} color={Colors.textMuted} />
-                  <Text style={styles.emptyTitle}>No workouts yet</Text>
-                  <Text style={styles.emptySub}>Tap Quick Start to begin</Text>
-                </View>
-              </FadeIn>
-            )}
-          </>
+          ))
         )}
       </ScrollView>
 
-      <QuickStartModal
-        visible={quickStartVisible}
-        onClose={() => setQuickStartVisible(false)}
-        onGenerate={handleGenerate}
-        loading={generating}
-      />
+      <QuickStartModal visible={quickStartVisible} onClose={() => setQuickStartVisible(false)} onGenerate={handleGenerate} loading={generating} />
 
       <GeneratedWorkoutModal
         visible={resultVisible}
@@ -211,50 +201,99 @@ export default function WorkoutScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  scrollContent: { 
-    paddingHorizontal: 24, 
+  scrollContent: {
+    paddingHorizontal: 20,
     paddingBottom: 150,
-    maxWidth: 800,
     width: '100%',
-    alignSelf: 'center'
+    maxWidth: 860,
+    alignSelf: 'center',
   },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 12, marginBottom: 28 },
-  overline: { fontSize: 12, fontWeight: '800', color: Colors.primary, letterSpacing: 1.5, marginBottom: 6 },
-  title: { fontSize: 36, fontWeight: '900', color: Colors.text, letterSpacing: -1.2 },
-  quickBtn: { width: 52, height: 52, borderRadius: 18, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center', shadowColor: Colors.primary, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 6 },
-  catScroll: { marginBottom: 28 },
-  catRow: { flexDirection: 'row', gap: 10, paddingRight: 24 },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 11, borderRadius: 16, backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.glassBorder },
+  scrollWide: {
+    maxWidth: 1040,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 16,
+    marginTop: 12,
+    marginBottom: 22,
+  },
+  headerCopy: { flex: 1, minWidth: 0 },
+  title: { fontSize: 30, fontWeight: '800', color: Colors.text, lineHeight: 36 },
+  subtitle: { fontSize: 15, color: Colors.textMuted, fontWeight: '500', marginTop: 4, lineHeight: 21 },
+  quickBtn: {
+    minHeight: 46,
+    borderRadius: 12,
+    backgroundColor: Colors.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 14,
+  },
+  quickBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
+  catScroll: { marginBottom: 22 },
+  catRow: { flexDirection: 'row', gap: 8, paddingRight: 20 },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    paddingHorizontal: 13,
+    paddingVertical: 9,
+    borderRadius: 11,
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.borderSoft,
+  },
   chipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  chipText: { fontSize: 13, fontWeight: '800', color: Colors.textMuted },
+  chipText: { fontSize: 13, fontWeight: '700', color: Colors.textMuted },
   chipTextActive: { color: '#FFFFFF' },
-  sectionTitle: { fontSize: 22, fontWeight: '900', color: Colors.text, marginBottom: 16, letterSpacing: -0.5 },
-
-  featuredCard: { height: 300, borderRadius: 28, overflow: 'hidden', marginBottom: 28, justifyContent: 'flex-end' },
-  featuredImage: { ...absoluteFill },
-  featuredGradient: { ...absoluteFill },
-  featuredContent: { padding: 24 },
-  badge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, marginBottom: 12 },
-  badgeText: { fontSize: 11, fontWeight: '900', color: '#FFFFFF', letterSpacing: 0.5 },
-  featuredTitle: { fontSize: 30, fontWeight: '900', color: Colors.text, marginBottom: 10, letterSpacing: -0.8 },
-  featuredMeta: { flexDirection: 'row', alignItems: 'center' },
-  metaText: { color: Colors.textMuted, marginLeft: 6, fontSize: 13, fontWeight: '700' },
-  dotSep: { width: 4, height: 4, borderRadius: 2, backgroundColor: Colors.textMuted, marginHorizontal: 10, opacity: 0.5 },
-  playBtn: { position: 'absolute', right: 20, bottom: 20, width: 56, height: 56, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)' },
-
-  listCard: { height: 130, borderRadius: 24, overflow: 'hidden', marginBottom: 14, justifyContent: 'flex-end' },
-  listImage: { ...absoluteFill },
-  listOverlay: { ...absoluteFill },
-  listContent: { padding: 20 },
-  listTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  badgeSm: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  badgeSmText: { fontSize: 10, fontWeight: '900', color: '#FFFFFF', letterSpacing: 0.3 },
-  rating: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(0,0,0,0.4)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
-  ratingText: { color: Colors.text, fontSize: 12, fontWeight: '800' },
-  listTitle: { fontSize: 18, fontWeight: '900', color: Colors.text, marginBottom: 6, letterSpacing: -0.3 },
-  listMeta: { flexDirection: 'row', alignItems: 'center' },
-
-  empty: { alignItems: 'center', marginTop: 60, gap: 14 },
-  emptyTitle: { fontSize: 18, fontWeight: '900', color: Colors.text },
-  emptySub: { fontSize: 14, color: Colors.textMuted, fontWeight: '500' },
+  sectionTitle: { fontSize: 20, fontWeight: '800', color: Colors.text, marginBottom: 12 },
+  workoutCard: {
+    backgroundColor: Colors.card,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: Colors.borderSoft,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  workoutIconBox: {
+    width: 46,
+    height: 46,
+    borderRadius: 12,
+    backgroundColor: Colors.primaryGlow,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  workoutBody: { flex: 1, minWidth: 0 },
+  cardMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 7 },
+  metaPill: { backgroundColor: Colors.cardLight, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
+  metaPillText: { color: Colors.textMuted, fontSize: 11, fontWeight: '700' },
+  intensityText: { color: Colors.textMuted, fontSize: 12, fontWeight: '600' },
+  workoutTitle: { color: Colors.text, fontSize: 17, fontWeight: '800', lineHeight: 22, marginBottom: 8 },
+  metricsRow: { flexDirection: 'row', alignItems: 'center', gap: 14, flexWrap: 'wrap' },
+  metricItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  metricText: { color: Colors.textMuted, fontSize: 13, fontWeight: '600' },
+  cardAction: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: Colors.primaryGlow,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  emptyBox: {
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 54,
+    paddingHorizontal: 20,
+  },
+  emptyTitle: { color: Colors.text, fontSize: 17, fontWeight: '800', textAlign: 'center' },
+  emptySub: { color: Colors.textMuted, fontSize: 14, fontWeight: '500', textAlign: 'center', lineHeight: 20 },
 });

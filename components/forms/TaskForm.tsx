@@ -58,7 +58,7 @@ export function TaskForm({ visible, onClose, onSubmit }: TaskFormProps) {
       });
       resetForm();
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Task konnte nicht erstellt werden.');
+      setSubmitError(err instanceof Error ? err.message : 'Aufgabe konnte nicht erstellt werden.');
     } finally {
       setSubmitting(false);
     }
@@ -86,7 +86,7 @@ export function TaskForm({ visible, onClose, onSubmit }: TaskFormProps) {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Neuer Task</Text>
+          <Text style={styles.headerTitle}>Neue Aufgabe</Text>
           <TouchableOpacity onPress={handleClose} style={styles.closeBtn}>
             <X size={22} color={Colors.text} />
           </TouchableOpacity>
@@ -173,7 +173,7 @@ export function TaskForm({ visible, onClose, onSubmit }: TaskFormProps) {
 
         <View style={styles.footer}>
           <Button
-            title="Task erstellen"
+            title="Aufgabe erstellen"
             onPress={handleSubmit}
             variant="primary"
             loading={submitting}
@@ -194,15 +194,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     paddingTop: 60,
     paddingBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.glassBorder,
+    borderBottomColor: Colors.borderSoft,
   },
   headerTitle: {
     fontSize: 22,
-    fontWeight: '900',
+    fontWeight: '800',
     color: Colors.text,
   },
   closeBtn: {
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
   },
   form: {
     flex: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     paddingTop: 24,
   },
   label: {
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: Colors.card,
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.borderSoft,
   },
   optionBtnActive: {
     backgroundColor: Colors.primary,
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: Colors.card,
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.borderSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -277,11 +277,11 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   footer: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     paddingBottom: 48,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: Colors.glassBorder,
+    borderTopColor: Colors.borderSoft,
   },
   errorText: {
     color: Colors.tertiary,

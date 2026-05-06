@@ -44,8 +44,8 @@ export function MobileHome({ data }: { data: DashboardData }) {
         <FadeIn delay={0} style={{ width: '100%', alignItems: 'center' }}>
           <View style={[styles.header, mobileFrameStyle]}>
             <View style={styles.headerCopy}>
-              <Text style={styles.greeting}>Hallo, {data.name}! 👋</Text>
-              <Text style={styles.subtitle}>Schön, dass du dranbleibst.</Text>
+              <Text style={styles.greeting}>{data.name ? `Hallo, ${data.name}` : 'Hallo'}</Text>
+              <Text style={styles.subtitle}>Dein aktueller Tag im Überblick.</Text>
             </View>
             <Image source={avatarSource} style={styles.avatar} />
           </View>
@@ -53,7 +53,7 @@ export function MobileHome({ data }: { data: DashboardData }) {
 
         <FadeIn delay={80} style={{ width: '100%', alignItems: 'center' }}>
           <View style={[styles.sectionHeader, mobileFrameStyle]}>
-            <Text style={styles.sectionTitle}>Heute im Überblick</Text>
+            <Text style={styles.sectionTitle}>Tagesübersicht</Text>
             <DateRow dateLabel={data.dateLabel} />
           </View>
         </FadeIn>

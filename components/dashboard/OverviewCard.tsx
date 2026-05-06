@@ -19,7 +19,7 @@ export function OverviewCard({ compact = false, data, desktop = false }: { compa
     <View style={[styles.overviewCard, compact && styles.compactOverviewCard, desktop && webStyles.webOverviewCard]}>
       {desktop && (
         <View style={webStyles.webCardHeader}>
-          <Text style={webStyles.webCardTitle}>Heute im Überblick</Text>
+          <Text style={webStyles.webCardTitle}>Tagesübersicht</Text>
           <DateRow dateLabel={data.dateLabel} desktop />
         </View>
       )}

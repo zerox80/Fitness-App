@@ -8,44 +8,44 @@ import {
   User,
   Utensils,
 } from 'lucide-react-native';
+import { Colors, Layout } from '@/constants/Colors';
 
 export const STEP_GOAL = 10000;
-export const DESKTOP_BREAKPOINT = 900;
-export const WIDE_BREAKPOINT = 1200;
+export const DESKTOP_BREAKPOINT = Layout.desktop;
+export const WIDE_BREAKPOINT = Layout.desktopExpanded;
 export const ULTRA_WIDE_BREAKPOINT = 1800;
-export const WEB_CONTENT_MAX_WIDTH = 1600;
+export const WEB_CONTENT_MAX_WIDTH = Layout.contentMax;
 
 export const palette = {
-  background: '#F5F7F6',
-  appBackground: '#F7F8FA',
-  card: '#FFFFFF',
-  text: '#18202A',
-  muted: '#6D747E',
-  softMuted: '#A4ABB4',
-  border: '#ECEFF1',
-  green: '#21B882',
-  greenDark: '#129565',
-  greenSoft: '#EAF8D9',
-  teal: '#22C7BC',
-  tealSoft: '#DDF8F4',
-  red: '#FF5F70',
-  redSoft: '#FFE2E5',
-  shadow: '#C9D1D8',
-  track: '#EBEEF1',
-  // Premium additions
-  accent: '#20B77F',
-  accentLight: '#E8F8F2',
-  glass: 'rgba(255, 255, 255, 0.8)',
-  glassBorder: 'rgba(255, 255, 255, 0.2)',
+  background: Colors.background,
+  appBackground: Colors.background,
+  card: Colors.card,
+  text: Colors.text,
+  muted: Colors.textMuted,
+  softMuted: Colors.textSoft,
+  border: Colors.borderSoft,
+  green: Colors.primary,
+  greenDark: '#126F54',
+  greenSoft: Colors.primaryGlow,
+  teal: Colors.secondary,
+  tealSoft: Colors.secondaryGlow,
+  red: Colors.tertiary,
+  redSoft: Colors.tertiaryGlow,
+  shadow: Colors.shadow,
+  track: '#E3E9EC',
+  accent: Colors.primary,
+  accentLight: Colors.primaryGlow,
+  glass: Colors.card,
+  glassBorder: Colors.borderSoft,
 };
 
 export const avatarUri: string | null = null;
 
 export const trainings = [
-  { title: 'Laufen', meta: '30 Min · 5,2 km · Mittel', kcal: 320, icon: PersonStanding, color: '#64C80E' },
-  { title: 'Krafttraining', meta: '45 Min · Ganzkörper', kcal: 280, icon: Dumbbell, color: '#29B9C5' },
-  { title: 'Yoga', meta: '30 Min · Entspannung', kcal: 180, icon: PersonStanding, color: '#A7E87F' },
-  { title: 'Radfahren', meta: '40 Min · 12,4 km · Mittel', kcal: 420, icon: Bike, color: '#20C7B3' },
+  { title: 'Laufen', meta: '30 Min · 5,2 km · Mittel', kcal: 320, icon: PersonStanding, color: Colors.primary },
+  { title: 'Krafttraining', meta: '45 Min · Ganzkörper', kcal: 280, icon: Dumbbell, color: Colors.secondary },
+  { title: 'Mobilität', meta: '30 Min · Regeneration', kcal: 180, icon: PersonStanding, color: Colors.warning },
+  { title: 'Radfahren', meta: '40 Min · 12,4 km · Mittel', kcal: 420, icon: Bike, color: '#2D7EAA' },
 ];
 
 export const weeklyProgress = [

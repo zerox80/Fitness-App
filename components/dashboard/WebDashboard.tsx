@@ -17,8 +17,8 @@ export function WebDashboard({ data }: { data: DashboardData }) {
     <View style={[webStyles.webContent, isMobile && { maxWidth: 560 }]}>
       <FadeIn delay={0}>
         <View style={webStyles.webGreetingBlock}>
-          <Text style={[webStyles.webGreeting, isMobile && { fontSize: 24, lineHeight: 30 }]}>Hallo, {data.name}! 👋</Text>
-          <Text style={[webStyles.webSubtitle, isMobile && { fontSize: 15 }]}>Schön, dass du dranbleibst.</Text>
+          <Text style={[webStyles.webGreeting, isMobile && { fontSize: 24, lineHeight: 30 }]}>{data.name ? `Hallo, ${data.name}` : 'Hallo'}</Text>
+          <Text style={[webStyles.webSubtitle, isMobile && { fontSize: 15 }]}>Dein aktueller Tag im Überblick.</Text>
         </View>
       </FadeIn>
 

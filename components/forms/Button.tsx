@@ -23,9 +23,9 @@ const variantStyles = {
 };
 
 const sizeStyles = {
-  sm: { paddingVertical: 10, paddingHorizontal: 18, fontSize: 13, borderRadius: 14 },
-  md: { paddingVertical: 14, paddingHorizontal: 24, fontSize: 15, borderRadius: 16 },
-  lg: { paddingVertical: 18, paddingHorizontal: 32, fontSize: 17, borderRadius: 18 },
+  sm: { paddingVertical: 9, paddingHorizontal: 16, fontSize: 13, borderRadius: 10 },
+  md: { paddingVertical: 13, paddingHorizontal: 20, fontSize: 15, borderRadius: 12 },
+  lg: { paddingVertical: 16, paddingHorizontal: 28, fontSize: 16, borderRadius: 14 },
 };
 
 export function Button({
@@ -73,23 +73,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   secondaryBorder: {
-    borderWidth: 1,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.borderSoft,
   },
   ghostBorder: {
-    borderWidth: 1,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.borderSoft,
   },
   text: {
-    fontWeight: '900',
-    letterSpacing: 0.2,
+    fontWeight: '800',
   },
   disabled: {
     opacity: 0.4,

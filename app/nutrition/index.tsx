@@ -1,11 +1,9 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { UtensilsCrossed, Plus } from 'lucide-react-native';
+import { Plus } from 'lucide-react-native';
 import { ScreenHeader } from '@/components/layout/ScreenHeader';
 import { EmptyState } from '@/components/feedback/EmptyState';
-import { Button } from '@/components/forms/Button';
 import { FadeIn } from '@/components/FadeIn';
 import { Colors } from '@/constants/Colors';
 
@@ -18,12 +16,14 @@ export default function NutritionScreen() {
         </FadeIn>
         <FadeIn delay={100}>
           <View style={styles.actions}>
-            <Button title="+ Mahlzeit hinzufügen" size="md" onPress={() => console.log('Add meal')} />
+            <TouchableOpacity style={styles.addButton} onPress={() => console.log('Add meal')} activeOpacity={0.85}>
+              <Plus size={18} color="#FFFFFF" />
+              <Text style={styles.addButtonText}>Mahlzeit hinzufügen</Text>
+            </TouchableOpacity>
           </View>
         </FadeIn>
         <FadeIn delay={200}>
           <EmptyState
-            icon="🥗"
             title="Noch keine Einträge"
             subtitle="Füge deine erste Mahlzeit hinzu, um deine Ernährung zu tracken."
           />
@@ -42,7 +42,22 @@ const styles = StyleSheet.create({
     paddingBottom: 150,
   },
   actions: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     marginBottom: 12,
+  },
+  addButton: {
+    minHeight: 48,
+    borderRadius: 12,
+    backgroundColor: Colors.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 18,
+  },
+  addButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '800',
   },
 });

@@ -1,9 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/constants/Colors';
 import { Achievement } from '@/types';
-import { absoluteFill } from '@/utils/styles';
 
 interface AchievementCardProps {
   achievement: Achievement;
@@ -25,10 +23,6 @@ export function AchievementCard({ achievement }: AchievementCardProps) {
 
   return (
     <View style={[styles.card, isUnlocked && styles.unlocked]}>
-      <LinearGradient
-        colors={isUnlocked ? [`${Colors.primary}08`, 'transparent'] : ['transparent', 'transparent']}
-        style={absoluteFill}
-      />
       <View style={styles.header}>
         <View style={styles.iconWrap}>
           <Text style={styles.icon}>{achievement.icon}</Text>
@@ -43,12 +37,7 @@ export function AchievementCard({ achievement }: AchievementCardProps) {
       </View>
       <View style={styles.progressContainer}>
         <View style={styles.progressBar}>
-          <LinearGradient
-            colors={isUnlocked ? [Colors.primary, '#a8cc00'] : [color, color]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={[styles.progressFill, { width: `${progressPercent}%` }]}
-          />
+          <View style={[styles.progressFill, { width: `${progressPercent}%`, backgroundColor: isUnlocked ? Colors.primary : color }]} />
         </View>
         <Text style={styles.progressText}>
           {achievement.progress} / {achievement.target}
@@ -63,18 +52,18 @@ export function AchievementCard({ achievement }: AchievementCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.glass,
-    borderRadius: 24,
+    backgroundColor: Colors.card,
+    borderRadius: 14,
     padding: 18,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.borderSoft,
     overflow: 'hidden',
     opacity: 0.7,
   },
   unlocked: {
     opacity: 1,
-    borderColor: `${Colors.primary}30`,
+    borderColor: Colors.primary,
   },
   header: {
     flexDirection: 'row',
@@ -90,7 +79,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.borderSoft,
   },
   icon: {
     fontSize: 24,
@@ -101,8 +90,7 @@ const styles = StyleSheet.create({
   name: {
     color: Colors.text,
     fontSize: 16,
-    fontWeight: '900',
-    letterSpacing: -0.2,
+    fontWeight: '800',
   },
   description: {
     color: Colors.textMuted,
@@ -118,9 +106,8 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontSize: 10,
-    fontWeight: '900',
+    fontWeight: '800',
     textTransform: 'uppercase',
-    letterSpacing: 0.3,
   },
   progressContainer: {
     flexDirection: 'row',
@@ -150,6 +137,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '800',
     marginTop: 8,
-    letterSpacing: 0.3,
   },
 });

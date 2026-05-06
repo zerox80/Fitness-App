@@ -11,7 +11,6 @@ import { ErrorBanner } from '@/components/feedback/ErrorBanner';
 import { SegmentedControl } from '@/components/forms/SegmentedControl';
 import { FadeIn } from '@/components/FadeIn';
 import { Exercise, MuscleGroup } from '@/types';
-import { useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 
 const muscleGroupOptions: { label: string; value: MuscleGroup | 'all' }[] = [
@@ -29,7 +28,6 @@ export default function ExercisesScreen() {
   const [search, setSearch] = useState('');
   const [muscleGroup, setMuscleGroup] = useState<MuscleGroup | 'all'>('all');
   const debouncedSearch = useDebounce(search, 300);
-  const router = useRouter();
   const { width } = useWindowDimensions();
 
   const { exercises, loading, error, refetch } = useExercises({
@@ -100,11 +98,7 @@ export default function ExercisesScreen() {
         ListEmptyComponent={
           !loading ? (
             <FadeIn delay={200}>
-              <EmptyState
-                icon="🔍"
-                title="Keine Übungen gefunden"
-                subtitle="Versuche eine andere Suche oder Kategorie."
-              />
+              <EmptyState title="Keine Übungen gefunden" subtitle="Versuche eine andere Suche oder Kategorie." />
             </FadeIn>
           ) : null
         }
@@ -119,27 +113,27 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   list: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     paddingBottom: 150,
   },
   header: {
     color: Colors.text,
-    fontSize: 36,
-    fontWeight: '900',
-    letterSpacing: -1.2,
+    fontSize: 30,
+    fontWeight: '800',
+    lineHeight: 36,
     marginTop: 12,
     marginBottom: 24,
   },
   searchWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.glass,
-    borderRadius: 18,
+    backgroundColor: Colors.card,
+    borderRadius: 12,
     paddingHorizontal: 18,
     paddingVertical: 14,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.borderSoft,
   },
   searchIcon: {
     marginRight: 10,
@@ -148,7 +142,7 @@ const styles = StyleSheet.create({
     flex: 1,
     color: Colors.text,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   filterContainer: {
     marginBottom: 20,

@@ -48,13 +48,13 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: Colors.card,
     color: Colors.text,
-    borderRadius: 18,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
-    fontWeight: '600',
+    borderColor: Colors.borderSoft,
+    fontWeight: '500',
   },
   inputError: {
     borderColor: Colors.tertiary,

@@ -1,16 +1,16 @@
 import { Tabs, router } from 'expo-router';
 import React from 'react';
 import { Activity, ClipboardList, Home, Plus, User } from 'lucide-react-native';
-import { Platform, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { HapticTab } from '../../components/haptic-tab';
 
 const tabColors = {
-  active: '#20B77F',
+  active: '#178864',
   inactive: '#79818A',
   background: '#FFFFFF',
-  border: '#EEF1F3',
-  shadow: '#C7CDD3',
+  border: '#E9EEF1',
+  shadow: 'rgba(24, 32, 42, 0.08)',
 };
 
 function CenterPlusButton() {
@@ -22,7 +22,7 @@ function CenterPlusButton() {
       style={({ pressed }) => [styles.plusButtonWrap, pressed && styles.plusButtonPressed]}
     >
       <View style={styles.plusButton}>
-        <Plus size={36} color="#FFFFFF" strokeWidth={2.3} />
+        <Plus size={30} color="#FFFFFF" strokeWidth={2.3} />
       </View>
     </Pressable>
   );
@@ -119,10 +119,10 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: tabColors.border,
     shadowColor: tabColors.shadow,
-    shadowOffset: { width: 0, height: -10 },
-    shadowOpacity: 0.18,
-    shadowRadius: 22,
-    elevation: 18,
+    shadowOffset: { width: 0, height: -6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 14,
+    elevation: 8,
   },
   tabBarHidden: {
     display: 'none',
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   },
   tabBarLabel: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     marginTop: 2,
   },
   iconStack: {
@@ -155,17 +155,17 @@ const styles = StyleSheet.create({
     opacity: 0.82,
   },
   plusButton: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 56,
+    height: 56,
+    borderRadius: 18,
     backgroundColor: tabColors.active,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: tabColors.active,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.28,
-    shadowRadius: 18,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.16,
+    shadowRadius: 12,
+    elevation: 6,
   },
   emptyLabel: {
     fontSize: 13,

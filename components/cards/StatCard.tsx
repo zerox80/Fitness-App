@@ -1,8 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/constants/Colors';
-import { absoluteFill } from '@/utils/styles';
 
 interface StatCardProps {
   title: string;
@@ -27,10 +25,6 @@ const trendColors = {
 export function StatCard({ title, value, subtitle, trend, color = Colors.primary }: StatCardProps) {
   return (
     <View style={styles.card}>
-      <LinearGradient
-        colors={[`${color}08`, 'transparent']}
-        style={absoluteFill}
-      />
       <View style={[styles.accent, { backgroundColor: color }]} />
       <Text style={styles.title}>{title}</Text>
       <View style={styles.valueRow}>
@@ -48,14 +42,14 @@ export function StatCard({ title, value, subtitle, trend, color = Colors.primary
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.glass,
-    borderRadius: 24,
-    padding: 20,
+    backgroundColor: Colors.card,
+    borderRadius: 14,
+    padding: 16,
     flex: 1,
     minWidth: 140,
     margin: 4,
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.borderSoft,
     overflow: 'hidden',
   },
   accent: {
@@ -68,10 +62,9 @@ const styles = StyleSheet.create({
   title: {
     color: Colors.textMuted,
     fontSize: 12,
-    fontWeight: '800',
+    fontWeight: '700',
     marginBottom: 6,
     textTransform: 'uppercase',
-    letterSpacing: 0.8,
   },
   valueRow: {
     flexDirection: 'row',
@@ -80,9 +73,8 @@ const styles = StyleSheet.create({
   },
   value: {
     color: Colors.text,
-    fontSize: 24,
-    fontWeight: '900',
-    letterSpacing: -0.5,
+    fontSize: 23,
+    fontWeight: '800',
   },
   trend: {
     fontSize: 16,

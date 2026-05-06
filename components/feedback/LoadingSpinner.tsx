@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 32,
+    padding: 28,
   },
   fullScreen: {
     flex: 1,

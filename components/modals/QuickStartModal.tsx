@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { X, Clock, Zap, Target, Sparkles } from 'lucide-react-native';
+import { ActivityIndicator, Modal, Platform, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { X, Clock, Zap, Target } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
-import { FadeIn } from '@/components/FadeIn';
 
 interface QuickStartModalProps {
   visible: boolean;
@@ -18,109 +17,83 @@ const DURATIONS = [
 ];
 
 const FOCUS_AREAS = [
-  { label: 'Full Body', value: 'Full Body' },
-  { label: 'Upper Body', value: 'Upper Body' },
-  { label: 'Lower Body', value: 'Lower Body' },
+  { label: 'Ganzkörper', value: 'Full Body' },
+  { label: 'Oberkörper', value: 'Upper Body' },
+  { label: 'Unterkörper', value: 'Lower Body' },
   { label: 'Core', value: 'Core' },
 ];
 
 const INTENSITIES = [
-  { label: 'Easy', value: 'Low' },
-  { label: 'Medium', value: 'Medium' },
-  { label: 'Hard', value: 'High' },
+  { label: 'Leicht', value: 'Low' },
+  { label: 'Mittel', value: 'Medium' },
+  { label: 'Intensiv', value: 'High' },
 ];
 
 export function QuickStartModal({ visible, onClose, onGenerate, loading }: QuickStartModalProps) {
+  const { width } = useWindowDimensions();
+  const isDesktop = Platform.OS === 'web' && width >= 900;
   const [duration, setDuration] = useState(30);
   const [focus, setFocus] = useState('Full Body');
   const [intensity, setIntensity] = useState('Medium');
 
   return (
-    <Modal visible={visible} transparent animationType="fade">
-      <View style={styles.overlay}>
-        <View style={styles.content}>
+    <Modal visible={visible} transparent animationType={isDesktop ? 'fade' : 'slide'} onRequestClose={onClose}>
+      <View style={[styles.overlay, isDesktop ? styles.centerOverlay : styles.bottomOverlay]}>
+        <View style={[styles.content, isDesktop ? styles.desktopContent : styles.sheetContent]}>
           <View style={styles.header}>
-            <View style={styles.titleRow}>
-              <Sparkles size={24} color={Colors.primary} />
-              <Text style={styles.title}>AI Schnellstart</Text>
+            <View>
+              <Text style={styles.title}>Schnellstart</Text>
+              <Text style={styles.subtitle}>Erstelle einen Trainingsvorschlag für heute.</Text>
             </View>
-            <TouchableOpacity onPress={onClose} disabled={loading}>
-              <X size={24} color={Colors.textMuted} />
+            <TouchableOpacity onPress={onClose} disabled={loading} style={styles.closeBtn}>
+              <X size={22} color={Colors.textMuted} />
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.subtitle}>Generiere dein personalisiertes Training in Sekunden.</Text>
-
-          {/* Duration */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Clock size={18} color={Colors.text} />
+              <Clock size={18} color={Colors.textMuted} />
               <Text style={styles.sectionTitle}>Zeit</Text>
             </View>
             <View style={styles.chipRow}>
-              {DURATIONS.map((d) => (
-                <TouchableOpacity
-                  key={d.value}
-                  style={[styles.chip, duration === d.value && styles.chipActive]}
-                  onPress={() => setDuration(d.value)}
-                  disabled={loading}
-                >
-                  <Text style={[styles.chipText, duration === d.value && styles.chipTextActive]}>{d.label}</Text>
+              {DURATIONS.map((item) => (
+                <TouchableOpacity key={item.value} style={[styles.chip, duration === item.value && styles.chipActive]} onPress={() => setDuration(item.value)} disabled={loading}>
+                  <Text style={[styles.chipText, duration === item.value && styles.chipTextActive]}>{item.label}</Text>
                 </TouchableOpacity>
               ))}
             </View>
           </View>
 
-          {/* Focus */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Target size={18} color={Colors.text} />
+              <Target size={18} color={Colors.textMuted} />
               <Text style={styles.sectionTitle}>Fokus</Text>
             </View>
             <View style={styles.chipRow}>
-              {FOCUS_AREAS.map((f) => (
-                <TouchableOpacity
-                  key={f.value}
-                  style={[styles.chip, focus === f.value && styles.chipActive]}
-                  onPress={() => setFocus(f.value)}
-                  disabled={loading}
-                >
-                  <Text style={[styles.chipText, focus === f.value && styles.chipTextActive]}>{f.label}</Text>
+              {FOCUS_AREAS.map((item) => (
+                <TouchableOpacity key={item.value} style={[styles.chip, focus === item.value && styles.chipActive]} onPress={() => setFocus(item.value)} disabled={loading}>
+                  <Text style={[styles.chipText, focus === item.value && styles.chipTextActive]}>{item.label}</Text>
                 </TouchableOpacity>
               ))}
             </View>
           </View>
 
-          {/* Intensity */}
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Zap size={18} color={Colors.text} />
+              <Zap size={18} color={Colors.textMuted} />
               <Text style={styles.sectionTitle}>Intensität</Text>
             </View>
             <View style={styles.chipRow}>
-              {INTENSITIES.map((i) => (
-                <TouchableOpacity
-                  key={i.value}
-                  style={[styles.chip, intensity === i.value && styles.chipActive]}
-                  onPress={() => setIntensity(i.value)}
-                  disabled={loading}
-                >
-                  <Text style={[styles.chipText, intensity === i.value && styles.chipTextActive]}>{i.label}</Text>
+              {INTENSITIES.map((item) => (
+                <TouchableOpacity key={item.value} style={[styles.chip, intensity === item.value && styles.chipActive]} onPress={() => setIntensity(item.value)} disabled={loading}>
+                  <Text style={[styles.chipText, intensity === item.value && styles.chipTextActive]}>{item.label}</Text>
                 </TouchableOpacity>
               ))}
             </View>
           </View>
 
-          <TouchableOpacity
-            style={[styles.generateBtn, loading && styles.generateBtnDisabled]}
-            onPress={() => onGenerate(duration, focus, intensity)}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.generateBtnText}>Training generieren</Text>
-            )}
+          <TouchableOpacity style={[styles.generateBtn, loading && styles.generateBtnDisabled]} onPress={() => onGenerate(duration, focus, intensity)} disabled={loading}>
+            {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.generateBtnText}>Training planen</Text>}
           </TouchableOpacity>
         </View>
       </View>
@@ -131,70 +104,84 @@ export function QuickStartModal({ visible, onClose, onGenerate, loading }: Quick
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(23,33,43,0.32)',
+    padding: 18,
+  },
+  centerOverlay: {
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
+  },
+  bottomOverlay: {
+    justifyContent: 'flex-end',
   },
   content: {
-    backgroundColor: Colors.background,
-    borderRadius: 32,
-    padding: 24,
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: Colors.borderSoft,
     width: '100%',
+  },
+  desktopContent: {
     maxWidth: 500,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
-    shadowRadius: 20,
-    elevation: 10,
+    borderRadius: 16,
+    padding: 24,
+  },
+  sheetContent: {
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    padding: 20,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
+    alignItems: 'flex-start',
+    gap: 16,
+    marginBottom: 22,
   },
-  titleRow: {
-    flexDirection: 'row',
+  closeBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: Colors.cardLight,
     alignItems: 'center',
-    gap: 10,
+    justifyContent: 'center',
   },
   title: {
     fontSize: 24,
-    fontWeight: '900',
+    fontWeight: '800',
     color: Colors.text,
   },
   subtitle: {
     fontSize: 14,
     color: Colors.textMuted,
-    marginBottom: 24,
+    marginTop: 4,
+    lineHeight: 20,
   },
   section: {
-    marginBottom: 20,
+    marginBottom: 18,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 10,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '800',
+    fontSize: 15,
+    fontWeight: '700',
     color: Colors.text,
   },
   chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: 8,
   },
   chip: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 14,
+    paddingHorizontal: 13,
+    paddingVertical: 9,
+    borderRadius: 10,
     backgroundColor: Colors.cardLight,
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.borderSoft,
   },
   chipActive: {
     backgroundColor: Colors.primary,
@@ -210,23 +197,18 @@ const styles = StyleSheet.create({
   },
   generateBtn: {
     backgroundColor: Colors.primary,
-    height: 56,
-    borderRadius: 18,
+    height: 52,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 12,
-    shadowColor: Colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    marginTop: 4,
   },
   generateBtnDisabled: {
-    opacity: 0.6,
+    opacity: 0.65,
   },
   generateBtnText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '900',
+    fontSize: 15,
+    fontWeight: '800',
   },
 });

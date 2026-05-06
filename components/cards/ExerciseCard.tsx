@@ -1,9 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '@/constants/Colors';
 import { Exercise } from '@/types';
-import { absoluteFill } from '@/utils/styles';
 
 interface ExerciseCardProps {
   exercise: Exercise;
@@ -21,10 +19,6 @@ export function ExerciseCard({ exercise, onPress }: ExerciseCardProps) {
 
   return (
     <TouchableOpacity style={styles.card} onPress={() => onPress?.(exercise)} activeOpacity={0.85}>
-      <LinearGradient
-        colors={[`${diffColor}05`, 'transparent']}
-        style={absoluteFill}
-      />
       <View style={styles.header}>
         <Text style={styles.name} numberOfLines={1}>
           {exercise.name}
@@ -94,13 +88,13 @@ function translateEquipment(e: string): string {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.glass,
-    borderRadius: 24,
-    padding: 18,
+    backgroundColor: Colors.card,
+    borderRadius: 14,
+    padding: 16,
     marginBottom: 10,
     marginHorizontal: 8,
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.borderSoft,
     overflow: 'hidden',
     ...Platform.select({
       web: {
@@ -118,10 +112,9 @@ const styles = StyleSheet.create({
   name: {
     color: Colors.text,
     fontSize: 16,
-    fontWeight: '900',
+    fontWeight: '800',
     flex: 1,
     marginRight: 8,
-    letterSpacing: -0.2,
   },
   badge: {
     paddingHorizontal: 10,
@@ -152,7 +145,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.borderSoft,
   },
   muscleText: {
     color: Colors.text,

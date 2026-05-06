@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, Switch, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Bell, Moon, Volume2, Info, ChevronRight, Shield } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/forms/Button';
@@ -133,24 +132,24 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   scroll: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     paddingBottom: 150,
   },
   header: {
     color: Colors.text,
-    fontSize: 36,
-    fontWeight: '900',
-    letterSpacing: -1.2,
+    fontSize: 30,
+    fontWeight: '800',
+    lineHeight: 36,
     marginTop: 12,
     marginBottom: 24,
   },
   section: {
-    backgroundColor: Colors.glass,
-    borderRadius: 28,
-    paddingHorizontal: 20,
+    backgroundColor: Colors.card,
+    borderRadius: 14,
+    paddingHorizontal: 16,
     paddingTop: 20,
     borderWidth: 1,
-    borderColor: Colors.glassBorder,
+    borderColor: Colors.borderSoft,
     marginBottom: 16,
     overflow: 'hidden',
   },
@@ -159,7 +158,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '800',
     textTransform: 'uppercase',
-    letterSpacing: 0.8,
     marginBottom: 12,
   },
   row: {
@@ -168,7 +166,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.glassBorder,
+    borderBottomColor: Colors.borderSoft,
   },
   rowLeft: {
     flexDirection: 'row',
@@ -190,7 +188,7 @@ const styles = StyleSheet.create({
   rowLabel: {
     color: Colors.text,
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   rowValue: {
     color: Colors.textMuted,

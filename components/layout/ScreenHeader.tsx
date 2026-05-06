@@ -18,15 +18,15 @@ export function ScreenHeader({ title, subtitle }: ScreenHeaderProps) {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 24,
+    paddingBottom: 22,
   },
   title: {
     color: Colors.text,
-    fontSize: 36,
-    fontWeight: '900',
-    letterSpacing: -1.2,
+    fontSize: 30,
+    fontWeight: '800',
+    lineHeight: 36,
   },
   subtitle: {
     color: Colors.textMuted,
