@@ -20,6 +20,19 @@ describe('task progress helpers', () => {
     expect(isTaskFullyCompleted({ completed_sets_today: 5, target_sets: 4 })).toBe(true);
   });
 
+  it('ignores stale completed_today flags from task API payloads', () => {
+    const task = {
+      completed_today: true,
+      completed_sets_today: 3,
+      target_sets: 4,
+    };
+
+    expect(isTaskFullyCompleted(task)).toBe(false);
+    expect(getTaskProgress(task)).toBe(0.75);
+    expect(getCompletedTaskCount([task])).toBe(0);
+    expect(getDailyTaskProgress([task])).toBe(0.75);
+  });
+
   it('averages progress across one-set and multi-set tasks', () => {
     const tasks = [
       { completed_sets_today: 1, target_sets: 1 },

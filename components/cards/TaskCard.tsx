@@ -4,6 +4,7 @@ import { Check, Trash2, Dumbbell, Apple, Repeat, ListChecks } from 'lucide-react
 import { Colors } from '@/constants/Colors';
 import { ApiTaskWithCompletion, ApiTaskCategory } from '@/lib/api';
 import { TASK_CATEGORY_LABELS, TASK_RECURRENCE_LABELS } from '@/types';
+import { isTaskFullyCompleted } from '@/utils/taskProgress';
 
 const CATEGORY_ICONS: Record<ApiTaskCategory, typeof Dumbbell> = {
   workout: Dumbbell,
@@ -29,6 +30,7 @@ interface TaskCardProps {
 export function TaskCard({ task, onToggle, onIncrementSet, onDelete }: TaskCardProps) {
   const Icon = CATEGORY_ICONS[task.category];
   const accentColor = CATEGORY_COLORS[task.category];
+  const isCompleted = isTaskFullyCompleted(task);
 
   const handlePress = () => {
     if (task.target_sets > 1) {
@@ -39,16 +41,16 @@ export function TaskCard({ task, onToggle, onIncrementSet, onDelete }: TaskCardP
   };
 
   return (
-    <View style={[styles.card, task.completed_today && styles.cardCompleted]}>
+    <View style={[styles.card, isCompleted && styles.cardCompleted]}>
       <TouchableOpacity
         style={styles.checkboxTouch}
         onPress={handlePress}
         activeOpacity={0.7}
       >
-        <View style={[styles.checkbox, task.completed_today && { backgroundColor: accentColor, borderColor: accentColor }]}>
-          {task.completed_today && task.target_sets <= 1 && <Check size={16} color="#FFFFFF" strokeWidth={3} />}
+        <View style={[styles.checkbox, isCompleted && { backgroundColor: accentColor, borderColor: accentColor }]}>
+          {isCompleted && task.target_sets <= 1 && <Check size={16} color="#FFFFFF" strokeWidth={3} />}
           {task.target_sets > 1 && (
-            <Text style={[styles.setCount, task.completed_today && { color: '#FFFFFF' }]}>
+            <Text style={[styles.setCount, isCompleted && { color: '#FFFFFF' }]}>
               {task.completed_sets_today}
             </Text>
           )}
@@ -60,7 +62,7 @@ export function TaskCard({ task, onToggle, onIncrementSet, onDelete }: TaskCardP
       </View>
 
       <View style={styles.content}>
-        <Text style={[styles.title, task.completed_today && styles.titleCompleted]} numberOfLines={1}>
+        <Text style={[styles.title, isCompleted && styles.titleCompleted]} numberOfLines={1}>
           {task.title}
         </Text>
         <View style={styles.meta}>
@@ -73,7 +75,7 @@ export function TaskCard({ task, onToggle, onIncrementSet, onDelete }: TaskCardP
             {TASK_RECURRENCE_LABELS[task.recurrence]}
           </Text>
           {task.target_sets > 1 && (
-            <Text style={[styles.setProgress, task.completed_today && task.completed_sets_today >= task.target_sets && { color: accentColor }]}>
+            <Text style={[styles.setProgress, isCompleted && { color: accentColor }]}>
               • {task.completed_sets_today} / {task.target_sets} Sätze
             </Text>
           )}
