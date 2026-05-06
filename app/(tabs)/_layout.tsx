@@ -3,7 +3,7 @@ import React from 'react';
 import { Activity, ClipboardList, Home, Plus, User } from 'lucide-react-native';
 import { Platform, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
-import { HapticTab } from '@/components/haptic-tab';
+import { HapticTab } from '../../components/haptic-tab';
 
 const tabColors = {
   active: '#20B77F',
