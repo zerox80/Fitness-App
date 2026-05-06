@@ -32,7 +32,7 @@ function EmptyLabel() {
   return <Text style={styles.emptyLabel}> </Text>;
 }
 
-import { WebLayout } from '@/components/layout/WebLayout';
+import { WebLayout } from '../../components/layout/WebLayout';
 
 export default function TabLayout() {
   return (
