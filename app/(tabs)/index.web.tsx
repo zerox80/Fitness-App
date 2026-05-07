@@ -44,7 +44,11 @@ export default function HomeScreenWeb() {
         mergedActivity.steps !== serverActivity.steps ||
         mergedActivity.calories !== serverActivity.calories
       ) {
-        setActivity(await api.activity.update(mergedActivity, { date: activityDate }));
+        try {
+          setActivity(await api.activity.update(mergedActivity, { date: activityDate }));
+        } catch {
+          setActivity(mergedActivity);
+        }
         return;
       }
 
