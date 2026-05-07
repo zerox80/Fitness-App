@@ -122,6 +122,7 @@ pub async fn find_by_id(
     row.map(workout_from_row).transpose()
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn create(
     pool: &PgPool,
     user_id: Uuid,
