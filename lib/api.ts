@@ -29,6 +29,7 @@ export interface ApiWorkout {
   duration_minutes: number;
   intensity: string;
   category: string;
+  exercises: GeneratedExercise[];
   completed_at: string | null;
   created_at: string;
 }
@@ -39,6 +40,7 @@ export interface CreateWorkoutData {
   duration_minutes: number;
   intensity: string;
   category: string;
+  exercises?: GeneratedExercise[];
 }
 
 export interface GenerateWorkoutRequest {
@@ -84,6 +86,10 @@ export interface UpdateActivityData {
   move_progress: number;
   exercise_progress: number;
   stand_progress: number;
+}
+
+export interface ActivityDateParams {
+  date?: string;
 }
 
 export type ApiTaskRecurrence = 'daily' | 'weekdays' | 'weekly' | 'custom';
@@ -160,6 +166,15 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return res.json();
 }
 
+function activityPath(params?: ActivityDateParams) {
+  if (!params?.date) {
+    return '/activity/today';
+  }
+
+  const query = new URLSearchParams({ date: params.date });
+  return `/activity/today?${query.toString()}`;
+}
+
 export const api = {
   auth: {
     register: (data: RegisterData) => request<AuthResponse>('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
@@ -176,6 +191,7 @@ export const api = {
     },
     create: (data: CreateWorkoutData) => request<ApiWorkout>('/workouts', { method: 'POST', body: JSON.stringify(data) }),
     generate: (data: GenerateWorkoutRequest) => request<GeneratedWorkout>('/workouts/generate', { method: 'POST', body: JSON.stringify(data) }),
+    get: (id: string) => request<ApiWorkout>(`/workouts/${id}`),
     complete: (id: string) => request<ApiWorkout>(`/workouts/${id}/complete`, { method: 'PUT' }),
     delete: (id: string) => request<{ deleted: boolean }>(`/workouts/${id}`, { method: 'DELETE' }),
   },
@@ -183,8 +199,8 @@ export const api = {
     get: () => request<UserStats>('/stats'),
   },
   activity: {
-    today: () => request<DailyActivity>('/activity/today'),
-    update: (data: UpdateActivityData) => request<DailyActivity>('/activity/today', { method: 'PUT', body: JSON.stringify(data) }),
+    today: (params?: ActivityDateParams) => request<DailyActivity>(activityPath(params)),
+    update: (data: UpdateActivityData, params?: ActivityDateParams) => request<DailyActivity>(activityPath(params), { method: 'PUT', body: JSON.stringify(data) }),
   },
   tasks: {
     list: () => request<ApiTask[]>('/tasks'),

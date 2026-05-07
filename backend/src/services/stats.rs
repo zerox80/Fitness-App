@@ -1,4 +1,4 @@
-use chrono::Utc;
+use chrono::{NaiveDate, Utc};
 use uuid::Uuid;
 
 use crate::{
@@ -13,13 +13,12 @@ pub async fn get_user_stats(state: &AppState, user_id: Uuid) -> Result<UserStats
     activity::get_stats(&state.pool, user_id).await
 }
 
-pub async fn get_today_activity(
+pub async fn get_activity_for_date(
     state: &AppState,
     user_id: Uuid,
+    date: NaiveDate,
 ) -> Result<DailyActivity, AppError> {
-    let today = Utc::now().date_naive();
-
-    let activity = activity::get_today(&state.pool, user_id, today)
+    let activity = activity::get_today(&state.pool, user_id, date)
         .await?
         .unwrap_or(DailyActivity {
             steps: 0,

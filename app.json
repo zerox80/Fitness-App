@@ -20,7 +20,11 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.FitnessApp"
+      "package": "com.anonymous.FitnessApp",
+      "permissions": [
+        "android.permission.health.READ_STEPS",
+        "android.permission.health.READ_ACTIVE_CALORIES_BURNED"
+      ]
     },
     "web": {
       "output": "static",
@@ -29,6 +33,16 @@
     "plugins": [
       "expo-router",
       "./plugins/with-android-gradle-path-fallback",
+      "expo-health-connect",
+      "./plugins/with-health-connect-permission-delegate",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26
+          }
+        }
+      ],
       [
         "expo-splash-screen",
         {
