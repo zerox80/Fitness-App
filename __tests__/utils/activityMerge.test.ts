@@ -31,6 +31,15 @@ describe('mergeHealthActivity', () => {
     expect(merged.calories).toBe(410);
   });
 
+  it('keeps server calories when Health Connect reports a lower positive value', () => {
+    const merged = mergeHealthActivity(serverActivity, {
+      calories: 50,
+    });
+
+    expect(merged.steps).toBe(1200);
+    expect(merged.calories).toBe(330);
+  });
+
   it('keeps server calories when Health Connect omits calories', () => {
     const merged = mergeHealthActivity(serverActivity, {
       steps: 8000,

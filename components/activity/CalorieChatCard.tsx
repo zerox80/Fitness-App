@@ -21,6 +21,21 @@ const initialMessages: CalorieChatMessage[] = [
   },
 ];
 
+const MAX_CHAT_REQUEST_MESSAGES = 20;
+
+function messagesForCalorieRequest(messages: CalorieChatMessage[]) {
+  const recentMessages = messages.slice(-MAX_CHAT_REQUEST_MESSAGES);
+
+  if (
+    recentMessages.length === MAX_CHAT_REQUEST_MESSAGES &&
+    recentMessages[0]?.role === 'assistant'
+  ) {
+    return recentMessages.slice(1);
+  }
+
+  return recentMessages;
+}
+
 interface CalorieChatCardProps {
   onActivityUpdated?: (activity: DailyActivity) => void;
 }
@@ -56,7 +71,7 @@ export function CalorieChatCard({ onActivityUpdated }: CalorieChatCardProps) {
     try {
       const response = await api.activity.estimateCalories({
         date: activityDate,
-        messages: nextMessages,
+        messages: messagesForCalorieRequest(nextMessages),
       });
 
       setMessages([...nextMessages, { role: 'assistant', content: response.reply }]);

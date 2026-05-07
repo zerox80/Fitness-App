@@ -202,4 +202,39 @@ describe('CalorieChatCard', () => {
     await screen.findByText('Wie lange und wie intensiv war das?');
     expect(screen.queryByLabelText('Kalorienschaetzung uebernehmen')).toBeNull();
   });
+
+  it('limits the sent chat history before the backend message limit', async () => {
+    let replyNumber = 0;
+    apiMocks.estimateCalories.mockImplementation(async () => {
+      replyNumber += 1;
+      return {
+        status: 'needs_more_info',
+        reply: `Rueckfrage ${replyNumber}`,
+        estimate: null,
+      };
+    });
+
+    render(<CalorieChatCard />);
+
+    for (let index = 1; index <= 11; index += 1) {
+      fireEvent.change(screen.getByLabelText('Aktivitaet beschreiben'), {
+        target: { value: `Aktivitaet ${index}` },
+      });
+      fireEvent.click(screen.getByLabelText('Kalorien schaetzen'));
+
+      await screen.findByText(`Rueckfrage ${index}`);
+    }
+
+    const calls = apiMocks.estimateCalories.mock.calls;
+    const lastPayload = calls[calls.length - 1][0];
+    const sentMessages = lastPayload.messages;
+
+    expect(sentMessages.length).toBeLessThanOrEqual(20);
+    expect(sentMessages[0].role).toBe('user');
+    expect(sentMessages[sentMessages.length - 1]).toEqual({
+      role: 'user',
+      content: 'Aktivitaet 11',
+    });
+    expect(screen.getByText('Aktivitaet 1')).toBeTruthy();
+  });
 });

@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Platform, useWindowDimensions } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 
 import { api, DailyActivity } from '@/lib/api';
 import { readTodayHealthConnectActivity } from '@/lib/healthConnect';
@@ -24,7 +25,7 @@ export default function HomeScreen() {
   const [activity, setActivity] = useState<DailyActivity | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  async function load() {
+  const load = useCallback(async () => {
     try {
       const now = new Date();
       const activityDate = formatLocalDateKey(now);
@@ -54,11 +55,13 @@ export default function HomeScreen() {
     } catch {
       setActivity(null);
     }
-  }
-
-  useEffect(() => {
-    load();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);

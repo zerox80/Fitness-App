@@ -14,7 +14,7 @@ export function mergeHealthActivity(
     steps: healthActivity.steps ?? serverActivity.steps,
     calories:
       typeof healthActivity.calories === 'number' && healthActivity.calories > 0
-        ? healthActivity.calories
+        ? Math.max(serverActivity.calories, healthActivity.calories)
         : serverActivity.calories,
   };
 }
