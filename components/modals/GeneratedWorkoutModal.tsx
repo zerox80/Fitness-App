@@ -2,16 +2,33 @@ import React from 'react';
 import { Modal, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { X, Clock, Zap, Play, List } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
-import { GeneratedWorkout } from '@/lib/api';
+import { GeneratedExercise, GeneratedWorkout } from '@/lib/api';
+
+export interface WorkoutModalData {
+  title: string;
+  description: string | null;
+  exercises: GeneratedExercise[];
+  total_duration: number;
+  intensity: string;
+}
 
 interface GeneratedWorkoutModalProps {
   visible: boolean;
   onClose: () => void;
-  workout: GeneratedWorkout | null;
-  onStart: () => void | Promise<void>;
+  workout: GeneratedWorkout | WorkoutModalData | null;
+  onStart?: () => void | Promise<void>;
+  overline?: string;
+  primaryActionLabel?: string;
 }
 
-export function GeneratedWorkoutModal({ visible, onClose, workout, onStart }: GeneratedWorkoutModalProps) {
+export function GeneratedWorkoutModal({
+  visible,
+  onClose,
+  workout,
+  onStart,
+  overline = 'Trainingsvorschlag',
+  primaryActionLabel = 'Training speichern',
+}: GeneratedWorkoutModalProps) {
   const { width } = useWindowDimensions();
   const isDesktop = Platform.OS === 'web' && width >= 900;
 
@@ -23,7 +40,7 @@ export function GeneratedWorkoutModal({ visible, onClose, workout, onStart }: Ge
         <View style={[styles.content, isDesktop ? styles.desktopContent : styles.sheetContent]}>
           <View style={styles.header}>
             <View style={styles.headerCopy}>
-              <Text style={styles.overline}>Trainingsvorschlag</Text>
+              <Text style={styles.overline}>{overline}</Text>
               <Text style={styles.title}>{workout.title}</Text>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
@@ -42,33 +59,41 @@ export function GeneratedWorkoutModal({ visible, onClose, workout, onStart }: Ge
             </View>
           </View>
 
-          <Text style={styles.description}>{workout.description}</Text>
+          {!!workout.description && <Text style={styles.description}>{workout.description}</Text>}
 
           <View style={styles.listHeader}>
             <List size={18} color={Colors.text} />
-            <Text style={styles.listTitle}>Übungen</Text>
+            <Text style={styles.listTitle}>Uebungen</Text>
           </View>
 
           <ScrollView style={styles.exerciseList} showsVerticalScrollIndicator={false}>
-            {workout.exercises.map((exercise, index) => (
-              <View key={`${exercise.name}-${index}`} style={styles.exerciseCard}>
-                <View style={styles.exerciseInfo}>
-                  <Text style={styles.exerciseName}>{exercise.name}</Text>
-                  <Text style={styles.exerciseSub}>
-                    {exercise.sets} Sätze × {exercise.reps}
-                  </Text>
-                </View>
-                <View style={styles.restBadge}>
-                  <Text style={styles.restText}>{exercise.rest_seconds}s Pause</Text>
-                </View>
+            {workout.exercises.length === 0 ? (
+              <View style={styles.emptyExercises}>
+                <Text style={styles.emptyExercisesText}>Keine Uebungen gespeichert.</Text>
               </View>
-            ))}
+            ) : (
+              workout.exercises.map((exercise, index) => (
+                <View key={`${exercise.name}-${index}`} style={styles.exerciseCard}>
+                  <View style={styles.exerciseInfo}>
+                    <Text style={styles.exerciseName}>{exercise.name}</Text>
+                    <Text style={styles.exerciseSub}>
+                      {exercise.sets} Saetze x {exercise.reps}
+                    </Text>
+                  </View>
+                  <View style={styles.restBadge}>
+                    <Text style={styles.restText}>{exercise.rest_seconds}s Pause</Text>
+                  </View>
+                </View>
+              ))
+            )}
           </ScrollView>
 
-          <TouchableOpacity style={styles.startBtn} onPress={onStart} activeOpacity={0.85}>
-            <Play size={19} color="#FFFFFF" fill="#FFFFFF" />
-            <Text style={styles.startBtnText}>Training speichern</Text>
-          </TouchableOpacity>
+          {onStart && (
+            <TouchableOpacity style={styles.startBtn} onPress={onStart} activeOpacity={0.85}>
+              <Play size={19} color="#FFFFFF" fill="#FFFFFF" />
+              <Text style={styles.startBtnText}>{primaryActionLabel}</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </Modal>
@@ -221,6 +246,19 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.primary,
     fontWeight: '700',
+  },
+  emptyExercises: {
+    backgroundColor: Colors.card,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.borderSoft,
+  },
+  emptyExercisesText: {
+    color: Colors.textMuted,
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   startBtn: {
     backgroundColor: Colors.primary,

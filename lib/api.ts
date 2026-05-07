@@ -29,6 +29,7 @@ export interface ApiWorkout {
   duration_minutes: number;
   intensity: string;
   category: string;
+  exercises: GeneratedExercise[];
   completed_at: string | null;
   created_at: string;
 }
@@ -39,6 +40,7 @@ export interface CreateWorkoutData {
   duration_minutes: number;
   intensity: string;
   category: string;
+  exercises?: GeneratedExercise[];
 }
 
 export interface GenerateWorkoutRequest {
@@ -176,6 +178,7 @@ export const api = {
     },
     create: (data: CreateWorkoutData) => request<ApiWorkout>('/workouts', { method: 'POST', body: JSON.stringify(data) }),
     generate: (data: GenerateWorkoutRequest) => request<GeneratedWorkout>('/workouts/generate', { method: 'POST', body: JSON.stringify(data) }),
+    get: (id: string) => request<ApiWorkout>(`/workouts/${id}`),
     complete: (id: string) => request<ApiWorkout>(`/workouts/${id}/complete`, { method: 'PUT' }),
     delete: (id: string) => request<{ deleted: boolean }>(`/workouts/${id}`, { method: 'DELETE' }),
   },

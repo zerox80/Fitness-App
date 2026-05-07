@@ -1,0 +1,2 @@
+ALTER TABLE workouts
+ADD COLUMN IF NOT EXISTS exercises JSONB NOT NULL DEFAULT '[]'::jsonb;

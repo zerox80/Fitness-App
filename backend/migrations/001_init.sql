@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS workouts (
     duration_minutes INTEGER NOT NULL DEFAULT 0,
     intensity VARCHAR(50) NOT NULL DEFAULT 'moderate',
     category VARCHAR(50) NOT NULL DEFAULT 'strength',
+    exercises JSONB NOT NULL DEFAULT '[]'::jsonb,
     completed_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

@@ -14,7 +14,7 @@ import { Clock, Dumbbell, Flame, HeartPulse, Play, Timer, Zap } from 'lucide-rea
 import { Colors } from '@/constants/Colors';
 import { FadeIn } from '@/components/FadeIn';
 import { QuickStartModal } from '@/components/modals/QuickStartModal';
-import { GeneratedWorkoutModal } from '@/components/modals/GeneratedWorkoutModal';
+import { GeneratedWorkoutModal, WorkoutModalData } from '@/components/modals/GeneratedWorkoutModal';
 import { api, ApiWorkout, GeneratedWorkout } from '@/lib/api';
 
 const CATEGORIES = [
@@ -39,9 +39,19 @@ function formatIntensity(value: string) {
   return map[value.toLowerCase()] ?? value;
 }
 
-function WorkoutDataCard({ workout }: { workout: ApiWorkout }) {
+function toWorkoutModalData(workout: ApiWorkout): WorkoutModalData {
+  return {
+    title: workout.title,
+    description: workout.description,
+    exercises: workout.exercises ?? [],
+    total_duration: workout.duration_minutes,
+    intensity: formatIntensity(workout.intensity),
+  };
+}
+
+function WorkoutDataCard({ workout, onPress }: { workout: ApiWorkout; onPress: () => void }) {
   return (
-    <TouchableOpacity style={styles.workoutCard} activeOpacity={0.85}>
+    <TouchableOpacity style={styles.workoutCard} activeOpacity={0.85} onPress={onPress}>
       <View style={styles.workoutIconBox}>
         <Dumbbell size={24} color={Colors.primary} />
       </View>
@@ -83,6 +93,7 @@ export default function WorkoutScreen() {
   const [generatedWorkout, setGeneratedWorkout] = useState<GeneratedWorkout | null>(null);
   const [generatedFocus, setGeneratedFocus] = useState('');
   const [resultVisible, setResultVisible] = useState(false);
+  const [selectedWorkout, setSelectedWorkout] = useState<ApiWorkout | null>(null);
 
   useEffect(() => {
     loadWorkouts();
@@ -165,7 +176,7 @@ export default function WorkoutScreen() {
         ) : (
           workouts.map((workout, index) => (
             <FadeIn key={workout.id} delay={160 + index * 50}>
-              <WorkoutDataCard workout={workout} />
+              <WorkoutDataCard workout={workout} onPress={() => setSelectedWorkout(workout)} />
             </FadeIn>
           ))
         )}
@@ -187,6 +198,7 @@ export default function WorkoutScreen() {
                 duration_minutes: generatedWorkout.total_duration,
                 intensity: generatedWorkout.intensity.toLowerCase(),
                 category: generatedFocus.toLowerCase().replace(/\s+/g, '_'),
+                exercises: generatedWorkout.exercises,
               });
               await loadWorkouts();
             } catch (err) {
@@ -194,6 +206,13 @@ export default function WorkoutScreen() {
             }
           }
         }}
+      />
+
+      <GeneratedWorkoutModal
+        visible={!!selectedWorkout}
+        onClose={() => setSelectedWorkout(null)}
+        workout={selectedWorkout ? toWorkoutModalData(selectedWorkout) : null}
+        overline="Gespeichertes Training"
       />
     </SafeAreaView>
   );

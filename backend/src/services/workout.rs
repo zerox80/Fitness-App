@@ -26,6 +26,7 @@ pub async fn create_workout(
         req.duration_minutes,
         &req.intensity,
         &req.category,
+        &req.exercises,
     )
     .await
 }
@@ -55,6 +56,7 @@ pub async fn update_workout(
         req.duration_minutes,
         req.intensity.as_deref(),
         req.category.as_deref(),
+        req.exercises.as_deref(),
     )
     .await
 }

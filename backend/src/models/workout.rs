@@ -2,7 +2,15 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Serialize, Deserialize, Debug, sqlx::FromRow)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+pub struct WorkoutExercise {
+    pub name: String,
+    pub sets: i32,
+    pub reps: String,
+    pub rest_seconds: i32,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Workout {
     pub id: Uuid,
     pub user_id: Uuid,
@@ -11,6 +19,7 @@ pub struct Workout {
     pub duration_minutes: i32,
     pub intensity: String,
     pub category: String,
+    pub exercises: Vec<WorkoutExercise>,
     pub completed_at: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -23,6 +32,8 @@ pub struct CreateWorkoutRequest {
     pub duration_minutes: i32,
     pub intensity: String,
     pub category: String,
+    #[serde(default)]
+    pub exercises: Vec<WorkoutExercise>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -32,6 +43,7 @@ pub struct UpdateWorkoutRequest {
     pub duration_minutes: Option<i32>,
     pub intensity: Option<String>,
     pub category: Option<String>,
+    pub exercises: Option<Vec<WorkoutExercise>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, sqlx::FromRow)]
@@ -61,6 +73,7 @@ mod tests {
         assert_eq!(req.title, "Push Day");
         assert_eq!(req.duration_minutes, 60);
         assert_eq!(req.intensity, "high");
+        assert!(req.exercises.is_empty());
     }
 
     #[test]
@@ -76,6 +89,23 @@ mod tests {
     }
 
     #[test]
+    fn test_create_workout_request_with_exercises() {
+        let json = r#"{
+            "title": "Quick HIIT",
+            "duration_minutes": 20,
+            "intensity": "high",
+            "category": "cardio",
+            "exercises": [
+                { "name": "Burpees", "sets": 3, "reps": "12", "rest_seconds": 45 }
+            ]
+        }"#;
+        let req: CreateWorkoutRequest = serde_json::from_str(json).unwrap();
+        assert_eq!(req.exercises.len(), 1);
+        assert_eq!(req.exercises[0].name, "Burpees");
+        assert_eq!(req.exercises[0].sets, 3);
+    }
+
+    #[test]
     fn test_update_workout_request_partial() {
         let json = r#"{"title": "Updated Title"}"#;
         let req: UpdateWorkoutRequest = serde_json::from_str(json).unwrap();
@@ -84,6 +114,7 @@ mod tests {
         assert_eq!(req.duration_minutes, None);
         assert_eq!(req.intensity, None);
         assert_eq!(req.category, None);
+        assert_eq!(req.exercises, None);
     }
 
     #[test]
@@ -104,6 +135,12 @@ mod tests {
             duration_minutes: 45,
             intensity: "medium".to_string(),
             category: "strength".to_string(),
+            exercises: vec![WorkoutExercise {
+                name: "Squat".to_string(),
+                sets: 3,
+                reps: "10".to_string(),
+                rest_seconds: 90,
+            }],
             completed_at: None,
             created_at: Utc::now(),
             updated_at: Utc::now(),
@@ -111,6 +148,7 @@ mod tests {
         let json = serde_json::to_string(&workout).unwrap();
         assert!(json.contains("Test Workout"));
         assert!(json.contains("medium"));
+        assert!(json.contains("Squat"));
     }
 
     #[test]

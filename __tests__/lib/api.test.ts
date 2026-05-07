@@ -196,6 +196,18 @@ describe('api.workouts.complete()', () => {
   });
 });
 
+describe('api.workouts.get()', () => {
+  it('sends GET to the workout detail endpoint', async () => {
+    mockFetch.mockResolvedValue(mockJsonResponse({ id: 'wo-001', exercises: [] }));
+
+    await api.workouts.get('wo-001');
+
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toContain('/workouts/wo-001');
+    expect(options.method).toBeUndefined();
+  });
+});
+
 describe('api.workouts.delete()', () => {
   it('sends DELETE to correct endpoint', async () => {
     mockFetch.mockResolvedValue(mockJsonResponse({ deleted: true }));
@@ -215,6 +227,9 @@ describe('api.workouts.create()', () => {
       duration_minutes: 60,
       intensity: 'high',
       category: 'strength',
+      exercises: [
+        { name: 'Squat', sets: 3, reps: '10', rest_seconds: 90 },
+      ],
     };
     mockFetch.mockResolvedValue(mockJsonResponse({ id: 'wo-new', ...data }));
 
