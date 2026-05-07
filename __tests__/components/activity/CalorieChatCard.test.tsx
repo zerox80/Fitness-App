@@ -185,6 +185,75 @@ describe('CalorieChatCard', () => {
     });
   });
 
+  it('keeps higher current activity values when applying an estimate', async () => {
+    const onActivityUpdated = vi.fn();
+    apiMocks.estimateCalories.mockResolvedValue({
+      status: 'estimated',
+      reply: 'Das waren etwa 420 kcal.',
+      estimate: {
+        total_calories: 420,
+        active_minutes: 45,
+        confidence: 0.82,
+        activities: [
+          {
+            name: 'Joggen',
+            duration_minutes: 45,
+            intensity: 'mittel',
+            calories: 420,
+          },
+        ],
+      },
+    });
+    apiMocks.today.mockResolvedValue({
+      steps: 8000,
+      calories: 650,
+      active_minutes: 70,
+      move_progress: 0.6,
+      exercise_progress: 0.5,
+      stand_progress: 0.3,
+    });
+    apiMocks.update.mockResolvedValue({
+      steps: 8000,
+      calories: 650,
+      active_minutes: 70,
+      move_progress: 0.6,
+      exercise_progress: 0.5,
+      stand_progress: 0.3,
+    });
+
+    render(<CalorieChatCard onActivityUpdated={onActivityUpdated} />);
+
+    fireEvent.change(screen.getByLabelText('Aktivitaet beschreiben'), {
+      target: { value: '45 Minuten joggen, mittel intensiv' },
+    });
+    fireEvent.click(screen.getByLabelText('Kalorien schaetzen'));
+
+    await screen.findByText('Das waren etwa 420 kcal.');
+    fireEvent.click(screen.getByLabelText('Kalorienschaetzung uebernehmen'));
+
+    await waitFor(() => {
+      expect(apiMocks.update).toHaveBeenCalledWith(
+        {
+          steps: 8000,
+          calories: 650,
+          active_minutes: 70,
+          move_progress: 0.6,
+          exercise_progress: 0.5,
+          stand_progress: 0.3,
+        },
+        { date: '2026-05-07' }
+      );
+    });
+    expect(onActivityUpdated).toHaveBeenCalledWith({
+      steps: 8000,
+      calories: 650,
+      active_minutes: 70,
+      move_progress: 0.6,
+      exercise_progress: 0.5,
+      stand_progress: 0.3,
+    });
+  });
+
   it('shows a follow-up question when the backend needs more information', async () => {
     apiMocks.estimateCalories.mockResolvedValue({
       status: 'needs_more_info',

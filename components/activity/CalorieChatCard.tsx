@@ -97,8 +97,8 @@ export function CalorieChatCard({ onActivityUpdated }: CalorieChatCardProps) {
       const updated = await api.activity.update(
         {
           ...current,
-          calories: Math.round(estimate.total_calories),
-          active_minutes: Math.round(estimate.active_minutes),
+          calories: Math.max(current.calories, Math.round(estimate.total_calories)),
+          active_minutes: Math.max(current.active_minutes, Math.round(estimate.active_minutes)),
         },
         { date: activityDate }
       );
