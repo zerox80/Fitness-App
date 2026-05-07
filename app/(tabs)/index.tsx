@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/auth-context';
 import { DashboardData, DESKTOP_BREAKPOINT, STEP_GOAL } from '@/constants/dashboard-constants';
 import { MobileHome } from '@/components/dashboard/MobileHome';
 import { WebDashboard } from '@/components/dashboard/WebDashboard';
+import { formatLocalDateKey } from '@/utils/date';
 
 function formatGermanDate(date: Date) {
   return date.toLocaleDateString('de-DE', {
@@ -24,8 +25,10 @@ export default function HomeScreen() {
 
   async function load() {
     try {
-      const serverActivity = await api.activity.today();
-      const healthActivity = await readTodayHealthConnectActivity();
+      const now = new Date();
+      const activityDate = formatLocalDateKey(now);
+      const serverActivity = await api.activity.today({ date: activityDate });
+      const healthActivity = await readTodayHealthConnectActivity(now);
 
       if (!healthActivity) {
         setActivity(serverActivity);
@@ -42,7 +45,7 @@ export default function HomeScreen() {
         mergedActivity.steps !== serverActivity.steps ||
         mergedActivity.calories !== serverActivity.calories
       ) {
-        setActivity(await api.activity.update(mergedActivity));
+        setActivity(await api.activity.update(mergedActivity, { date: activityDate }));
         return;
       }
 

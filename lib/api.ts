@@ -88,6 +88,10 @@ export interface UpdateActivityData {
   stand_progress: number;
 }
 
+export interface ActivityDateParams {
+  date?: string;
+}
+
 export type ApiTaskRecurrence = 'daily' | 'weekdays' | 'weekly' | 'custom';
 export type ApiTaskCategory = 'workout' | 'nutrition' | 'habit' | 'general';
 
@@ -162,6 +166,15 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return res.json();
 }
 
+function activityPath(params?: ActivityDateParams) {
+  if (!params?.date) {
+    return '/activity/today';
+  }
+
+  const query = new URLSearchParams({ date: params.date });
+  return `/activity/today?${query.toString()}`;
+}
+
 export const api = {
   auth: {
     register: (data: RegisterData) => request<AuthResponse>('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
@@ -186,8 +199,8 @@ export const api = {
     get: () => request<UserStats>('/stats'),
   },
   activity: {
-    today: () => request<DailyActivity>('/activity/today'),
-    update: (data: UpdateActivityData) => request<DailyActivity>('/activity/today', { method: 'PUT', body: JSON.stringify(data) }),
+    today: (params?: ActivityDateParams) => request<DailyActivity>(activityPath(params)),
+    update: (data: UpdateActivityData, params?: ActivityDateParams) => request<DailyActivity>(activityPath(params), { method: 'PUT', body: JSON.stringify(data) }),
   },
   tasks: {
     list: () => request<ApiTask[]>('/tasks'),

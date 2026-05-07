@@ -253,6 +253,16 @@ describe('api.activity', () => {
     expect(options.method).toBeUndefined();
   });
 
+  it('today() includes date query when provided', async () => {
+    mockFetch.mockResolvedValue(mockJsonResponse({ steps: 5000 }));
+
+    await api.activity.today({ date: '2026-05-07' });
+
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toContain('/activity/today?date=2026-05-07');
+    expect(options.method).toBeUndefined();
+  });
+
   it('update() sends PUT with data', async () => {
     const data = {
       steps: 8000,
@@ -267,6 +277,25 @@ describe('api.activity', () => {
     await api.activity.update(data);
 
     const [, options] = mockFetch.mock.calls[0];
+    expect(options.method).toBe('PUT');
+    expect(JSON.parse(options.body)).toEqual(data);
+  });
+
+  it('update() includes date query when provided', async () => {
+    const data = {
+      steps: 8000,
+      calories: 400,
+      active_minutes: 45,
+      move_progress: 0.8,
+      exercise_progress: 0.6,
+      stand_progress: 0.7,
+    };
+    mockFetch.mockResolvedValue(mockJsonResponse(data));
+
+    await api.activity.update(data, { date: '2026-05-07' });
+
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toContain('/activity/today?date=2026-05-07');
     expect(options.method).toBe('PUT');
     expect(JSON.parse(options.body)).toEqual(data);
   });

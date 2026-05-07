@@ -8,6 +8,7 @@ import {
   startOfDay,
   endOfDay,
   formatDate,
+  formatLocalDateKey,
   formatTime,
   formatDateTime,
   formatRelative,
@@ -215,6 +216,18 @@ describe('formatDateTime', () => {
     const result = formatDateTime('2026-04-23T14:30:00Z');
     expect(result).toContain('2026');
     expect(result.length).toBeGreaterThan(10);
+  });
+});
+
+describe('formatLocalDateKey', () => {
+  it('formats the date from local calendar fields', () => {
+    const date = new Date(2026, 4, 7, 1, 30, 0);
+    expect(formatLocalDateKey(date)).toBe('2026-05-07');
+  });
+
+  it('pads single-digit month and day', () => {
+    const date = new Date(2026, 0, 2, 12, 0, 0);
+    expect(formatLocalDateKey(date)).toBe('2026-01-02');
   });
 });
 

@@ -29,14 +29,14 @@ function hasPermission(granted: Permission[], permission: Permission) {
   return granted.some((item) => samePermission(item, permission));
 }
 
-function todayRange() {
-  const start = new Date();
+function todayRange(now: Date) {
+  const start = new Date(now);
   start.setHours(0, 0, 0, 0);
 
   return {
     operator: 'between' as const,
     startTime: start.toISOString(),
-    endTime: new Date().toISOString(),
+    endTime: now.toISOString(),
   };
 }
 
@@ -57,7 +57,7 @@ async function ensureHealthConnectPermissions() {
   return [...granted, ...updated];
 }
 
-export async function readTodayHealthConnectActivity(): Promise<HealthConnectActivity | null> {
+export async function readTodayHealthConnectActivity(now = new Date()): Promise<HealthConnectActivity | null> {
   if (Platform.OS !== 'android') {
     return null;
   }
@@ -81,7 +81,7 @@ export async function readTodayHealthConnectActivity(): Promise<HealthConnectAct
       return null;
     }
 
-    const timeRangeFilter = todayRange();
+    const timeRangeFilter = todayRange(now);
     const [stepsResult, caloriesResult] = await Promise.all([
       canReadSteps
         ? aggregateRecord({ recordType: 'Steps', timeRangeFilter }).catch(() => null)
