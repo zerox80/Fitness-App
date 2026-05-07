@@ -1,4 +1,7 @@
-const API_BASE = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:3000/api';
+import { Platform } from 'react-native';
+
+const DEFAULT_API_BASE = Platform.OS === 'android' ? 'http://10.0.2.2:4000/api' : 'http://localhost:4000/api';
+const API_BASE = process.env.EXPO_PUBLIC_API_URL || DEFAULT_API_BASE;
 
 export interface RegisterData {
   email: string;
@@ -200,12 +203,16 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 
 function activityPath(params?: ActivityDateParams) {
+  return pathWithDate('/activity/today', params);
+}
+
+function pathWithDate(path: string, params?: ActivityDateParams) {
   if (!params?.date) {
-    return '/activity/today';
+    return path;
   }
 
   const query = new URLSearchParams({ date: params.date });
-  return `/activity/today?${query.toString()}`;
+  return `${path}?${query.toString()}`;
 }
 
 export const api = {
@@ -242,13 +249,13 @@ export const api = {
   },
   tasks: {
     list: () => request<ApiTask[]>('/tasks'),
-    today: () => request<ApiTaskWithCompletion[]>('/tasks/today'),
+    today: (params?: ActivityDateParams) => request<ApiTaskWithCompletion[]>(pathWithDate('/tasks/today', params)),
     get: (id: string) => request<ApiTask>(`/tasks/${id}`),
     create: (data: CreateTaskData) => request<ApiTask>('/tasks', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: string, data: UpdateTaskData) => request<ApiTask>(`/tasks/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: string) => request<{ deleted: boolean }>(`/tasks/${id}`, { method: 'DELETE' }),
-    toggle: (id: string) => request<{ completed: boolean }>(`/tasks/${id}/toggle`, { method: 'PUT' }),
-    incrementSet: (id: string) => request<{ completed_sets: number }>(`/tasks/${id}/increment-set`, { method: 'POST' }),
+    toggle: (id: string, params?: ActivityDateParams) => request<{ completed: boolean }>(pathWithDate(`/tasks/${id}/toggle`, params), { method: 'PUT' }),
+    incrementSet: (id: string, params?: ActivityDateParams) => request<{ completed_sets: number }>(pathWithDate(`/tasks/${id}/increment-set`, params), { method: 'POST' }),
     completions: (id: string) => request<string[]>(`/tasks/${id}/completions`),
   },
 };

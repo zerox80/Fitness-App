@@ -1,4 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+vi.mock('react-native', () => ({
+  Platform: { OS: 'web' },
+}));
+
 import { api, setToken } from '@/lib/api';
 
 const mockFetch = vi.fn();

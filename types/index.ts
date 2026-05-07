@@ -275,11 +275,11 @@ export const TASK_CATEGORY_LABELS: Record<TaskCategory, string> = {
 };
 
 export const WEEKDAY_LABELS: Record<Weekday, string> = {
-  0: 'So',
-  1: 'Mo',
-  2: 'Di',
-  3: 'Mi',
-  4: 'Do',
-  5: 'Fr',
-  6: 'Sa',
+  0: 'Mo',
+  1: 'Di',
+  2: 'Mi',
+  3: 'Do',
+  4: 'Fr',
+  5: 'Sa',
+  6: 'So',
 };

@@ -1,5 +1,9 @@
-use axum::{extract::State, Json};
+use axum::{
+    extract::{Query, State},
+    Json,
+};
 use chrono::{NaiveDate, Utc};
+use serde::Deserialize;
 use uuid::Uuid;
 
 use crate::{
@@ -9,6 +13,15 @@ use crate::{
     services::task,
     state::AppState,
 };
+
+#[derive(Debug, Deserialize)]
+pub struct TaskDateParams {
+    date: Option<NaiveDate>,
+}
+
+fn requested_task_date(params: &TaskDateParams) -> NaiveDate {
+    params.date.unwrap_or_else(|| Utc::now().date_naive())
+}
 
 pub async fn list_tasks(
     State(state): State<AppState>,
@@ -66,8 +79,9 @@ pub async fn toggle_completion(
     State(state): State<AppState>,
     axum::Extension(auth_user): axum::Extension<AuthUser>,
     axum::extract::Path(task_id): axum::extract::Path<Uuid>,
+    Query(params): Query<TaskDateParams>,
 ) -> Result<Json<serde_json::Value>, AppError> {
-    let today = Utc::now().date_naive();
+    let today = requested_task_date(&params);
     let completed = task::toggle_task_completion(&state, task_id, auth_user.user_id, today).await?;
     Ok(Json(serde_json::json!({ "completed": completed })))
 }
@@ -76,8 +90,9 @@ pub async fn increment_set(
     State(state): State<AppState>,
     axum::Extension(auth_user): axum::Extension<AuthUser>,
     axum::extract::Path(task_id): axum::extract::Path<Uuid>,
+    Query(params): Query<TaskDateParams>,
 ) -> Result<Json<serde_json::Value>, AppError> {
-    let today = Utc::now().date_naive();
+    let today = requested_task_date(&params);
     let new_sets = task::increment_task_set(&state, task_id, auth_user.user_id, today).await?;
     Ok(Json(serde_json::json!({ "completed_sets": new_sets })))
 }
@@ -85,8 +100,9 @@ pub async fn increment_set(
 pub async fn get_today_tasks(
     State(state): State<AppState>,
     axum::Extension(auth_user): axum::Extension<AuthUser>,
+    Query(params): Query<TaskDateParams>,
 ) -> Result<Json<Vec<TaskWithCompletionStatus>>, AppError> {
-    let today = Utc::now().date_naive();
+    let today = requested_task_date(&params);
     let tasks = task::get_tasks_with_completion(&state, auth_user.user_id, today).await?;
     Ok(Json(tasks))
 }
@@ -98,4 +114,28 @@ pub async fn get_task_completions(
 ) -> Result<Json<Vec<NaiveDate>>, AppError> {
     let dates = task::get_completion_dates(&state, task_id, auth_user.user_id).await?;
     Ok(Json(dates))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn requested_task_date_uses_query_date_when_present() {
+        let date = NaiveDate::from_ymd_opt(2026, 5, 7).unwrap();
+        let params = TaskDateParams { date: Some(date) };
+
+        assert_eq!(requested_task_date(&params), date);
+    }
+
+    #[test]
+    fn requested_task_date_falls_back_to_current_utc_date() {
+        let params = TaskDateParams { date: None };
+        let before = Utc::now().date_naive();
+        let result = requested_task_date(&params);
+        let after = Utc::now().date_naive();
+
+        assert!(result >= before);
+        assert!(result <= after);
+    }
 }

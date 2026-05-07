@@ -131,23 +131,9 @@ pub async fn increment_task_set(
         .map(|(_, sets)| *sets)
         .unwrap_or(0);
 
-    let new_sets = if existing_sets >= task.target_sets {
-        // Already finished, toggle off? Or just stay at target.
-        // For increment, let's just stay at target or maybe wrap?
-        // User said "merk mir nicht wv sätze ich hab", so wrapping might be bad.
-        // Let's just cap at target or allow going over?
-        // Actually, if they click again, maybe they want to reset?
-        // But the user specifically asked for "anklicken wenn satz fertig".
-        0
-    } else {
-        existing_sets + 1
-    };
+    let new_sets = next_completed_sets(existing_sets, task.target_sets);
 
-    if new_sets == 0 {
-        tasks::uncomplete_task(&state.pool, task_id, user_id, date).await?;
-    } else {
-        tasks::complete_task(&state.pool, task_id, user_id, date, new_sets).await?;
-    }
+    tasks::complete_task(&state.pool, task_id, user_id, date, new_sets).await?;
 
     Ok(new_sets)
 }
@@ -211,6 +197,11 @@ fn task_completion_is_complete(completed_sets: i32, target_sets: i32) -> bool {
     completed_sets >= target_sets
 }
 
+fn next_completed_sets(existing_sets: i32, target_sets: i32) -> i32 {
+    let target_sets = target_sets.max(1);
+    (existing_sets + 1).clamp(1, target_sets)
+}
+
 pub async fn get_completion_dates(
     state: &AppState,
     task_id: Uuid,
@@ -222,6 +213,23 @@ pub async fn get_completion_dates(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chrono::Utc;
+
+    fn test_task(recurrence: TaskRecurrence, custom_days: Vec<i32>) -> Task {
+        Task {
+            id: Uuid::new_v4(),
+            user_id: Uuid::new_v4(),
+            title: "Test task".to_string(),
+            description: None,
+            recurrence,
+            custom_days,
+            category: TaskCategory::Workout,
+            is_active: true,
+            target_sets: 4,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        }
+    }
 
     #[test]
     fn task_completion_requires_target_sets() {
@@ -234,5 +242,22 @@ mod tests {
     fn task_completion_is_complete_at_or_above_target_sets() {
         assert!(task_completion_is_complete(4, 4));
         assert!(task_completion_is_complete(5, 4));
+    }
+
+    #[test]
+    fn next_completed_sets_caps_at_target_without_resetting() {
+        assert_eq!(next_completed_sets(0, 4), 1);
+        assert_eq!(next_completed_sets(3, 4), 4);
+        assert_eq!(next_completed_sets(4, 4), 4);
+        assert_eq!(next_completed_sets(5, 4), 4);
+    }
+
+    #[test]
+    fn custom_task_scheduling_uses_monday_zero_weekdays() {
+        let task = test_task(TaskRecurrence::Custom, vec![0]);
+
+        assert!(task_is_scheduled(&task, 0));
+        assert!(!task_is_scheduled(&task, 1));
+        assert!(!task_is_scheduled(&task, 6));
     }
 }

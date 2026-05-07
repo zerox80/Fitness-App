@@ -1,6 +1,11 @@
 import { useState, useCallback, useEffect } from 'react';
 import { api, ApiTaskWithCompletion, CreateTaskData, UpdateTaskData } from '@/lib/api';
 import { isTaskFullyCompleted } from '@/utils/taskProgress';
+import { formatLocalDateKey } from '@/utils/date';
+
+function todayParams() {
+  return { date: formatLocalDateKey(new Date()) };
+}
 
 export function useTasks() {
   const [tasks, setTasks] = useState<ApiTaskWithCompletion[]>([]);
@@ -11,7 +16,7 @@ export function useTasks() {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.tasks.today();
+      const data = await api.tasks.today(todayParams());
       setTasks(data);
     } catch {
       setError('Tasks konnten nicht geladen werden.');
@@ -40,7 +45,7 @@ export function useTasks() {
   }, [fetchTasks]);
 
   const toggleTask = useCallback(async (id: string) => {
-    const result = await api.tasks.toggle(id);
+    const result = await api.tasks.toggle(id, todayParams());
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id !== id) {
@@ -62,7 +67,7 @@ export function useTasks() {
   }, []);
 
   const incrementSet = useCallback(async (id: string) => {
-    const result = await api.tasks.incrementSet(id);
+    const result = await api.tasks.incrementSet(id, todayParams());
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id !== id) {
