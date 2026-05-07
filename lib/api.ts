@@ -92,6 +92,39 @@ export interface ActivityDateParams {
   date?: string;
 }
 
+export type CalorieChatRole = 'user' | 'assistant';
+export type CalorieChatStatus = 'needs_more_info' | 'estimated';
+
+export interface CalorieChatMessage {
+  role: CalorieChatRole;
+  content: string;
+}
+
+export interface CalorieEstimateActivity {
+  name: string;
+  duration_minutes: number;
+  intensity: string;
+  calories: number;
+}
+
+export interface CalorieEstimate {
+  total_calories: number;
+  active_minutes: number;
+  confidence: number;
+  activities: CalorieEstimateActivity[];
+}
+
+export interface CalorieChatRequest {
+  date?: string;
+  messages: CalorieChatMessage[];
+}
+
+export interface CalorieChatResponse {
+  status: CalorieChatStatus;
+  reply: string;
+  estimate?: CalorieEstimate | null;
+}
+
 export type ApiTaskRecurrence = 'daily' | 'weekdays' | 'weekly' | 'custom';
 export type ApiTaskCategory = 'workout' | 'nutrition' | 'habit' | 'general';
 
@@ -201,6 +234,11 @@ export const api = {
   activity: {
     today: (params?: ActivityDateParams) => request<DailyActivity>(activityPath(params)),
     update: (data: UpdateActivityData, params?: ActivityDateParams) => request<DailyActivity>(activityPath(params), { method: 'PUT', body: JSON.stringify(data) }),
+    estimateCalories: (data: CalorieChatRequest) =>
+      request<CalorieChatResponse>('/activity/calorie-chat', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
   },
   tasks: {
     list: () => request<ApiTask[]>('/tasks'),

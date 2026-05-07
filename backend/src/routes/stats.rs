@@ -6,10 +6,11 @@ use chrono::{NaiveDate, Utc};
 use serde::Deserialize;
 
 use crate::{
+    dto::{CalorieChatRequest, CalorieChatResponse},
     error::AppError,
     middleware::auth::AuthUser,
     models::{DailyActivity, UpdateActivityRequest, UserStats, WeeklyActivitySummary},
-    services::stats,
+    services::{ai::AiService, stats},
     state::AppState,
 };
 
@@ -73,4 +74,21 @@ pub async fn update_activity(
     .await?;
 
     Ok(Json(activity))
+}
+
+pub async fn activity_calorie_chat(
+    State(state): State<AppState>,
+    axum::Extension(_auth_user): axum::Extension<AuthUser>,
+    Json(req): Json<CalorieChatRequest>,
+) -> Result<Json<CalorieChatResponse>, AppError> {
+    req.validate().map_err(AppError::Validation)?;
+
+    let ai_service =
+        AiService::new(&state.config).map_err(|e| AppError::Internal(e.to_string()))?;
+    let response = ai_service
+        .estimate_activity_calories(&req)
+        .await
+        .map_err(|e| AppError::Internal(e.to_string()))?;
+
+    Ok(Json(response))
 }

@@ -40,6 +40,7 @@ pub fn create_router(state: AppState) -> Router {
             "/api/activity/today",
             get(stats::get_today_activity).put(stats::update_activity),
         )
+        .route("/api/activity/calorie-chat", post(stats::activity_calorie_chat))
         .route(
             "/api/exercises",
             get(exercises::list_exercises).post(exercises::create_exercise),

@@ -31,7 +31,7 @@ impl Config {
             ),
             ai_api_key: env::var("MOONSHOT_API_KEY").ok(),
             ai_api_base: env::var("MOONSHOT_API_BASE").unwrap_or_else(|_| "https://api.moonshot.ai/v1".to_string()),
-            ai_model: env::var("MOONSHOT_MODEL").unwrap_or_else(|_| "moonshot-v1-8k".to_string()),
+            ai_model: env::var("MOONSHOT_MODEL").unwrap_or_else(|_| "kimi-k2.6".to_string()),
         }
     }
 }

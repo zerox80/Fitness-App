@@ -13,6 +13,7 @@ import { TaskCard } from '@/components/cards/TaskCard';
 import { TaskForm } from '@/components/forms/TaskForm';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { LoadingSpinner } from '@/components/feedback/LoadingSpinner';
+import { CalorieChatCard } from '@/components/activity/CalorieChatCard';
 import { useTasks } from '@/hooks/useTasks';
 import { getCompletedTaskCount, getDailyTaskProgress } from '@/utils/taskProgress';
 
@@ -92,6 +93,10 @@ export default function TasksScreen() {
               <View style={[styles.barFill, { width: `${Math.max(progress * 100, 2)}%` }]} />
             </View>
           </View>
+        </FadeIn>
+
+        <FadeIn delay={130}>
+          <CalorieChatCard />
         </FadeIn>
 
         {/* Task List */}

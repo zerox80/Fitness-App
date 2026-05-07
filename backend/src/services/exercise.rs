@@ -109,7 +109,7 @@ mod tests {
                 trusted_proxy_ips: vec![],
                 ai_api_key: None,
                 ai_api_base: "https://api.moonshot.ai/v1".to_string(),
-                ai_model: "moonshot-v1-8k".to_string(),
+                ai_model: "kimi-k2.6".to_string(),
             },
             rate_limiter: crate::middleware::rate_limit::RateLimiter::default(),
         }

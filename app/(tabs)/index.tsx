@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/auth-context';
 import { DashboardData, DESKTOP_BREAKPOINT, STEP_GOAL } from '@/constants/dashboard-constants';
 import { MobileHome } from '@/components/dashboard/MobileHome';
 import { WebDashboard } from '@/components/dashboard/WebDashboard';
+import { mergeHealthActivity } from '@/utils/activityMerge';
 import { formatLocalDateKey } from '@/utils/date';
 
 function formatGermanDate(date: Date) {
@@ -35,11 +36,7 @@ export default function HomeScreen() {
         return;
       }
 
-      const mergedActivity = {
-        ...serverActivity,
-        steps: healthActivity.steps ?? serverActivity.steps,
-        calories: healthActivity.calories ?? serverActivity.calories,
-      };
+      const mergedActivity = mergeHealthActivity(serverActivity, healthActivity);
 
       if (
         mergedActivity.steps !== serverActivity.steps ||

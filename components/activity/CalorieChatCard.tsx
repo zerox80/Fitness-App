@@ -1,0 +1,368 @@
+import React, { useState } from 'react';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { Check, Flame, Send } from 'lucide-react-native';
+
+import { api } from '@/lib/api';
+import type { CalorieChatMessage, CalorieEstimate, DailyActivity } from '@/lib/api';
+import { Colors } from '@/constants/Colors';
+import { formatLocalDateKey } from '@/utils/date';
+
+const initialMessages: CalorieChatMessage[] = [
+  {
+    role: 'assistant',
+    content: 'Was hast du heute gemacht?',
+  },
+];
+
+interface CalorieChatCardProps {
+  onActivityUpdated?: (activity: DailyActivity) => void;
+}
+
+export function CalorieChatCard({ onActivityUpdated }: CalorieChatCardProps) {
+  const [messages, setMessages] = useState<CalorieChatMessage[]>(initialMessages);
+  const [input, setInput] = useState('');
+  const [estimate, setEstimate] = useState<CalorieEstimate | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [applying, setApplying] = useState(false);
+  const [applied, setApplied] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const trimmedInput = input.trim();
+  const canSubmit = trimmedInput.length > 0 && !submitting;
+
+  const submitMessage = async () => {
+    if (!canSubmit) {
+      return;
+    }
+
+    const userMessage: CalorieChatMessage = { role: 'user', content: trimmedInput };
+    const nextMessages = [...messages, userMessage];
+    const activityDate = formatLocalDateKey(new Date());
+
+    setMessages(nextMessages);
+    setInput('');
+    setEstimate(null);
+    setApplied(false);
+    setError(null);
+    setSubmitting(true);
+
+    try {
+      const response = await api.activity.estimateCalories({
+        date: activityDate,
+        messages: nextMessages,
+      });
+
+      setMessages([...nextMessages, { role: 'assistant', content: response.reply }]);
+      setEstimate(response.status === 'estimated' ? response.estimate ?? null : null);
+    } catch {
+      setError('Kalorien konnten gerade nicht geschätzt werden.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const applyEstimate = async () => {
+    if (!estimate || applying) {
+      return;
+    }
+
+    setApplying(true);
+    setError(null);
+    const activityDate = formatLocalDateKey(new Date());
+
+    try {
+      const current = await api.activity.today({ date: activityDate });
+      const updated = await api.activity.update(
+        {
+          ...current,
+          calories: Math.round(estimate.total_calories),
+          active_minutes: Math.round(estimate.active_minutes),
+        },
+        { date: activityDate }
+      );
+
+      onActivityUpdated?.(updated);
+      setApplied(true);
+    } catch {
+      setError('Schätzung konnte nicht übernommen werden.');
+    } finally {
+      setApplying(false);
+    }
+  };
+
+  return (
+    <View style={styles.card}>
+      <View style={styles.header}>
+        <View style={styles.iconWrap}>
+          <Flame size={20} color={Colors.primary} fill={Colors.primary} />
+        </View>
+        <View style={styles.headerText}>
+          <Text style={styles.title}>KI-Kalorienzähler</Text>
+          <Text style={styles.subtitle}>Verbrannte Kalorien aus deinen Aktivitäten schätzen</Text>
+        </View>
+      </View>
+
+      <View style={styles.messages}>
+        {messages.map((message, index) => {
+          const isUser = message.role === 'user';
+          return (
+            <View
+              key={`${message.role}-${index}-${message.content.slice(0, 16)}`}
+              style={[styles.messageBubble, isUser ? styles.userBubble : styles.assistantBubble]}
+            >
+              <Text style={[styles.messageText, isUser ? styles.userText : styles.assistantText]}>
+                {message.content}
+              </Text>
+            </View>
+          );
+        })}
+        {submitting && (
+          <View style={[styles.messageBubble, styles.assistantBubble, styles.loadingBubble]}>
+            <ActivityIndicator size="small" color={Colors.primary} />
+            <Text style={styles.assistantText}>Kimi rechnet...</Text>
+          </View>
+        )}
+      </View>
+
+      {estimate && (
+        <View style={styles.estimateBox}>
+          <View style={styles.estimateHeader}>
+            <Text style={styles.estimateValue}>{Math.round(estimate.total_calories)} kcal</Text>
+            <Text style={styles.estimateMeta}>
+              {Math.round(estimate.active_minutes)} aktive Min. · {Math.round(estimate.confidence * 100)}% sicher
+            </Text>
+          </View>
+          {estimate.activities.map((activity, index) => (
+            <View key={`${activity.name}-${index}`} style={styles.activityRow}>
+              <Text style={styles.activityName}>{activity.name}</Text>
+              <Text style={styles.activityMeta}>
+                {Math.round(activity.duration_minutes)} Min. · {activity.intensity} · {Math.round(activity.calories)} kcal
+              </Text>
+            </View>
+          ))}
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Kalorienschaetzung uebernehmen"
+            style={[styles.applyButton, (applying || applied) && styles.applyButtonDisabled]}
+            onPress={applyEstimate}
+            disabled={applying || applied}
+            activeOpacity={0.82}
+          >
+            {applying ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Check size={18} color="#FFFFFF" />
+            )}
+            <Text style={styles.applyButtonText}>
+              {applied ? 'Übernommen' : 'In Tageskalorien übernehmen'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {error && <Text style={styles.errorText}>{error}</Text>}
+
+      <View style={styles.inputRow}>
+        <TextInput
+          accessibilityLabel="Aktivitaet beschreiben"
+          style={styles.input}
+          value={input}
+          onChangeText={setInput}
+          placeholder="z.B. 45 Min Joggen, mittel intensiv"
+          placeholderTextColor={Colors.textSoft}
+          multiline
+        />
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel="Kalorien schaetzen"
+          style={[styles.sendButton, !canSubmit && styles.sendButtonDisabled]}
+          onPress={submitMessage}
+          disabled={!canSubmit}
+          activeOpacity={0.82}
+        >
+          {submitting ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <Send size={18} color="#FFFFFF" />
+          )}
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: Colors.card,
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: Colors.borderSoft,
+    overflow: 'hidden',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 16,
+  },
+  iconWrap: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: Colors.primaryGlow,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerText: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: Colors.text,
+  },
+  subtitle: {
+    fontSize: 13,
+    color: Colors.textMuted,
+    fontWeight: '500',
+    marginTop: 3,
+    lineHeight: 18,
+  },
+  messages: {
+    gap: 8,
+    marginBottom: 14,
+  },
+  messageBubble: {
+    maxWidth: '88%',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+  },
+  assistantBubble: {
+    alignSelf: 'flex-start',
+    backgroundColor: Colors.cardLight,
+  },
+  userBubble: {
+    alignSelf: 'flex-end',
+    backgroundColor: Colors.primary,
+  },
+  loadingBubble: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  messageText: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '500',
+  },
+  assistantText: {
+    color: Colors.text,
+  },
+  userText: {
+    color: '#FFFFFF',
+  },
+  estimateBox: {
+    borderRadius: 12,
+    backgroundColor: Colors.primaryGlow,
+    padding: 14,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#CFE9DF',
+    gap: 10,
+  },
+  estimateHeader: {
+    gap: 2,
+  },
+  estimateValue: {
+    color: Colors.primary,
+    fontSize: 25,
+    fontWeight: '900',
+  },
+  estimateMeta: {
+    color: Colors.textMuted,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  activityRow: {
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#CFE9DF',
+  },
+  activityName: {
+    color: Colors.text,
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  activityMeta: {
+    color: Colors.textMuted,
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: 3,
+  },
+  applyButton: {
+    minHeight: 44,
+    borderRadius: 10,
+    backgroundColor: Colors.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 14,
+    marginTop: 2,
+  },
+  applyButtonDisabled: {
+    opacity: 0.72,
+  },
+  applyButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  errorText: {
+    color: Colors.tertiary,
+    fontSize: 13,
+    fontWeight: '700',
+    marginBottom: 12,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 10,
+  },
+  input: {
+    flex: 1,
+    minHeight: 48,
+    maxHeight: 110,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.borderSoft,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    color: Colors.text,
+    fontSize: 14,
+    fontWeight: '600',
+    textAlignVertical: 'top',
+  },
+  sendButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sendButtonDisabled: {
+    opacity: 0.48,
+  },
+});
