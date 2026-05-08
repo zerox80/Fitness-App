@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockGetToken = vi.fn();
 const mockSetTokenStorage = vi.fn();
@@ -8,6 +8,18 @@ const mockSetApiToken = vi.fn();
 const mockApiAuthLogin = vi.fn();
 const mockApiAuthRegister = vi.fn();
 const mockApiAuthMe = vi.fn();
+const MockApiError = vi.hoisted(
+  () =>
+    class ApiError extends Error {
+      status: number;
+
+      constructor(message: string, status: number) {
+        super(message);
+        this.name = 'ApiError';
+        this.status = status;
+      }
+    }
+);
 
 vi.mock('@/lib/storage', () => ({
   getToken: mockGetToken,
@@ -16,6 +28,7 @@ vi.mock('@/lib/storage', () => ({
 }));
 
 vi.mock('@/lib/api', () => ({
+  ApiError: MockApiError,
   setToken: mockSetApiToken,
   api: {
     auth: {
@@ -28,6 +41,10 @@ vi.mock('@/lib/api', () => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe('useAuth() outside provider', () => {
@@ -128,10 +145,10 @@ describe('AuthProvider — loadUser behavior', () => {
     vi.useRealTimers();
   });
 
-  it('clears token and sets user to null on API error', async () => {
+  it('clears token and sets user to null on unauthorized API error', async () => {
     vi.useFakeTimers();
     mockGetToken.mockResolvedValue('bad-token');
-    mockApiAuthMe.mockRejectedValue(new Error('Unauthorized'));
+    mockApiAuthMe.mockRejectedValue(new MockApiError('Unauthorized', 401));
 
     const { AuthProvider, useAuth } = await import('@/lib/auth-context');
     const React = await import('react');
@@ -150,6 +167,57 @@ describe('AuthProvider — loadUser behavior', () => {
     expect(result.current.isLoading).toBe(false);
     expect(mockRemoveToken).toHaveBeenCalled();
     expect(mockSetApiToken).toHaveBeenCalledWith(null);
+    vi.useRealTimers();
+  });
+
+  it('keeps stored token on temporary network errors', async () => {
+    vi.useFakeTimers();
+    mockGetToken.mockResolvedValue('valid-token');
+    mockApiAuthMe.mockRejectedValue(new Error('Network failed'));
+
+    const { AuthProvider, useAuth } = await import('@/lib/auth-context');
+    const React = await import('react');
+    const { act, renderHook } = await import('@testing-library/react');
+
+    const wrapper = ({ children }: { children: React.ReactNode }) =>
+      React.createElement(AuthProvider, null, children);
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    await act(async () => {
+      await vi.runAllTimersAsync();
+    });
+
+    expect(result.current.user).toBeNull();
+    expect(result.current.isLoading).toBe(false);
+    expect(mockSetApiToken).toHaveBeenCalledWith('valid-token');
+    expect(mockRemoveToken).not.toHaveBeenCalled();
+    expect(mockSetApiToken).not.toHaveBeenCalledWith(null);
+    vi.useRealTimers();
+  });
+
+  it('keeps stored token on server errors', async () => {
+    vi.useFakeTimers();
+    mockGetToken.mockResolvedValue('valid-token');
+    mockApiAuthMe.mockRejectedValue(new MockApiError('Server error', 500));
+
+    const { AuthProvider, useAuth } = await import('@/lib/auth-context');
+    const React = await import('react');
+    const { act, renderHook } = await import('@testing-library/react');
+
+    const wrapper = ({ children }: { children: React.ReactNode }) =>
+      React.createElement(AuthProvider, null, children);
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    await act(async () => {
+      await vi.runAllTimersAsync();
+    });
+
+    expect(result.current.user).toBeNull();
+    expect(result.current.isLoading).toBe(false);
+    expect(mockRemoveToken).not.toHaveBeenCalled();
+    expect(mockSetApiToken).not.toHaveBeenCalledWith(null);
     vi.useRealTimers();
   });
 });

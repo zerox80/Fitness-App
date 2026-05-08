@@ -1,4 +1,4 @@
-const { withAppBuildGradle, withMainApplication } = require('expo/config-plugins');
+const { withAppBuildGradle } = require('expo/config-plugins');
 
 const projectRootLine = 'def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()';
 
@@ -105,19 +105,7 @@ function patchAppBuildGradle(contents) {
 }
 
 function patchMainApplication(contents) {
-  return contents
-    .replace(
-      'import com.facebook.react.defaults.DefaultReactNativeHost\n\nimport expo.modules.ApplicationLifecycleDispatcher\nimport expo.modules.ReactNativeHostWrapper',
-      'import com.facebook.react.defaults.DefaultReactNativeHost\nimport com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost\n\nimport expo.modules.ApplicationLifecycleDispatcher'
-    )
-    .replace(
-      /override val reactNativeHost: ReactNativeHost = ReactNativeHostWrapper\(\n\s*this,\n\s*object : DefaultReactNativeHost\(this\) \{([\s\S]*?)\n\s*}\n\s*\)/,
-      'override val reactNativeHost: ReactNativeHost = object : DefaultReactNativeHost(this) {$1\n  }'
-    )
-    .replace(
-      'get() = ReactNativeHostWrapper.createReactHost(applicationContext, reactNativeHost)',
-      'get() = getDefaultReactHost(applicationContext, reactNativeHost)'
-    );
+  return contents;
 }
 
 module.exports = function withAndroidGradlePathFallback(config) {
@@ -126,10 +114,7 @@ module.exports = function withAndroidGradlePathFallback(config) {
     return config;
   });
 
-  return withMainApplication(config, (config) => {
-    config.modResults.contents = patchMainApplication(config.modResults.contents);
-    return config;
-  });
+  return config;
 };
 
 module.exports.patchAppBuildGradle = patchAppBuildGradle;

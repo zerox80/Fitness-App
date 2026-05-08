@@ -4,7 +4,7 @@ vi.mock('react-native', () => ({
   Platform: { OS: 'web' },
 }));
 
-import { api, setToken } from '@/lib/api';
+import { ApiError, api, resolveApiBase, setToken } from '@/lib/api';
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
@@ -85,6 +85,26 @@ describe('request() — error handling', () => {
     await expect(api.auth.login({ email: 'a@b.com', password: 'bad' })).rejects.toThrow(
       'Invalid credentials'
     );
+
+    mockFetch.mockResolvedValue(mockJsonResponse({ error: 'Invalid credentials' }, 401));
+    await expect(api.auth.login({ email: 'a@b.com', password: 'bad' })).rejects.toMatchObject({
+      status: 401,
+    });
+  });
+
+  it('throws ApiError instances with status metadata', async () => {
+    mockFetch.mockResolvedValue(mockJsonResponse({ error: 'Forbidden' }, 403));
+
+    let caughtError: unknown;
+    try {
+      await api.auth.me();
+    } catch (error) {
+      caughtError = error;
+    }
+
+    expect(caughtError).toBeInstanceOf(ApiError);
+    expect((caughtError as ApiError).message).toBe('Forbidden');
+    expect((caughtError as ApiError).status).toBe(403);
   });
 
   it('throws HTTP status when body has no error field', async () => {
@@ -121,6 +141,30 @@ describe('request() — URL construction', () => {
 
     const url = mockFetch.mock.calls[0][0];
     expect(url).toContain('/api/workouts');
+  });
+});
+
+describe('resolveApiBase()', () => {
+  it('uses configured API URL when present', () => {
+    expect(
+      resolveApiBase(
+        'web',
+        { EXPO_PUBLIC_API_URL: 'https://fit.example.com/api', NODE_ENV: 'production' },
+        false
+      )
+    ).toBe('https://fit.example.com/api');
+  });
+
+  it('keeps development fallback URLs for web and Android', () => {
+    expect(resolveApiBase('web', {}, true)).toBe('http://localhost:4000/api');
+    expect(resolveApiBase('android', {}, true)).toBe('http://10.0.2.2:4000/api');
+  });
+
+  it('requires EXPO_PUBLIC_API_URL for production builds', () => {
+    expect(() => resolveApiBase('web', { NODE_ENV: 'production' }, true)).toThrow(
+      'EXPO_PUBLIC_API_URL is required'
+    );
+    expect(() => resolveApiBase('android', {}, false)).toThrow('EXPO_PUBLIC_API_URL is required');
   });
 });
 

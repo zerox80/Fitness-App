@@ -9,6 +9,7 @@ import { FadeIn } from '@/components/FadeIn';
 import { TaskCard } from '@/components/cards/TaskCard';
 import { TaskForm } from '@/components/forms/TaskForm';
 import { EmptyState } from '@/components/feedback/EmptyState';
+import { ErrorBanner } from '@/components/feedback/ErrorBanner';
 import { LoadingSpinner } from '@/components/feedback/LoadingSpinner';
 import { CalorieChatCard } from '@/components/activity/CalorieChatCard';
 import { useTasks } from '@/hooks/useTasks';
@@ -19,7 +20,7 @@ export default function TasksScreenWeb() {
   const isMobile = width < DESKTOP_BREAKPOINT;
   const router = useRouter();
   const params = useLocalSearchParams<{ create?: string }>();
-  const { tasks, loading, createTask, deleteTask, toggleTask, incrementSet } = useTasks();
+  const { tasks, loading, error, refetch, createTask, deleteTask, toggleTask, incrementSet } = useTasks();
   const [formVisible, setFormVisible] = useState(false);
 
   const completedCount = getCompletedTaskCount(tasks);
@@ -64,7 +65,9 @@ export default function TasksScreenWeb() {
       <CalorieChatCard />
 
       <View style={styles.listContainer}>
-        {loading ? (
+        {error ? (
+          <ErrorBanner message={error} onRetry={refetch} />
+        ) : loading ? (
           <LoadingSpinner message="Aufgaben laden..." />
         ) : tasks.length === 0 ? (
           <EmptyState title="Alles erledigt" subtitle="Keine offenen Aufgaben für heute." />

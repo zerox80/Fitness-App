@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { api, setToken as setApiToken } from './api';
+import { ApiError, api, setToken as setApiToken } from './api';
 import { getToken, setToken, removeToken } from './storage';
 
 interface User {
@@ -18,6 +18,10 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function isUnauthorizedError(error: unknown) {
+  return error instanceof ApiError && (error.status === 401 || error.status === 403);
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,9 +38,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const me = await api.auth.me();
         setUser(me);
       }
-    } catch {
-      await removeToken();
-      setApiToken(null);
+    } catch (error) {
+      if (isUnauthorizedError(error)) {
+        await removeToken();
+        setApiToken(null);
+      }
     } finally {
       setIsLoading(false);
     }

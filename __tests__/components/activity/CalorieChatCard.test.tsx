@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 const apiMocks = vi.hoisted(() => ({
   estimateCalories: vi.fn(),
@@ -123,6 +123,7 @@ describe('CalorieChatCard', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     cleanup();
   });
 
@@ -276,10 +277,45 @@ describe('CalorieChatCard', () => {
     });
   });
 
+  it('loads entries and submits new messages for the next local date after rollover', async () => {
+    vi.useFakeTimers();
+    apiMocks.estimateCalories.mockResolvedValue({
+      status: 'needs_more_info',
+      reply: 'Wie intensiv war das?',
+      estimate: null,
+    });
+
+    render(<CalorieChatCard />);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(apiMocks.listEntries).toHaveBeenCalledWith({ date: '2026-05-07' });
+
+    dateMocks.formatLocalDateKey.mockReturnValue('2026-05-08');
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60_000);
+    });
+
+    expect(apiMocks.listEntries).toHaveBeenCalledWith({ date: '2026-05-08' });
+
+    fireEvent.change(screen.getByLabelText('Aktivitaet beschreiben'), {
+      target: { value: '30 Minuten Radfahren' },
+    });
+    fireEvent.click(screen.getByLabelText('Kalorien schaetzen'));
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    expect(apiMocks.estimateCalories).toHaveBeenCalledWith(
+      expect.objectContaining({ date: '2026-05-08' })
+    );
+  });
+
   it('applies an estimate to the original estimate date when the local date changes', async () => {
-    dateMocks.formatLocalDateKey
-      .mockReturnValueOnce('2026-05-07')
-      .mockReturnValue('2026-05-08');
+    vi.useFakeTimers();
     apiMocks.estimateCalories.mockResolvedValue({
       status: 'estimated',
       reply: 'Das waren etwa 420 kcal.',
@@ -320,19 +356,29 @@ describe('CalorieChatCard', () => {
     });
     fireEvent.click(screen.getByLabelText('Kalorien schaetzen'));
 
-    await screen.findByText('Das waren etwa 420 kcal.');
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
     expect(apiMocks.estimateCalories).toHaveBeenCalledWith(
       expect.objectContaining({ date: '2026-05-07' })
     );
 
+    dateMocks.formatLocalDateKey.mockReturnValue('2026-05-08');
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60_000);
+    });
+
     fireEvent.click(screen.getByLabelText('Kalorienschaetzung uebernehmen'));
 
-    await waitFor(() => {
-      expect(apiMocks.createEntries).toHaveBeenCalledWith(
-        expect.objectContaining({ date: '2026-05-07' })
-      );
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
     });
-    expect(dateMocks.formatLocalDateKey).toHaveBeenCalledTimes(1);
+
+    expect(apiMocks.createEntries).toHaveBeenCalledWith(
+      expect.objectContaining({ date: '2026-05-07' })
+    );
   });
 
   it('shows a follow-up question when the backend needs more information', async () => {

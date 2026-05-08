@@ -22,6 +22,7 @@ const initialMessages: CalorieChatMessage[] = [
 ];
 
 const MAX_CHAT_REQUEST_MESSAGES = 20;
+const DATE_ROLLOVER_CHECK_MS = 60_000;
 
 function messagesForCalorieRequest(messages: CalorieChatMessage[]) {
   const recentMessages = messages.slice(-MAX_CHAT_REQUEST_MESSAGES);
@@ -40,8 +41,23 @@ interface CalorieChatCardProps {
   onActivityUpdated?: (activity: DailyActivity) => void;
 }
 
+function useCurrentActivityDate() {
+  const [activityDate, setActivityDate] = useState(() => formatLocalDateKey(new Date()));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const nextDate = formatLocalDateKey(new Date());
+      setActivityDate((currentDate) => (currentDate === nextDate ? currentDate : nextDate));
+    }, DATE_ROLLOVER_CHECK_MS);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return activityDate;
+}
+
 export function CalorieChatCard({ onActivityUpdated }: CalorieChatCardProps) {
-  const [activityDate] = useState(() => formatLocalDateKey(new Date()));
+  const activityDate = useCurrentActivityDate();
   const [messages, setMessages] = useState<CalorieChatMessage[]>(initialMessages);
   const [input, setInput] = useState('');
   const [estimate, setEstimate] = useState<CalorieEstimate | null>(null);

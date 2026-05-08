@@ -23,6 +23,7 @@ COPY . .
 # Set environment variables for the build
 ARG EXPO_PUBLIC_API_URL
 ENV EXPO_PUBLIC_API_URL=$EXPO_PUBLIC_API_URL
+RUN test -n "$EXPO_PUBLIC_API_URL" || (echo "EXPO_PUBLIC_API_URL build arg is required for production web builds" >&2; exit 1)
 
 # Build the web application
 RUN npx expo export -p web

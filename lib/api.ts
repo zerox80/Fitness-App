@@ -1,7 +1,55 @@
 import { Platform } from 'react-native';
 
-const DEFAULT_API_BASE = Platform.OS === 'android' ? 'http://10.0.2.2:4000/api' : 'http://localhost:4000/api';
-const API_BASE = process.env.EXPO_PUBLIC_API_URL || DEFAULT_API_BASE;
+const DEV_ANDROID_API_BASE = 'http://10.0.2.2:4000/api';
+const DEV_LOCAL_API_BASE = 'http://localhost:4000/api';
+const API_BASE_REQUIRED_MESSAGE =
+  'EXPO_PUBLIC_API_URL is required for production builds. Set it to your public API base URL, for example https://example.com/api.';
+
+declare const __DEV__: boolean;
+
+type ApiBaseEnv = {
+  EXPO_PUBLIC_API_URL?: string;
+  NODE_ENV?: string;
+};
+
+function isDevelopmentBuild() {
+  if (typeof __DEV__ !== 'undefined') {
+    return __DEV__;
+  }
+
+  return process.env.NODE_ENV !== 'production';
+}
+
+export function resolveApiBase(
+  platformOS: typeof Platform.OS,
+  env: ApiBaseEnv = process.env,
+  isDev = isDevelopmentBuild()
+) {
+  const configuredBase = env.EXPO_PUBLIC_API_URL?.trim();
+  if (configuredBase) {
+    return configuredBase;
+  }
+
+  if (!isDev || env.NODE_ENV === 'production') {
+    throw new Error(API_BASE_REQUIRED_MESSAGE);
+  }
+
+  return platformOS === 'android' ? DEV_ANDROID_API_BASE : DEV_LOCAL_API_BASE;
+}
+
+const API_BASE = resolveApiBase(Platform.OS);
+
+export class ApiError extends Error {
+  status: number;
+  details: unknown;
+
+  constructor(message: string, status: number, details?: unknown) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.details = details;
+  }
+}
 
 export interface RegisterData {
   email: string;
@@ -227,7 +275,11 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: 'Unknown error' }));
-    throw new Error(err.error || `HTTP ${res.status}`);
+    const message =
+      err && typeof err === 'object' && 'error' in err && typeof err.error === 'string'
+        ? err.error
+        : `HTTP ${res.status}`;
+    throw new ApiError(message, res.status, err);
   }
 
   if (res.status === 204) {

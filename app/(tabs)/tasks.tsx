@@ -12,6 +12,7 @@ import { FadeIn } from '@/components/FadeIn';
 import { TaskCard } from '@/components/cards/TaskCard';
 import { TaskForm } from '@/components/forms/TaskForm';
 import { EmptyState } from '@/components/feedback/EmptyState';
+import { ErrorBanner } from '@/components/feedback/ErrorBanner';
 import { LoadingSpinner } from '@/components/feedback/LoadingSpinner';
 import { CalorieChatCard } from '@/components/activity/CalorieChatCard';
 import { useTasks } from '@/hooks/useTasks';
@@ -20,7 +21,7 @@ import { getCompletedTaskCount, getDailyTaskProgress } from '@/utils/taskProgres
 export default function TasksScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ create?: string }>();
-  const { tasks, loading, refetch, createTask, deleteTask, toggleTask, incrementSet } = useTasks();
+  const { tasks, loading, error, refetch, createTask, deleteTask, toggleTask, incrementSet } = useTasks();
   const [formVisible, setFormVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -102,7 +103,9 @@ export default function TasksScreen() {
         {/* Task List */}
         <FadeIn delay={160}>
           <View style={styles.listSection}>
-            {loading ? (
+            {error ? (
+              <ErrorBanner message={error} onRetry={refetch} />
+            ) : loading ? (
               <LoadingSpinner message="Aufgaben laden..." />
             ) : tasks.length === 0 ? (
               <EmptyState title="Keine Aufgaben vorhanden" subtitle="Erstelle deine erste Aufgabe, um loszulegen." />
