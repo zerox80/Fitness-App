@@ -185,7 +185,7 @@ describe('CalorieChatCard', () => {
     });
   });
 
-  it('keeps higher current activity values when applying an estimate', async () => {
+  it('replaces higher current activity values when applying a corrected estimate', async () => {
     const onActivityUpdated = vi.fn();
     apiMocks.estimateCalories.mockResolvedValue({
       status: 'estimated',
@@ -214,8 +214,8 @@ describe('CalorieChatCard', () => {
     });
     apiMocks.update.mockResolvedValue({
       steps: 8000,
-      calories: 650,
-      active_minutes: 70,
+      calories: 420,
+      active_minutes: 45,
       move_progress: 0.6,
       exercise_progress: 0.5,
       stand_progress: 0.3,
@@ -235,8 +235,8 @@ describe('CalorieChatCard', () => {
       expect(apiMocks.update).toHaveBeenCalledWith(
         {
           steps: 8000,
-          calories: 650,
-          active_minutes: 70,
+          calories: 420,
+          active_minutes: 45,
           move_progress: 0.6,
           exercise_progress: 0.5,
           stand_progress: 0.3,
@@ -246,8 +246,8 @@ describe('CalorieChatCard', () => {
     });
     expect(onActivityUpdated).toHaveBeenCalledWith({
       steps: 8000,
-      calories: 650,
-      active_minutes: 70,
+      calories: 420,
+      active_minutes: 45,
       move_progress: 0.6,
       exercise_progress: 0.5,
       stand_progress: 0.3,

@@ -16,6 +16,9 @@ pub enum AppError {
     #[error("Not found")]
     NotFound,
 
+    #[error("Rate limited: {0}")]
+    RateLimited(String),
+
     #[error("Internal server error: {0}")]
     Internal(String),
 }
@@ -30,6 +33,7 @@ impl IntoResponse for AppError {
             AppError::Auth(msg) => (StatusCode::UNAUTHORIZED, msg),
             AppError::Validation(msg) => (StatusCode::BAD_REQUEST, msg),
             AppError::NotFound => (StatusCode::NOT_FOUND, "Resource not found".to_string()),
+            AppError::RateLimited(msg) => (StatusCode::TOO_MANY_REQUESTS, msg),
             AppError::Internal(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
         };
 
@@ -67,6 +71,13 @@ mod tests {
         let err = AppError::Internal("something broke".to_string());
         assert!(err.to_string().contains("Internal server error"));
         assert!(err.to_string().contains("something broke"));
+    }
+
+    #[test]
+    fn test_rate_limited_error_message() {
+        let err = AppError::RateLimited("Too many requests".to_string());
+        assert!(err.to_string().contains("Rate limited"));
+        assert!(err.to_string().contains("Too many requests"));
     }
 
     #[tokio::test]
@@ -111,6 +122,17 @@ mod tests {
         let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
         let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
         assert_eq!(json["error"], "failure");
+    }
+
+    #[tokio::test]
+    async fn test_rate_limited_into_response_status() {
+        let err = AppError::RateLimited("Too many requests".to_string());
+        let response = err.into_response();
+        assert_eq!(response.status(), StatusCode::TOO_MANY_REQUESTS);
+
+        let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(json["error"], "Too many requests");
     }
 
     #[tokio::test]
