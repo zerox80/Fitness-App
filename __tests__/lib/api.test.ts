@@ -225,6 +225,19 @@ describe('api.workouts.delete()', () => {
   });
 });
 
+describe('api.workouts.deleteAll()', () => {
+  it('sends DELETE to the workouts collection endpoint', async () => {
+    mockFetch.mockResolvedValue(mockJsonResponse({ deleted: true, count: 2 }));
+
+    await api.workouts.deleteAll();
+
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toContain('/workouts');
+    expect(url).not.toContain('/workouts/');
+    expect(options.method).toBe('DELETE');
+  });
+});
+
 describe('api.workouts.create()', () => {
   it('sends POST with workout data', async () => {
     const data = {

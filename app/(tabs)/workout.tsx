@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Clock, Dumbbell, Eye, Flame, HeartPulse, Play, Timer, Zap } from 'lucide-react-native';
+import { Clock, Dumbbell, Eye, Flame, HeartPulse, Play, Timer, Trash2, Zap } from 'lucide-react-native';
 
 import { Colors } from '@/constants/Colors';
 import { FadeIn } from '@/components/FadeIn';
@@ -49,15 +49,29 @@ function toWorkoutModalData(workout: ApiWorkout): WorkoutModalData {
   };
 }
 
-function WorkoutDataCard({ workout, onPress, loading }: { workout: ApiWorkout; onPress: () => void; loading?: boolean }) {
+function WorkoutDataCard({
+  workout,
+  onPress,
+  onDelete,
+  loading,
+  deleting,
+}: {
+  workout: ApiWorkout;
+  onPress: () => void;
+  onDelete: () => void;
+  loading?: boolean;
+  deleting?: boolean;
+}) {
+  const isPending = loading || deleting;
+
   return (
     <TouchableOpacity
       accessibilityRole="button"
       accessibilityLabel={`${workout.title} ansehen`}
-      style={styles.workoutCard}
+      style={[styles.workoutCard, isPending && styles.workoutCardPending]}
       activeOpacity={0.85}
       onPress={onPress}
-      disabled={loading}
+      disabled={isPending}
     >
       <View style={styles.workoutIconBox}>
         <Dumbbell size={24} color={Colors.primary} />
@@ -81,6 +95,23 @@ function WorkoutDataCard({ workout, onPress, loading }: { workout: ApiWorkout; o
           </View>
         </View>
       </View>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityLabel={`${workout.title} löschen`}
+        style={[styles.deleteAction, deleting && styles.cardActionLoading]}
+        activeOpacity={0.82}
+        onPress={(event) => {
+          event.stopPropagation();
+          onDelete();
+        }}
+        disabled={isPending}
+      >
+        {deleting ? (
+          <ActivityIndicator size="small" color={Colors.tertiary} />
+        ) : (
+          <Trash2 size={17} color={Colors.tertiary} />
+        )}
+      </TouchableOpacity>
       <View style={[styles.cardAction, loading && styles.cardActionLoading]}>
         <Eye size={17} color={Colors.primary} />
         <Text style={styles.cardActionText} numberOfLines={1}>{loading ? 'Laden...' : 'Ansehen'}</Text>
@@ -103,14 +134,29 @@ export default function WorkoutScreen() {
   const [resultVisible, setResultVisible] = useState(false);
   const [selectedWorkout, setSelectedWorkout] = useState<ApiWorkout | null>(null);
   const [openingWorkoutId, setOpeningWorkoutId] = useState<string | null>(null);
+  const [deletingWorkoutId, setDeletingWorkoutId] = useState<string | null>(null);
+  const [deletingAll, setDeletingAll] = useState(false);
+  const [hasAnyWorkouts, setHasAnyWorkouts] = useState(false);
 
   const loadWorkouts = useCallback(async () => {
     setLoading(true);
     try {
       const category = CATEGORIES[activeCategory]?.value;
-      setWorkouts(await api.workouts.list(category ? { category } : undefined));
+      if (category) {
+        const [filteredWorkouts, allWorkouts] = await Promise.all([
+          api.workouts.list({ category }),
+          api.workouts.list(),
+        ]);
+        setWorkouts(filteredWorkouts);
+        setHasAnyWorkouts(allWorkouts.length > 0);
+      } else {
+        const allWorkouts = await api.workouts.list();
+        setWorkouts(allWorkouts);
+        setHasAnyWorkouts(allWorkouts.length > 0);
+      }
     } catch {
       setWorkouts([]);
+      setHasAnyWorkouts(false);
     } finally {
       setLoading(false);
     }
@@ -146,6 +192,52 @@ export default function WorkoutScreen() {
     }
   };
 
+  const handleDeleteWorkout = async (workoutId: string) => {
+    if (deletingWorkoutId || deletingAll) {
+      return;
+    }
+
+    setDeletingWorkoutId(workoutId);
+    try {
+      await api.workouts.delete(workoutId);
+      const remainingWorkouts = workouts.filter((workout) => workout.id !== workoutId);
+      setWorkouts(remainingWorkouts);
+      setSelectedWorkout((current) => (current?.id === workoutId ? null : current));
+      if (CATEGORIES[activeCategory]?.value) {
+        try {
+          const allWorkouts = await api.workouts.list();
+          setHasAnyWorkouts(allWorkouts.length > 0);
+        } catch {
+          setHasAnyWorkouts(remainingWorkouts.length > 0);
+        }
+      } else {
+        setHasAnyWorkouts(remainingWorkouts.length > 0);
+      }
+    } catch (err) {
+      alert('Training konnte nicht gelöscht werden: ' + (err instanceof Error ? err.message : 'Unbekannter Fehler'));
+    } finally {
+      setDeletingWorkoutId(null);
+    }
+  };
+
+  const handleDeleteAllWorkouts = async () => {
+    if (deletingWorkoutId || deletingAll || !hasAnyWorkouts) {
+      return;
+    }
+
+    setDeletingAll(true);
+    try {
+      await api.workouts.deleteAll();
+      setWorkouts([]);
+      setHasAnyWorkouts(false);
+      setSelectedWorkout(null);
+    } catch (err) {
+      alert('Trainings konnten nicht gelöscht werden: ' + (err instanceof Error ? err.message : 'Unbekannter Fehler'));
+    } finally {
+      setDeletingAll(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={[styles.scrollContent, isWide && styles.scrollWide]} showsVerticalScrollIndicator={false}>
@@ -155,10 +247,29 @@ export default function WorkoutScreen() {
               <Text style={styles.title}>Trainings</Text>
               <Text style={styles.subtitle}>Plane und starte passende Einheiten.</Text>
             </View>
-            <TouchableOpacity style={styles.quickBtn} activeOpacity={0.85} onPress={() => setQuickStartVisible(true)}>
-              <Play size={18} color="#FFFFFF" fill="#FFFFFF" />
-              {!isCompact && <Text style={styles.quickBtnText}>Schnellstart</Text>}
-            </TouchableOpacity>
+            <View style={styles.headerActions}>
+              {hasAnyWorkouts && (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel="Alle Trainings löschen"
+                  style={[styles.deleteAllBtn, deletingAll && styles.cardActionLoading]}
+                  activeOpacity={0.85}
+                  onPress={handleDeleteAllWorkouts}
+                  disabled={deletingAll || deletingWorkoutId !== null}
+                >
+                  {deletingAll ? (
+                    <ActivityIndicator size="small" color={Colors.tertiary} />
+                  ) : (
+                    <Trash2 size={18} color={Colors.tertiary} />
+                  )}
+                  {!isCompact && <Text style={styles.deleteAllBtnText}>Alle löschen</Text>}
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity style={styles.quickBtn} activeOpacity={0.85} onPress={() => setQuickStartVisible(true)}>
+                <Play size={18} color="#FFFFFF" fill="#FFFFFF" />
+                {!isCompact && <Text style={styles.quickBtnText}>Schnellstart</Text>}
+              </TouchableOpacity>
+            </View>
           </View>
         </FadeIn>
 
@@ -200,6 +311,8 @@ export default function WorkoutScreen() {
                 workout={workout}
                 onPress={() => handleOpenWorkout(workout.id)}
                 loading={openingWorkoutId === workout.id}
+                onDelete={() => handleDeleteWorkout(workout.id)}
+                deleting={deletingWorkoutId === workout.id}
               />
             </FadeIn>
           ))
@@ -265,6 +378,14 @@ const styles = StyleSheet.create({
   headerCopy: { flex: 1, minWidth: 0 },
   title: { fontSize: 30, fontWeight: '800', color: Colors.text, lineHeight: 36 },
   subtitle: { fontSize: 15, color: Colors.textMuted, fontWeight: '500', marginTop: 4, lineHeight: 21 },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 8,
+    flexShrink: 0,
+    flexWrap: 'wrap',
+  },
   quickBtn: {
     minHeight: 46,
     borderRadius: 12,
@@ -276,6 +397,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   quickBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
+  deleteAllBtn: {
+    minHeight: 46,
+    borderRadius: 12,
+    backgroundColor: Colors.tertiaryGlow,
+    borderWidth: 1,
+    borderColor: Colors.borderSoft,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 14,
+  },
+  deleteAllBtnText: { color: Colors.tertiary, fontSize: 14, fontWeight: '800' },
   catScroll: { marginBottom: 22 },
   catRow: { flexDirection: 'row', gap: 8, paddingRight: 20 },
   chip: {
@@ -303,6 +437,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+  },
+  workoutCardPending: {
+    opacity: 0.72,
   },
   workoutIconBox: {
     width: 46,
@@ -332,6 +469,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     paddingHorizontal: 10,
+    flexShrink: 0,
+  },
+  deleteAction: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: Colors.tertiaryGlow,
+    borderWidth: 1,
+    borderColor: Colors.borderSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
     flexShrink: 0,
   },
   cardActionLoading: {

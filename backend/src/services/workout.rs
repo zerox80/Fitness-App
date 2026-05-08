@@ -95,3 +95,7 @@ pub async fn delete_workout(
 ) -> Result<u64, AppError> {
     workouts::delete(&state.pool, workout_id, user_id).await
 }
+
+pub async fn delete_all_workouts(state: &AppState, user_id: Uuid) -> Result<u64, AppError> {
+    workouts::delete_all_for_user(&state.pool, user_id).await
+}

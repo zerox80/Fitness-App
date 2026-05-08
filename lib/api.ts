@@ -269,6 +269,7 @@ export const api = {
     get: (id: string) => request<ApiWorkout>(`/workouts/${id}`),
     complete: (id: string) => request<ApiWorkout>(`/workouts/${id}/complete`, { method: 'PUT' }),
     delete: (id: string) => request<{ deleted: boolean }>(`/workouts/${id}`, { method: 'DELETE' }),
+    deleteAll: () => request<{ deleted: boolean; count: number }>('/workouts', { method: 'DELETE' }),
   },
   stats: {
     get: () => request<UserStats>('/stats'),

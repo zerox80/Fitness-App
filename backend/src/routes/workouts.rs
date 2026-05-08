@@ -94,3 +94,12 @@ pub async fn delete_workout(
 
     Ok(Json(serde_json::json!({ "deleted": true })))
 }
+
+pub async fn delete_all_workouts(
+    State(state): State<AppState>,
+    axum::Extension(auth_user): axum::Extension<AuthUser>,
+) -> Result<Json<serde_json::Value>, AppError> {
+    let rows = workout::delete_all_workouts(&state, auth_user.user_id).await?;
+
+    Ok(Json(serde_json::json!({ "deleted": true, "count": rows })))
+}

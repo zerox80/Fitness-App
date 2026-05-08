@@ -243,7 +243,7 @@ export function CalorieChatCard({ onActivityUpdated }: CalorieChatCardProps) {
               <View style={styles.entryInfo}>
                 <Text style={styles.entryName}>{entry.name}</Text>
                 <Text style={styles.entryMeta}>
-                  {Math.round(entry.duration_minutes)} Min. Â· {entry.intensity} Â· {Math.round(entry.calories)} kcal
+                  {Math.round(entry.duration_minutes)} Min. · {entry.intensity} · {Math.round(entry.calories)} kcal
                 </Text>
               </View>
               <TouchableOpacity

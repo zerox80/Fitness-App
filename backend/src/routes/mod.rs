@@ -24,7 +24,9 @@ pub fn create_router(state: AppState) -> Router {
         .route("/api/users/me/password", put(users::change_password))
         .route(
             "/api/workouts",
-            get(workouts::list_workouts).post(workouts::create_workout),
+            get(workouts::list_workouts)
+                .post(workouts::create_workout)
+                .delete(workouts::delete_all_workouts),
         )
         .route("/api/workouts/generate", post(workouts::generate_workout))
         .route(
