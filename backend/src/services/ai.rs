@@ -5,7 +5,10 @@ use crate::dto::{
 use anyhow::{Context, Result};
 use reqwest::Client;
 use serde_json::json;
+use std::time::Duration;
 use tracing;
+
+const AI_CLIENT_TIMEOUT: Duration = Duration::from_secs(30);
 
 pub struct AiService {
     client: Client,
@@ -21,7 +24,10 @@ impl AiService {
             .clone()
             .context("MOONSHOT_API_KEY not configured")?;
         Ok(Self {
-            client: Client::new(),
+            client: Client::builder()
+                .timeout(AI_CLIENT_TIMEOUT)
+                .build()
+                .context("Failed to build AI HTTP client")?,
             api_key,
             api_base: config.ai_api_base.clone(),
             model: config.ai_model.clone(),

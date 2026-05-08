@@ -44,6 +44,7 @@ export function CalorieChatCard({ onActivityUpdated }: CalorieChatCardProps) {
   const [messages, setMessages] = useState<CalorieChatMessage[]>(initialMessages);
   const [input, setInput] = useState('');
   const [estimate, setEstimate] = useState<CalorieEstimate | null>(null);
+  const [estimateDate, setEstimateDate] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [applying, setApplying] = useState(false);
   const [applied, setApplied] = useState(false);
@@ -64,6 +65,7 @@ export function CalorieChatCard({ onActivityUpdated }: CalorieChatCardProps) {
     setMessages(nextMessages);
     setInput('');
     setEstimate(null);
+    setEstimateDate(null);
     setApplied(false);
     setError(null);
     setSubmitting(true);
@@ -75,8 +77,11 @@ export function CalorieChatCard({ onActivityUpdated }: CalorieChatCardProps) {
       });
 
       setMessages([...nextMessages, { role: 'assistant', content: response.reply }]);
-      setEstimate(response.status === 'estimated' ? response.estimate ?? null : null);
+      const nextEstimate = response.status === 'estimated' ? response.estimate ?? null : null;
+      setEstimate(nextEstimate);
+      setEstimateDate(nextEstimate ? activityDate : null);
     } catch {
+      setEstimateDate(null);
       setError('Kalorien konnten gerade nicht geschätzt werden.');
     } finally {
       setSubmitting(false);
@@ -88,19 +93,23 @@ export function CalorieChatCard({ onActivityUpdated }: CalorieChatCardProps) {
       return;
     }
 
+    if (!estimateDate) {
+      setError('Schätzung konnte nicht übernommen werden.');
+      return;
+    }
+
     setApplying(true);
     setError(null);
-    const activityDate = formatLocalDateKey(new Date());
 
     try {
-      const current = await api.activity.today({ date: activityDate });
+      const current = await api.activity.today({ date: estimateDate });
       const updated = await api.activity.update(
         {
           ...current,
           calories: Math.round(estimate.total_calories),
           active_minutes: Math.round(estimate.active_minutes),
         },
-        { date: activityDate }
+        { date: estimateDate }
       );
 
       onActivityUpdated?.(updated);

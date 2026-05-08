@@ -9,6 +9,10 @@ const apiMocks = vi.hoisted(() => ({
   update: vi.fn(),
 }));
 
+const dateMocks = vi.hoisted(() => ({
+  formatLocalDateKey: vi.fn(),
+}));
+
 vi.mock('@/lib/api', () => ({
   api: {
     activity: {
@@ -20,7 +24,7 @@ vi.mock('@/lib/api', () => ({
 }));
 
 vi.mock('@/utils/date', () => ({
-  formatLocalDateKey: () => '2026-05-07',
+  formatLocalDateKey: dateMocks.formatLocalDateKey,
 }));
 
 vi.mock('@/constants/Colors', () => ({
@@ -101,6 +105,8 @@ describe('CalorieChatCard', () => {
     apiMocks.estimateCalories.mockReset();
     apiMocks.today.mockReset();
     apiMocks.update.mockReset();
+    dateMocks.formatLocalDateKey.mockReset();
+    dateMocks.formatLocalDateKey.mockReturnValue('2026-05-07');
   });
 
   afterEach(() => {
@@ -252,6 +258,65 @@ describe('CalorieChatCard', () => {
       exercise_progress: 0.5,
       stand_progress: 0.3,
     });
+  });
+
+  it('applies an estimate to the original estimate date when the local date changes', async () => {
+    dateMocks.formatLocalDateKey
+      .mockReturnValueOnce('2026-05-07')
+      .mockReturnValue('2026-05-08');
+    apiMocks.estimateCalories.mockResolvedValue({
+      status: 'estimated',
+      reply: 'Das waren etwa 420 kcal.',
+      estimate: {
+        total_calories: 420,
+        active_minutes: 45,
+        confidence: 0.82,
+        activities: [
+          {
+            name: 'Joggen',
+            duration_minutes: 45,
+            intensity: 'mittel',
+            calories: 420,
+          },
+        ],
+      },
+    });
+    apiMocks.today.mockResolvedValue({
+      steps: 3000,
+      calories: 20,
+      active_minutes: 3,
+      move_progress: 0.1,
+      exercise_progress: 0.1,
+      stand_progress: 0.1,
+    });
+    apiMocks.update.mockResolvedValue({
+      steps: 3000,
+      calories: 420,
+      active_minutes: 45,
+      move_progress: 0.1,
+      exercise_progress: 0.1,
+      stand_progress: 0.1,
+    });
+
+    render(<CalorieChatCard />);
+
+    fireEvent.change(screen.getByLabelText('Aktivitaet beschreiben'), {
+      target: { value: '45 Minuten joggen, mittel intensiv' },
+    });
+    fireEvent.click(screen.getByLabelText('Kalorien schaetzen'));
+
+    await screen.findByText('Das waren etwa 420 kcal.');
+    expect(apiMocks.estimateCalories).toHaveBeenCalledWith(
+      expect.objectContaining({ date: '2026-05-07' })
+    );
+
+    fireEvent.click(screen.getByLabelText('Kalorienschaetzung uebernehmen'));
+
+    await waitFor(() => {
+      expect(apiMocks.today).toHaveBeenCalledWith({ date: '2026-05-07' });
+      expect(apiMocks.update).toHaveBeenCalledWith(expect.any(Object), { date: '2026-05-07' });
+    });
+    expect(dateMocks.formatLocalDateKey).toHaveBeenCalledTimes(1);
   });
 
   it('shows a follow-up question when the backend needs more information', async () => {
