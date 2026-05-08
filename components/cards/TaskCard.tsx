@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Check, Trash2, Dumbbell, Apple, Repeat, ListChecks } from 'lucide-react-native';
 import { Colors } from '@/constants/Colors';
@@ -22,91 +22,137 @@ const CATEGORY_COLORS: Record<ApiTaskCategory, string> = {
 
 interface TaskCardProps {
   task: ApiTaskWithCompletion;
-  onToggle: (id: string) => void;
-  onIncrementSet: (id: string) => void;
-  onDelete: (id: string) => void;
+  onToggle: (id: string) => void | Promise<void>;
+  onIncrementSet: (id: string) => void | Promise<void>;
+  onDelete: (id: string) => void | Promise<void>;
 }
 
 export function TaskCard({ task, onToggle, onIncrementSet, onDelete }: TaskCardProps) {
+  const [pendingAction, setPendingAction] = useState<'complete' | 'delete' | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const Icon = CATEGORY_ICONS[task.category];
   const accentColor = CATEGORY_COLORS[task.category];
   const isCompleted = isTaskFullyCompleted(task);
+  const isPending = pendingAction !== null;
 
-  const handlePress = () => {
-    if (task.target_sets > 1) {
-      onIncrementSet(task.id);
-    } else {
-      onToggle(task.id);
+  const handlePress = async () => {
+    if (isPending) {
+      return;
+    }
+
+    setActionError(null);
+    setPendingAction('complete');
+    try {
+      if (task.target_sets > 1) {
+        await onIncrementSet(task.id);
+      } else {
+        await onToggle(task.id);
+      }
+    } catch {
+      setActionError('Aufgabe konnte nicht aktualisiert werden.');
+    } finally {
+      setPendingAction(null);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (isPending) {
+      return;
+    }
+
+    setActionError(null);
+    setPendingAction('delete');
+    try {
+      await onDelete(task.id);
+    } catch {
+      setActionError('Aufgabe konnte nicht gelöscht werden.');
+    } finally {
+      setPendingAction(null);
     }
   };
 
   return (
-    <View style={[styles.card, isCompleted && styles.cardCompleted]}>
-      <TouchableOpacity
-        style={styles.checkboxTouch}
-        onPress={handlePress}
-        activeOpacity={0.7}
-      >
-        <View style={[styles.checkbox, isCompleted && { backgroundColor: accentColor, borderColor: accentColor }]}>
-          {isCompleted && task.target_sets <= 1 && <Check size={16} color="#FFFFFF" strokeWidth={3} />}
-          {task.target_sets > 1 && (
-            <Text style={[styles.setCount, isCompleted && { color: '#FFFFFF' }]}>
-              {task.completed_sets_today}
-            </Text>
-          )}
-        </View>
-      </TouchableOpacity>
-
-      <View style={styles.iconBox}>
-        <Icon size={18} color={accentColor} />
-      </View>
-
-      <View style={styles.content}>
-        <Text style={[styles.title, isCompleted && styles.titleCompleted]} numberOfLines={1}>
-          {task.title}
-        </Text>
-        <View style={styles.meta}>
-          <View style={[styles.badge, { backgroundColor: `${accentColor}20` }]}>
-            <Text style={[styles.badgeText, { color: accentColor }]}>
-              {TASK_CATEGORY_LABELS[task.category]}
-            </Text>
+    <View style={styles.wrapper}>
+      <View style={[styles.card, isCompleted && styles.cardCompleted, isPending && styles.cardPending]}>
+        <TouchableOpacity
+          style={styles.checkboxTouch}
+          onPress={handlePress}
+          accessibilityRole="button"
+          accessibilityLabel={task.target_sets > 1 ? 'Satz abschließen' : 'Aufgabe aktualisieren'}
+          activeOpacity={0.7}
+          disabled={isPending}
+        >
+          <View style={[styles.checkbox, isCompleted && { backgroundColor: accentColor, borderColor: accentColor }]}>
+            {isCompleted && task.target_sets <= 1 && <Check size={16} color="#FFFFFF" strokeWidth={3} />}
+            {task.target_sets > 1 && (
+              <Text style={[styles.setCount, isCompleted && { color: '#FFFFFF' }]}>
+                {task.completed_sets_today}
+              </Text>
+            )}
           </View>
-          <Text style={styles.recurrence}>
-            {TASK_RECURRENCE_LABELS[task.recurrence]}
-          </Text>
-          {task.target_sets > 1 && (
-            <Text style={[styles.setProgress, isCompleted && { color: accentColor }]}>
-              • {task.completed_sets_today} / {task.target_sets} Sätze
-            </Text>
-          )}
+        </TouchableOpacity>
+
+        <View style={styles.iconBox}>
+          <Icon size={18} color={accentColor} />
         </View>
+
+        <View style={styles.content}>
+          <Text style={[styles.title, isCompleted && styles.titleCompleted]} numberOfLines={1}>
+            {task.title}
+          </Text>
+          <View style={styles.meta}>
+            <View style={[styles.badge, { backgroundColor: `${accentColor}20` }]}>
+              <Text style={[styles.badgeText, { color: accentColor }]}>
+                {TASK_CATEGORY_LABELS[task.category]}
+              </Text>
+            </View>
+            <Text style={styles.recurrence}>
+              {TASK_RECURRENCE_LABELS[task.recurrence]}
+            </Text>
+            {task.target_sets > 1 && (
+              <Text style={[styles.setProgress, isCompleted && { color: accentColor }]}>
+                • {task.completed_sets_today} / {task.target_sets} Sätze
+              </Text>
+            )}
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={styles.deleteBtn}
+          onPress={handleDelete}
+          accessibilityRole="button"
+          accessibilityLabel="Aufgabe löschen"
+          activeOpacity={0.7}
+          disabled={isPending}
+        >
+          <Trash2 size={16} color={Colors.textMuted} />
+        </TouchableOpacity>
       </View>
 
-      <TouchableOpacity
-        style={styles.deleteBtn}
-        onPress={() => onDelete(task.id)}
-        activeOpacity={0.7}
-      >
-        <Trash2 size={16} color={Colors.textMuted} />
-      </TouchableOpacity>
+      {actionError ? <Text style={styles.errorText}>{actionError}</Text> : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    marginBottom: 10,
+  },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.card,
     borderRadius: 14,
     padding: 14,
-    marginBottom: 10,
     borderWidth: 1,
     borderColor: Colors.borderSoft,
     gap: 10,
   },
   cardCompleted: {
     opacity: 0.6,
+  },
+  cardPending: {
+    opacity: 0.72,
   },
   checkboxTouch: {
     padding: 8,
@@ -178,5 +224,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: Colors.textMuted,
     fontWeight: '700',
+  },
+  errorText: {
+    color: Colors.tertiary,
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: 6,
+    paddingHorizontal: 14,
   },
 });

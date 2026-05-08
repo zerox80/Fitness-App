@@ -1,11 +1,13 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { api, DailyActivity } from '@/lib/api';
 import { readTodayHealthConnectActivity } from '@/lib/healthConnect';
 import { useAuth } from '@/lib/auth-context';
 import { DashboardData, DESKTOP_BREAKPOINT, STEP_GOAL } from '@/constants/dashboard-constants';
 import { MobileHome } from '@/components/dashboard/MobileHome';
 import { WebDashboard } from '@/components/dashboard/WebDashboard';
+import { mergeHealthActivity } from '@/utils/activityMerge';
 import { formatLocalDateKey } from '@/utils/date';
 
 function formatGermanDate(date: Date) {
@@ -22,7 +24,7 @@ export default function HomeScreenWeb() {
   const [activity, setActivity] = useState<DailyActivity | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  async function load() {
+  const load = useCallback(async () => {
     try {
       const now = new Date();
       const activityDate = formatLocalDateKey(now);
@@ -34,11 +36,7 @@ export default function HomeScreenWeb() {
         return;
       }
 
-      const mergedActivity = {
-        ...serverActivity,
-        steps: healthActivity.steps ?? serverActivity.steps,
-        calories: healthActivity.calories ?? serverActivity.calories,
-      };
+      const mergedActivity = mergeHealthActivity(serverActivity, healthActivity);
 
       if (
         mergedActivity.steps !== serverActivity.steps ||
@@ -56,11 +54,13 @@ export default function HomeScreenWeb() {
     } catch {
       setActivity(null);
     }
-  }
-
-  useEffect(() => {
-    load();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);

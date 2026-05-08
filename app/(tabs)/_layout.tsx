@@ -4,6 +4,7 @@ import { Activity, ClipboardList, Home, Plus, User } from 'lucide-react-native';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { HapticTab } from '../../components/haptic-tab';
+import { WebLayout } from '../../components/layout/WebLayout';
 
 const tabColors = {
   active: '#178864',
@@ -31,8 +32,6 @@ function CenterPlusButton() {
 function EmptyLabel() {
   return <Text style={styles.emptyLabel}> </Text>;
 }
-
-import { WebLayout } from '../../components/layout/WebLayout';
 
 export default function TabLayout() {
   return (

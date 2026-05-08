@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, ScrollView, Platform, useWindowDimensions } from 'react-native';
+import { View, Platform, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { WebSidebar } from '@/components/dashboard/WebSidebar';
@@ -22,7 +22,6 @@ export function WebLayout({ children }: WebLayoutProps) {
 
   const isUltraWide = width >= 2000;
   const isMedium = width < 1200;
-  const sidebarWidth = isMedium ? 80 : 280;
 
   return (
     <SafeAreaView style={[webStyles.webSafeArea, isUltraWide && { backgroundColor: Colors.background }]} edges={['top']}>

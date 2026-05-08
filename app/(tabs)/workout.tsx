@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -95,11 +95,7 @@ export default function WorkoutScreen() {
   const [resultVisible, setResultVisible] = useState(false);
   const [selectedWorkout, setSelectedWorkout] = useState<ApiWorkout | null>(null);
 
-  useEffect(() => {
-    loadWorkouts();
-  }, [activeCategory]);
-
-  async function loadWorkouts() {
+  const loadWorkouts = useCallback(async () => {
     setLoading(true);
     try {
       const category = CATEGORIES[activeCategory]?.value;
@@ -109,7 +105,11 @@ export default function WorkoutScreen() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [activeCategory]);
+
+  useEffect(() => {
+    loadWorkouts();
+  }, [loadWorkouts]);
 
   const handleGenerate = async (duration: number, focus: string, intensity: string) => {
     setGenerating(true);

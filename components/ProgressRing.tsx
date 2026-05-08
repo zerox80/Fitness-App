@@ -34,7 +34,7 @@ export function ProgressRing({
       duration: 1500,
       easing: Easing.bezier(0.25, 0.1, 0.25, 1),
     });
-  }, [progress]);
+  }, [animatedProgress, progress]);
 
   const animatedProps = useAnimatedProps(() => {
     const strokeDashoffset = circumference - circumference * animatedProgress.value;

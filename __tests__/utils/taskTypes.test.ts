@@ -50,12 +50,12 @@ describe('WEEKDAY_LABELS', () => {
   });
 
   it('has correct short German labels', () => {
-    expect(WEEKDAY_LABELS[0]).toBe('So');
-    expect(WEEKDAY_LABELS[1]).toBe('Mo');
-    expect(WEEKDAY_LABELS[2]).toBe('Di');
-    expect(WEEKDAY_LABELS[3]).toBe('Mi');
-    expect(WEEKDAY_LABELS[4]).toBe('Do');
-    expect(WEEKDAY_LABELS[5]).toBe('Fr');
-    expect(WEEKDAY_LABELS[6]).toBe('Sa');
+    expect(WEEKDAY_LABELS[0]).toBe('Mo');
+    expect(WEEKDAY_LABELS[1]).toBe('Di');
+    expect(WEEKDAY_LABELS[2]).toBe('Mi');
+    expect(WEEKDAY_LABELS[3]).toBe('Do');
+    expect(WEEKDAY_LABELS[4]).toBe('Fr');
+    expect(WEEKDAY_LABELS[5]).toBe('Sa');
+    expect(WEEKDAY_LABELS[6]).toBe('So');
   });
 });

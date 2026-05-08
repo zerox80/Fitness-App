@@ -1,4 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+vi.mock('react-native', () => ({
+  Platform: { OS: 'web' },
+}));
+
 import { api, setToken } from '@/lib/api';
 
 const mockFetch = vi.fn();
@@ -41,6 +46,16 @@ describe('api.tasks.today()', () => {
 
     const [url, options] = mockFetch.mock.calls[0];
     expect(url).toContain('/api/tasks/today');
+    expect(options.method).toBeUndefined();
+  });
+
+  it('includes date query when provided', async () => {
+    mockFetch.mockResolvedValue(mockJsonResponse([]));
+
+    await api.tasks.today({ date: '2026-05-07' });
+
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toContain('/api/tasks/today?date=2026-05-07');
     expect(options.method).toBeUndefined();
   });
 });
@@ -126,6 +141,38 @@ describe('api.tasks.toggle()', () => {
     const [url, options] = mockFetch.mock.calls[0];
     expect(url).toContain('/api/tasks/task-1/toggle');
     expect(options.method).toBe('PUT');
+  });
+
+  it('includes date query when provided', async () => {
+    mockFetch.mockResolvedValue(mockJsonResponse({ completed: true }));
+
+    await api.tasks.toggle('task-1', { date: '2026-05-07' });
+
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toContain('/api/tasks/task-1/toggle?date=2026-05-07');
+    expect(options.method).toBe('PUT');
+  });
+});
+
+describe('api.tasks.incrementSet()', () => {
+  it('sends POST to /tasks/{id}/increment-set', async () => {
+    mockFetch.mockResolvedValue(mockJsonResponse({ completed_sets: 2 }));
+
+    await api.tasks.incrementSet('task-1');
+
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toContain('/api/tasks/task-1/increment-set');
+    expect(options.method).toBe('POST');
+  });
+
+  it('includes date query when provided', async () => {
+    mockFetch.mockResolvedValue(mockJsonResponse({ completed_sets: 2 }));
+
+    await api.tasks.incrementSet('task-1', { date: '2026-05-07' });
+
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toContain('/api/tasks/task-1/increment-set?date=2026-05-07');
+    expect(options.method).toBe('POST');
   });
 });
 

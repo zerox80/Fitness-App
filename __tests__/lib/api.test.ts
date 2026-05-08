@@ -1,4 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+vi.mock('react-native', () => ({
+  Platform: { OS: 'web' },
+}));
+
 import { api, setToken } from '@/lib/api';
 
 const mockFetch = vi.fn();
@@ -297,6 +302,30 @@ describe('api.activity', () => {
     const [url, options] = mockFetch.mock.calls[0];
     expect(url).toContain('/activity/today?date=2026-05-07');
     expect(options.method).toBe('PUT');
+    expect(JSON.parse(options.body)).toEqual(data);
+  });
+
+  it('estimateCalories() sends chat request to calorie endpoint', async () => {
+    const data = {
+      date: '2026-05-07',
+      messages: [{ role: 'user' as const, content: '45 Minuten joggen' }],
+    };
+    mockFetch.mockResolvedValue(mockJsonResponse({
+      status: 'estimated',
+      reply: 'Das waren etwa 420 kcal.',
+      estimate: {
+        total_calories: 420,
+        active_minutes: 45,
+        confidence: 0.8,
+        activities: [],
+      },
+    }));
+
+    await api.activity.estimateCalories(data);
+
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toContain('/activity/calorie-chat');
+    expect(options.method).toBe('POST');
     expect(JSON.parse(options.body)).toEqual(data);
   });
 });

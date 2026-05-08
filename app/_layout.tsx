@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { ActivityIndicator, View } from 'react-native';
 import 'react-native-reanimated';
 
 import { Colors } from '@/constants/Colors';
@@ -19,18 +20,16 @@ const customLightTheme = {
   },
 };
 
-import { View, ActivityIndicator } from 'react-native';
-
 function RootLayoutNav() {
   const { user, isLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const currentSegment = segments[0];
 
   useEffect(() => {
     if (isLoading) return;
 
-    const inAuthGroup = segments[0] === '(tabs)';
-    const onLoginPage = segments[0] === 'login';
+    const onLoginPage = currentSegment === 'login';
 
     if (!user && !onLoginPage) {
       // Redirect to login if not authenticated and not already on login page
@@ -39,7 +38,7 @@ function RootLayoutNav() {
       // Redirect to home if authenticated and on login screen
       router.replace('/(tabs)');
     }
-  }, [user, isLoading, segments]);
+  }, [user, isLoading, currentSegment, router]);
 
   if (isLoading) {
     return (

@@ -13,6 +13,7 @@ import { TaskCard } from '@/components/cards/TaskCard';
 import { TaskForm } from '@/components/forms/TaskForm';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { LoadingSpinner } from '@/components/feedback/LoadingSpinner';
+import { CalorieChatCard } from '@/components/activity/CalorieChatCard';
 import { useTasks } from '@/hooks/useTasks';
 import { getCompletedTaskCount, getDailyTaskProgress } from '@/utils/taskProgress';
 
@@ -94,6 +95,10 @@ export default function TasksScreen() {
           </View>
         </FadeIn>
 
+        <FadeIn delay={130}>
+          <CalorieChatCard />
+        </FadeIn>
+
         {/* Task List */}
         <FadeIn delay={160}>
           <View style={styles.listSection}>
@@ -106,8 +111,12 @@ export default function TasksScreen() {
                 <FadeIn key={task.id} delay={200 + i * 60}>
                   <TaskCard
                     task={task}
-                    onToggle={toggleTask}
-                    onIncrementSet={incrementSet}
+                    onToggle={async (id) => {
+                      await toggleTask(id);
+                    }}
+                    onIncrementSet={async (id) => {
+                      await incrementSet(id);
+                    }}
                     onDelete={handleDelete}
                   />
                 </FadeIn>

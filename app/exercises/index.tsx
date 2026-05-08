@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import {
+  FlatList,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Search, X } from 'lucide-react-native';
 import { useExercises } from '@/hooks/useExercises';
@@ -21,8 +30,6 @@ const muscleGroupOptions: { label: string; value: MuscleGroup | 'all' }[] = [
   { label: 'Schultern', value: 'shoulders' },
   { label: 'Arme', value: 'biceps' },
 ];
-
-import { useWindowDimensions, Platform } from 'react-native';
 
 export default function ExercisesScreen() {
   const [search, setSearch] = useState('');
