@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1.7
+
 # Stage 1: Build the Expo web application
 FROM node:20-slim AS builder
 
@@ -5,10 +7,15 @@ WORKDIR /app
 
 # Install dependencies
 COPY package*.json ./
-RUN npm config set fetch-retries 5 \
-  && npm config set fetch-retry-mintimeout 20000 \
-  && npm config set fetch-retry-maxtimeout 120000 \
-  && npm ci --no-audit --no-fund --prefer-offline
+COPY .npmrc ./
+RUN --mount=type=cache,target=/root/.npm \
+  npm config set registry https://registry.npmjs.org/ \
+  && npm config set fetch-retries 10 \
+  && npm config set fetch-retry-mintimeout 30000 \
+  && npm config set fetch-retry-maxtimeout 300000 \
+  && npm config set fetch-timeout 600000 \
+  && npm config set maxsockets 5 \
+  && npm ci --no-audit --no-fund --cache /root/.npm --prefer-online
 
 # Copy the rest of the application code
 COPY . .
