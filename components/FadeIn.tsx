@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Platform, View } from 'react-native';
+import { Platform, View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -13,7 +13,7 @@ interface FadeInProps {
   delay?: number;
   duration?: number;
   translateY?: number;
-  style?: any;
+  style?: StyleProp<ViewStyle>;
 }
 
 export function FadeIn({
@@ -45,6 +45,8 @@ function NativeFadeIn({
   const offset = useSharedValue(translateY);
 
   useEffect(() => {
+    opacity.value = 0;
+    offset.value = translateY;
     opacity.value = withDelay(
       delay,
       withTiming(1, { duration, easing: Easing.out(Easing.cubic) })
@@ -53,7 +55,7 @@ function NativeFadeIn({
       delay,
       withTiming(0, { duration, easing: Easing.out(Easing.cubic) })
     );
-  }, []);
+  }, [delay, duration, offset, opacity, translateY]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,

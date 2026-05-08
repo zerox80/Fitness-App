@@ -72,7 +72,16 @@ export default function TasksScreenWeb() {
           <View style={styles.taskGrid}>
             {tasks.map((task, i) => (
               <FadeIn key={task.id} delay={i * 50}>
-                <TaskCard task={task} onToggle={toggleTask} onIncrementSet={incrementSet} onDelete={deleteTask} />
+                <TaskCard
+                  task={task}
+                  onToggle={async (id) => {
+                    await toggleTask(id);
+                  }}
+                  onIncrementSet={async (id) => {
+                    await incrementSet(id);
+                  }}
+                  onDelete={deleteTask}
+                />
               </FadeIn>
             ))}
           </View>

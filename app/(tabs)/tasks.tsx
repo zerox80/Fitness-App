@@ -111,8 +111,12 @@ export default function TasksScreen() {
                 <FadeIn key={task.id} delay={200 + i * 60}>
                   <TaskCard
                     task={task}
-                    onToggle={toggleTask}
-                    onIncrementSet={incrementSet}
+                    onToggle={async (id) => {
+                      await toggleTask(id);
+                    }}
+                    onIncrementSet={async (id) => {
+                      await incrementSet(id);
+                    }}
                     onDelete={handleDelete}
                   />
                 </FadeIn>

@@ -13,6 +13,8 @@ import {
 } from '@/types';
 import { CreateTaskData } from '@/lib/api';
 
+const CUSTOM_DAYS_REQUIRED_MESSAGE = 'Bitte wähle mindestens einen Wochentag aus.';
+
 interface TaskFormProps {
   visible: boolean;
   onClose: () => void;
@@ -28,15 +30,30 @@ export function TaskForm({ visible, onClose, onSubmit }: TaskFormProps) {
   const [targetSets, setTargetSets] = useState('1');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const trimmedTitle = title.trim();
+  const requiresCustomDays = recurrence === 'custom' && customDays.length === 0;
+  const canSubmit = trimmedTitle.length > 0 && !requiresCustomDays && !submitting;
+  const visibleSubmitError = submitError ?? (trimmedTitle && requiresCustomDays ? CUSTOM_DAYS_REQUIRED_MESSAGE : null);
 
   const toggleDay = (day: Weekday) => {
     setCustomDays((prev) =>
       prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
     );
+    setSubmitError(null);
+  };
+
+  const handleRecurrenceChange = (nextRecurrence: TaskRecurrence) => {
+    setRecurrence(nextRecurrence);
+    setSubmitError(null);
   };
 
   const handleSubmit = async () => {
-    if (!title.trim() || submitting) return;
+    if (!trimmedTitle || submitting) return;
+
+    if (requiresCustomDays) {
+      setSubmitError(CUSTOM_DAYS_REQUIRED_MESSAGE);
+      return;
+    }
 
     const parsedTargetSets = Number.parseInt(targetSets, 10);
     const nextTargetSets = Number.isNaN(parsedTargetSets) ? 1 : parsedTargetSets;
@@ -49,7 +66,7 @@ export function TaskForm({ visible, onClose, onSubmit }: TaskFormProps) {
     setSubmitError(null);
     try {
       await onSubmit({
-        title: title.trim(),
+        title: trimmedTitle,
         description: description.trim() || undefined,
         recurrence,
         category,
@@ -114,7 +131,7 @@ export function TaskForm({ visible, onClose, onSubmit }: TaskFormProps) {
               <TouchableOpacity
                 key={r}
                 style={[styles.optionBtn, recurrence === r && styles.optionBtnActive]}
-                onPress={() => setRecurrence(r)}
+                onPress={() => handleRecurrenceChange(r)}
                 activeOpacity={0.7}
               >
                 <Text style={[styles.optionText, recurrence === r && styles.optionTextActive]}>
@@ -168,7 +185,7 @@ export function TaskForm({ visible, onClose, onSubmit }: TaskFormProps) {
             placeholder="z.B. 3"
           />
 
-          {submitError ? <Text style={styles.errorText}>{submitError}</Text> : null}
+          {visibleSubmitError ? <Text style={styles.errorText}>{visibleSubmitError}</Text> : null}
         </ScrollView>
 
         <View style={styles.footer}>
@@ -177,7 +194,7 @@ export function TaskForm({ visible, onClose, onSubmit }: TaskFormProps) {
             onPress={handleSubmit}
             variant="primary"
             loading={submitting}
-            disabled={!title.trim() || submitting}
+            disabled={!canSubmit}
           />
         </View>
       </KeyboardAvoidingView>
