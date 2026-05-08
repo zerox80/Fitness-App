@@ -1,16 +1,20 @@
 use axum::{
-    extract::{Query, State},
+    extract::{Path, Query, State},
     Json,
 };
 use chrono::{NaiveDate, Utc};
 use serde::Deserialize;
 use std::time::Duration;
+use uuid::Uuid;
 
 use crate::{
     dto::{CalorieChatRequest, CalorieChatResponse},
     error::AppError,
     middleware::auth::AuthUser,
-    models::{DailyActivity, UpdateActivityRequest, UserStats, WeeklyActivitySummary},
+    models::{
+        ActivityEntriesResponse, ActivityEntry, CreateActivityEntriesRequest, DailyActivity,
+        UpdateActivityRequest, UserStats, WeeklyActivitySummary,
+    },
     services::{ai::AiService, stats},
     state::AppState,
 };
@@ -67,7 +71,7 @@ pub async fn update_activity(
 ) -> Result<Json<DailyActivity>, AppError> {
     let activity_date = requested_activity_date(&params);
 
-    let activity = crate::repository::activity::upsert_today(
+    crate::repository::activity::upsert_today(
         &state.pool,
         auth_user.user_id,
         activity_date,
@@ -80,7 +84,44 @@ pub async fn update_activity(
     )
     .await?;
 
+    let activity = stats::get_activity_for_date(&state, auth_user.user_id, activity_date).await?;
+
     Ok(Json(activity))
+}
+
+pub async fn list_activity_entries(
+    State(state): State<AppState>,
+    axum::Extension(auth_user): axum::Extension<AuthUser>,
+    Query(params): Query<ActivityDateParams>,
+) -> Result<Json<Vec<ActivityEntry>>, AppError> {
+    Ok(Json(
+        stats::get_activity_entries_for_date(
+            &state,
+            auth_user.user_id,
+            requested_activity_date(&params),
+        )
+        .await?,
+    ))
+}
+
+pub async fn create_activity_entries(
+    State(state): State<AppState>,
+    axum::Extension(auth_user): axum::Extension<AuthUser>,
+    Json(req): Json<CreateActivityEntriesRequest>,
+) -> Result<Json<ActivityEntriesResponse>, AppError> {
+    Ok(Json(
+        stats::create_activity_entries(&state, auth_user.user_id, req).await?,
+    ))
+}
+
+pub async fn delete_activity_entry(
+    State(state): State<AppState>,
+    axum::Extension(auth_user): axum::Extension<AuthUser>,
+    Path(entry_id): Path<Uuid>,
+) -> Result<Json<ActivityEntriesResponse>, AppError> {
+    Ok(Json(
+        stats::delete_activity_entry(&state, auth_user.user_id, entry_id).await?,
+    ))
 }
 
 pub async fn activity_calorie_chat(

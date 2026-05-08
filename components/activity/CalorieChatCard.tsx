@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -7,10 +7,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Check, Flame, Send } from 'lucide-react-native';
+import { Check, Flame, Send, Trash2 } from 'lucide-react-native';
 
 import { api } from '@/lib/api';
-import type { CalorieChatMessage, CalorieEstimate, DailyActivity } from '@/lib/api';
+import type { ActivityEntry, CalorieChatMessage, CalorieEstimate, DailyActivity } from '@/lib/api';
 import { Colors } from '@/constants/Colors';
 import { formatLocalDateKey } from '@/utils/date';
 
@@ -41,10 +41,14 @@ interface CalorieChatCardProps {
 }
 
 export function CalorieChatCard({ onActivityUpdated }: CalorieChatCardProps) {
+  const [activityDate] = useState(() => formatLocalDateKey(new Date()));
   const [messages, setMessages] = useState<CalorieChatMessage[]>(initialMessages);
   const [input, setInput] = useState('');
   const [estimate, setEstimate] = useState<CalorieEstimate | null>(null);
   const [estimateDate, setEstimateDate] = useState<string | null>(null);
+  const [entries, setEntries] = useState<ActivityEntry[]>([]);
+  const [entriesLoading, setEntriesLoading] = useState(false);
+  const [deletingEntryId, setDeletingEntryId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [applying, setApplying] = useState(false);
   const [applied, setApplied] = useState(false);
@@ -53,6 +57,21 @@ export function CalorieChatCard({ onActivityUpdated }: CalorieChatCardProps) {
   const trimmedInput = input.trim();
   const canSubmit = trimmedInput.length > 0 && !submitting;
 
+  const loadEntries = useCallback(async () => {
+    setEntriesLoading(true);
+    try {
+      setEntries(await api.activity.entries.list({ date: activityDate }));
+    } catch {
+      setError('Gespeicherte Zusatzaktivitaeten konnten nicht geladen werden.');
+    } finally {
+      setEntriesLoading(false);
+    }
+  }, [activityDate]);
+
+  useEffect(() => {
+    loadEntries();
+  }, [loadEntries]);
+
   const submitMessage = async () => {
     if (!canSubmit) {
       return;
@@ -60,7 +79,6 @@ export function CalorieChatCard({ onActivityUpdated }: CalorieChatCardProps) {
 
     const userMessage: CalorieChatMessage = { role: 'user', content: trimmedInput };
     const nextMessages = [...messages, userMessage];
-    const activityDate = formatLocalDateKey(new Date());
 
     setMessages(nextMessages);
     setInput('');
@@ -102,22 +120,43 @@ export function CalorieChatCard({ onActivityUpdated }: CalorieChatCardProps) {
     setError(null);
 
     try {
-      const current = await api.activity.today({ date: estimateDate });
-      const updated = await api.activity.update(
-        {
-          ...current,
-          calories: Math.round(estimate.total_calories),
-          active_minutes: Math.round(estimate.active_minutes),
-        },
-        { date: estimateDate }
-      );
+      const response = await api.activity.entries.create({
+        date: estimateDate,
+        entries: estimate.activities.map((activity) => ({
+          name: activity.name,
+          duration_minutes: Math.round(activity.duration_minutes),
+          intensity: activity.intensity,
+          calories: Math.round(activity.calories),
+          source: 'ai',
+        })),
+      });
 
-      onActivityUpdated?.(updated);
+      setEntries(response.entries);
+      onActivityUpdated?.(response.activity);
       setApplied(true);
     } catch {
       setError('Schätzung konnte nicht übernommen werden.');
     } finally {
       setApplying(false);
+    }
+  };
+
+  const deleteEntry = async (entryId: string) => {
+    if (deletingEntryId) {
+      return;
+    }
+
+    setDeletingEntryId(entryId);
+    setError(null);
+
+    try {
+      const response = await api.activity.entries.delete(entryId);
+      setEntries(response.entries);
+      onActivityUpdated?.(response.activity);
+    } catch {
+      setError('Zusatzaktivitaet konnte nicht geloescht werden.');
+    } finally {
+      setDeletingEntryId(null);
     }
   };
 
@@ -185,11 +224,46 @@ export function CalorieChatCard({ onActivityUpdated }: CalorieChatCardProps) {
               <Check size={18} color="#FFFFFF" />
             )}
             <Text style={styles.applyButtonText}>
-              {applied ? 'Übernommen' : 'In Tageskalorien übernehmen'}
+              {applied ? 'Gespeichert' : 'Als Zusatzaktivitaet speichern'}
             </Text>
           </TouchableOpacity>
         </View>
       )}
+
+      <View style={styles.entriesBox}>
+        <View style={styles.entriesHeader}>
+          <Text style={styles.entriesTitle}>Zusatzaktivitaeten heute</Text>
+          {entriesLoading && <ActivityIndicator size="small" color={Colors.primary} />}
+        </View>
+        {!entriesLoading && entries.length === 0 ? (
+          <Text style={styles.entriesEmpty}>Noch keine Zusatzaktivitaeten gespeichert.</Text>
+        ) : (
+          entries.map((entry) => (
+            <View key={entry.id} style={styles.entryRow}>
+              <View style={styles.entryInfo}>
+                <Text style={styles.entryName}>{entry.name}</Text>
+                <Text style={styles.entryMeta}>
+                  {Math.round(entry.duration_minutes)} Min. Â· {entry.intensity} Â· {Math.round(entry.calories)} kcal
+                </Text>
+              </View>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel={`${entry.name} loeschen`}
+                style={styles.deleteButton}
+                onPress={() => deleteEntry(entry.id)}
+                disabled={deletingEntryId === entry.id}
+                activeOpacity={0.82}
+              >
+                {deletingEntryId === entry.id ? (
+                  <ActivityIndicator size="small" color={Colors.tertiary} />
+                ) : (
+                  <Trash2 size={16} color={Colors.tertiary} />
+                )}
+              </TouchableOpacity>
+            </View>
+          ))
+        )}
+      </View>
 
       {error && <Text style={styles.errorText}>{error}</Text>}
 
@@ -351,6 +425,64 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '800',
+  },
+  entriesBox: {
+    borderRadius: 12,
+    backgroundColor: Colors.cardLight,
+    padding: 12,
+    marginBottom: 14,
+    gap: 8,
+  },
+  entriesHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  entriesTitle: {
+    color: Colors.text,
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  entriesEmpty: {
+    color: Colors.textMuted,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  entryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: Colors.borderSoft,
+  },
+  entryInfo: {
+    flex: 1,
+    minWidth: 0,
+  },
+  entryName: {
+    color: Colors.text,
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  entryMeta: {
+    color: Colors.textMuted,
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  deleteButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.borderSoft,
+    flexShrink: 0,
   },
   errorText: {
     color: Colors.tertiary,

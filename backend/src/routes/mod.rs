@@ -7,7 +7,7 @@ pub mod workouts;
 
 use axum::{
     middleware,
-    routing::{get, post, put},
+    routing::{delete, get, post, put},
     Router,
 };
 
@@ -39,6 +39,14 @@ pub fn create_router(state: AppState) -> Router {
         .route(
             "/api/activity/today",
             get(stats::get_today_activity).put(stats::update_activity),
+        )
+        .route(
+            "/api/activity/entries",
+            get(stats::list_activity_entries).post(stats::create_activity_entries),
+        )
+        .route(
+            "/api/activity/entries/{id}",
+            delete(stats::delete_activity_entry),
         )
         .route("/api/activity/calorie-chat", post(stats::activity_calorie_chat))
         .route(

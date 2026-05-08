@@ -7,6 +7,9 @@ const apiMocks = vi.hoisted(() => ({
   estimateCalories: vi.fn(),
   today: vi.fn(),
   update: vi.fn(),
+  listEntries: vi.fn(),
+  createEntries: vi.fn(),
+  deleteEntry: vi.fn(),
 }));
 
 const dateMocks = vi.hoisted(() => ({
@@ -19,6 +22,11 @@ vi.mock('@/lib/api', () => ({
       estimateCalories: apiMocks.estimateCalories,
       today: apiMocks.today,
       update: apiMocks.update,
+      entries: {
+        list: apiMocks.listEntries,
+        create: apiMocks.createEntries,
+        delete: apiMocks.deleteEntry,
+      },
     },
   },
 }));
@@ -50,6 +58,7 @@ vi.mock('lucide-react-native', async () => {
     Check: Icon,
     Flame: Icon,
     Send: Icon,
+    Trash2: Icon,
   };
 });
 
@@ -105,6 +114,10 @@ describe('CalorieChatCard', () => {
     apiMocks.estimateCalories.mockReset();
     apiMocks.today.mockReset();
     apiMocks.update.mockReset();
+    apiMocks.listEntries.mockReset();
+    apiMocks.createEntries.mockReset();
+    apiMocks.deleteEntry.mockReset();
+    apiMocks.listEntries.mockResolvedValue([]);
     dateMocks.formatLocalDateKey.mockReset();
     dateMocks.formatLocalDateKey.mockReturnValue('2026-05-07');
   });
@@ -132,21 +145,33 @@ describe('CalorieChatCard', () => {
         ],
       },
     });
-    apiMocks.today.mockResolvedValue({
-      steps: 3000,
-      calories: 20,
-      active_minutes: 3,
-      move_progress: 0.1,
-      exercise_progress: 0.1,
-      stand_progress: 0.1,
-    });
-    apiMocks.update.mockResolvedValue({
-      steps: 3000,
-      calories: 420,
-      active_minutes: 45,
-      move_progress: 0.1,
-      exercise_progress: 0.1,
-      stand_progress: 0.1,
+    apiMocks.createEntries.mockResolvedValue({
+      entries: [
+        {
+          id: 'ae-001',
+          user_id: 'user-1',
+          activity_date: '2026-05-07',
+          name: 'Joggen',
+          duration_minutes: 45,
+          intensity: 'mittel',
+          calories: 420,
+          source: 'ai',
+          created_at: '2026-05-07T10:00:00Z',
+          updated_at: '2026-05-07T10:00:00Z',
+        },
+      ],
+      activity: {
+        steps: 3000,
+        calories: 440,
+        active_minutes: 48,
+        move_progress: 0.1,
+        exercise_progress: 0.1,
+        stand_progress: 0.1,
+        base_calories: 20,
+        base_active_minutes: 3,
+        additional_calories: 420,
+        additional_active_minutes: 45,
+      },
     });
 
     render(<CalorieChatCard onActivityUpdated={onActivityUpdated} />);
@@ -169,94 +194,85 @@ describe('CalorieChatCard', () => {
     fireEvent.click(screen.getByLabelText('Kalorienschaetzung uebernehmen'));
 
     await waitFor(() => {
-      expect(apiMocks.update).toHaveBeenCalledWith(
-        {
-          steps: 3000,
-          calories: 420,
-          active_minutes: 45,
-          move_progress: 0.1,
-          exercise_progress: 0.1,
-          stand_progress: 0.1,
-        },
-        { date: '2026-05-07' }
-      );
-    });
-    expect(onActivityUpdated).toHaveBeenCalledWith({
-      steps: 3000,
-      calories: 420,
-      active_minutes: 45,
-      move_progress: 0.1,
-      exercise_progress: 0.1,
-      stand_progress: 0.1,
-    });
-  });
-
-  it('replaces higher current activity values when applying a corrected estimate', async () => {
-    const onActivityUpdated = vi.fn();
-    apiMocks.estimateCalories.mockResolvedValue({
-      status: 'estimated',
-      reply: 'Das waren etwa 420 kcal.',
-      estimate: {
-        total_calories: 420,
-        active_minutes: 45,
-        confidence: 0.82,
-        activities: [
+      expect(apiMocks.createEntries).toHaveBeenCalledWith({
+        date: '2026-05-07',
+        entries: [
           {
             name: 'Joggen',
             duration_minutes: 45,
             intensity: 'mittel',
             calories: 420,
+            source: 'ai',
           },
         ],
+      });
+    });
+    expect(onActivityUpdated).toHaveBeenCalledWith({
+      steps: 3000,
+      calories: 440,
+      active_minutes: 48,
+      move_progress: 0.1,
+      exercise_progress: 0.1,
+      stand_progress: 0.1,
+      base_calories: 20,
+      base_active_minutes: 3,
+      additional_calories: 420,
+      additional_active_minutes: 45,
+    });
+    expect(screen.getByText('Joggen')).toBeTruthy();
+  });
+
+  it('loads saved entries and deletes an incorrect entry', async () => {
+    const onActivityUpdated = vi.fn();
+    apiMocks.listEntries.mockResolvedValue([
+      {
+        id: 'ae-001',
+        user_id: 'user-1',
+        activity_date: '2026-05-07',
+        name: 'Spaziergang',
+        duration_minutes: 30,
+        intensity: 'niedrig',
+        calories: 120,
+        source: 'ai',
+        created_at: '2026-05-07T10:00:00Z',
+        updated_at: '2026-05-07T10:00:00Z',
+      },
+    ]);
+    apiMocks.deleteEntry.mockResolvedValue({
+      entries: [],
+      activity: {
+        steps: 8000,
+        calories: 650,
+        active_minutes: 70,
+        move_progress: 0.6,
+        exercise_progress: 0.5,
+        stand_progress: 0.3,
+        base_calories: 650,
+        base_active_minutes: 70,
+        additional_calories: 0,
+        additional_active_minutes: 0,
       },
     });
-    apiMocks.today.mockResolvedValue({
+
+    render(<CalorieChatCard onActivityUpdated={onActivityUpdated} />);
+
+    expect(await screen.findByText('Spaziergang')).toBeTruthy();
+    fireEvent.click(screen.getByLabelText('Spaziergang loeschen'));
+
+    await waitFor(() => {
+      expect(apiMocks.deleteEntry).toHaveBeenCalledWith('ae-001');
+    });
+    expect(onActivityUpdated).toHaveBeenCalledWith({
       steps: 8000,
       calories: 650,
       active_minutes: 70,
       move_progress: 0.6,
       exercise_progress: 0.5,
       stand_progress: 0.3,
-    });
-    apiMocks.update.mockResolvedValue({
-      steps: 8000,
-      calories: 420,
-      active_minutes: 45,
-      move_progress: 0.6,
-      exercise_progress: 0.5,
-      stand_progress: 0.3,
-    });
-
-    render(<CalorieChatCard onActivityUpdated={onActivityUpdated} />);
-
-    fireEvent.change(screen.getByLabelText('Aktivitaet beschreiben'), {
-      target: { value: '45 Minuten joggen, mittel intensiv' },
-    });
-    fireEvent.click(screen.getByLabelText('Kalorien schaetzen'));
-
-    await screen.findByText('Das waren etwa 420 kcal.');
-    fireEvent.click(screen.getByLabelText('Kalorienschaetzung uebernehmen'));
-
-    await waitFor(() => {
-      expect(apiMocks.update).toHaveBeenCalledWith(
-        {
-          steps: 8000,
-          calories: 420,
-          active_minutes: 45,
-          move_progress: 0.6,
-          exercise_progress: 0.5,
-          stand_progress: 0.3,
-        },
-        { date: '2026-05-07' }
-      );
-    });
-    expect(onActivityUpdated).toHaveBeenCalledWith({
-      steps: 8000,
-      calories: 420,
-      active_minutes: 45,
-      move_progress: 0.6,
-      exercise_progress: 0.5,
-      stand_progress: 0.3,
+      base_calories: 650,
+      base_active_minutes: 70,
+      additional_calories: 0,
+      additional_active_minutes: 0,
     });
   });
 
@@ -281,21 +297,20 @@ describe('CalorieChatCard', () => {
         ],
       },
     });
-    apiMocks.today.mockResolvedValue({
-      steps: 3000,
-      calories: 20,
-      active_minutes: 3,
-      move_progress: 0.1,
-      exercise_progress: 0.1,
-      stand_progress: 0.1,
-    });
-    apiMocks.update.mockResolvedValue({
-      steps: 3000,
-      calories: 420,
-      active_minutes: 45,
-      move_progress: 0.1,
-      exercise_progress: 0.1,
-      stand_progress: 0.1,
+    apiMocks.createEntries.mockResolvedValue({
+      entries: [],
+      activity: {
+        steps: 3000,
+        calories: 440,
+        active_minutes: 48,
+        move_progress: 0.1,
+        exercise_progress: 0.1,
+        stand_progress: 0.1,
+        base_calories: 20,
+        base_active_minutes: 3,
+        additional_calories: 420,
+        additional_active_minutes: 45,
+      },
     });
 
     render(<CalorieChatCard />);
@@ -313,8 +328,9 @@ describe('CalorieChatCard', () => {
     fireEvent.click(screen.getByLabelText('Kalorienschaetzung uebernehmen'));
 
     await waitFor(() => {
-      expect(apiMocks.today).toHaveBeenCalledWith({ date: '2026-05-07' });
-      expect(apiMocks.update).toHaveBeenCalledWith(expect.any(Object), { date: '2026-05-07' });
+      expect(apiMocks.createEntries).toHaveBeenCalledWith(
+        expect.objectContaining({ date: '2026-05-07' })
+      );
     });
     expect(dateMocks.formatLocalDateKey).toHaveBeenCalledTimes(1);
   });

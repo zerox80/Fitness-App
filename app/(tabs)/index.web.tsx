@@ -37,13 +37,22 @@ export default function HomeScreenWeb() {
       }
 
       const mergedActivity = mergeHealthActivity(serverActivity, healthActivity);
+      const currentBaseCalories = serverActivity.base_calories ?? serverActivity.calories;
 
       if (
         mergedActivity.steps !== serverActivity.steps ||
-        mergedActivity.calories !== serverActivity.calories
+        mergedActivity.base_calories !== currentBaseCalories
       ) {
         try {
-          setActivity(await api.activity.update(mergedActivity, { date: activityDate }));
+          setActivity(await api.activity.update(
+            {
+              ...serverActivity,
+              steps: mergedActivity.steps,
+              calories: mergedActivity.base_calories ?? mergedActivity.calories,
+              active_minutes: mergedActivity.base_active_minutes ?? serverActivity.active_minutes,
+            },
+            { date: activityDate }
+          ));
         } catch {
           setActivity(mergedActivity);
         }

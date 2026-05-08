@@ -80,6 +80,10 @@ export interface DailyActivity {
   move_progress: number;
   exercise_progress: number;
   stand_progress: number;
+  base_calories?: number;
+  base_active_minutes?: number;
+  additional_calories?: number;
+  additional_active_minutes?: number;
 }
 
 export interface UpdateActivityData {
@@ -126,6 +130,37 @@ export interface CalorieChatResponse {
   status: CalorieChatStatus;
   reply: string;
   estimate?: CalorieEstimate | null;
+}
+
+export interface ActivityEntry {
+  id: string;
+  user_id: string;
+  activity_date: string;
+  name: string;
+  duration_minutes: number;
+  intensity: string;
+  calories: number;
+  source: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateActivityEntry {
+  name: string;
+  duration_minutes: number;
+  intensity: string;
+  calories: number;
+  source?: string;
+}
+
+export interface CreateActivityEntriesRequest {
+  date: string;
+  entries: CreateActivityEntry[];
+}
+
+export interface ActivityEntriesResponse {
+  activity: DailyActivity;
+  entries: ActivityEntry[];
 }
 
 export type ApiTaskRecurrence = 'daily' | 'weekdays' | 'weekly' | 'custom';
@@ -241,6 +276,16 @@ export const api = {
   activity: {
     today: (params?: ActivityDateParams) => request<DailyActivity>(activityPath(params)),
     update: (data: UpdateActivityData, params?: ActivityDateParams) => request<DailyActivity>(activityPath(params), { method: 'PUT', body: JSON.stringify(data) }),
+    entries: {
+      list: (params?: ActivityDateParams) => request<ActivityEntry[]>(pathWithDate('/activity/entries', params)),
+      create: (data: CreateActivityEntriesRequest) =>
+        request<ActivityEntriesResponse>('/activity/entries', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        }),
+      delete: (id: string) =>
+        request<ActivityEntriesResponse>(`/activity/entries/${id}`, { method: 'DELETE' }),
+    },
     estimateCalories: (data: CalorieChatRequest) =>
       request<CalorieChatResponse>('/activity/calorie-chat', {
         method: 'POST',

@@ -48,4 +48,27 @@ describe('mergeHealthActivity', () => {
     expect(merged.steps).toBe(8000);
     expect(merged.calories).toBe(330);
   });
+
+  it('adds saved additional calories on top of Health Connect base calories', () => {
+    const merged = mergeHealthActivity(
+      {
+        ...serverActivity,
+        calories: 300,
+        active_minutes: 30,
+        base_calories: 0,
+        base_active_minutes: 0,
+        additional_calories: 300,
+        additional_active_minutes: 30,
+      },
+      {
+        steps: 6000,
+        calories: 200,
+      }
+    );
+
+    expect(merged.steps).toBe(6000);
+    expect(merged.base_calories).toBe(200);
+    expect(merged.additional_calories).toBe(300);
+    expect(merged.calories).toBe(500);
+  });
 });

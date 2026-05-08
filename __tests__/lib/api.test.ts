@@ -328,4 +328,47 @@ describe('api.activity', () => {
     expect(options.method).toBe('POST');
     expect(JSON.parse(options.body)).toEqual(data);
   });
+
+  it('entries.list() includes date query when provided', async () => {
+    mockFetch.mockResolvedValue(mockJsonResponse([]));
+
+    await api.activity.entries.list({ date: '2026-05-07' });
+
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toContain('/activity/entries?date=2026-05-07');
+    expect(options.method).toBeUndefined();
+  });
+
+  it('entries.create() sends additional activity entries', async () => {
+    const data = {
+      date: '2026-05-07',
+      entries: [
+        {
+          name: 'Joggen',
+          duration_minutes: 45,
+          intensity: 'mittel',
+          calories: 420,
+          source: 'ai',
+        },
+      ],
+    };
+    mockFetch.mockResolvedValue(mockJsonResponse({ activity: {}, entries: [] }));
+
+    await api.activity.entries.create(data);
+
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toContain('/activity/entries');
+    expect(options.method).toBe('POST');
+    expect(JSON.parse(options.body)).toEqual(data);
+  });
+
+  it('entries.delete() sends DELETE to the entry endpoint', async () => {
+    mockFetch.mockResolvedValue(mockJsonResponse({ activity: {}, entries: [] }));
+
+    await api.activity.entries.delete('ae-001');
+
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toContain('/activity/entries/ae-001');
+    expect(options.method).toBe('DELETE');
+  });
 });
