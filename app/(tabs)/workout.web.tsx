@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
-import { Clock, Dumbbell, Flame, Play } from 'lucide-react-native';
+import { Clock, Dumbbell, Eye, Flame, Play } from 'lucide-react-native';
 
 import { Colors } from '@/constants/Colors';
 import { DESKTOP_BREAKPOINT } from '@/constants/dashboard-constants';
@@ -38,9 +38,16 @@ function toWorkoutModalData(workout: ApiWorkout): WorkoutModalData {
   };
 }
 
-function WorkoutCard({ workout, onPress }: { workout: ApiWorkout; onPress: () => void }) {
+function WorkoutCard({ workout, onPress, loading }: { workout: ApiWorkout; onPress: () => void; loading?: boolean }) {
   return (
-    <TouchableOpacity style={styles.workoutCard} activeOpacity={0.85} onPress={onPress}>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityLabel={`${workout.title} ansehen`}
+      style={styles.workoutCard}
+      activeOpacity={0.85}
+      onPress={onPress}
+      disabled={loading}
+    >
       <View style={styles.cardHeader}>
         <View style={styles.iconBox}>
           <Dumbbell size={24} color={Colors.primary} />
@@ -51,14 +58,20 @@ function WorkoutCard({ workout, onPress }: { workout: ApiWorkout; onPress: () =>
         </View>
       </View>
       <Text style={styles.workoutTitle} numberOfLines={2}>{workout.title}</Text>
-      <View style={styles.metaRow}>
-        <View style={styles.metaItem}>
-          <Clock size={16} color={Colors.textMuted} />
-          <Text style={styles.metaText}>{workout.duration_minutes} Min</Text>
+      <View style={styles.cardFooter}>
+        <View style={styles.metaRow}>
+          <View style={styles.metaItem}>
+            <Clock size={16} color={Colors.textMuted} />
+            <Text style={styles.metaText}>{workout.duration_minutes} Min</Text>
+          </View>
+          <View style={styles.metaItem}>
+            <Flame size={16} color={Colors.textMuted} />
+            <Text style={styles.metaText}>0 kcal</Text>
+          </View>
         </View>
-        <View style={styles.metaItem}>
-          <Flame size={16} color={Colors.textMuted} />
-          <Text style={styles.metaText}>0 kcal</Text>
+        <View style={[styles.viewAction, loading && styles.viewActionLoading]}>
+          <Eye size={16} color={Colors.primary} />
+          <Text style={styles.viewActionText}>{loading ? 'Laden...' : 'Ansehen'}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -76,6 +89,7 @@ export default function WorkoutScreenWeb() {
   const [generatedFocus, setGeneratedFocus] = useState('');
   const [resultVisible, setResultVisible] = useState(false);
   const [selectedWorkout, setSelectedWorkout] = useState<ApiWorkout | null>(null);
+  const [openingWorkoutId, setOpeningWorkoutId] = useState<string | null>(null);
 
   useEffect(() => {
     loadWorkouts();
@@ -107,6 +121,17 @@ export default function WorkoutScreenWeb() {
     }
   };
 
+  const handleOpenWorkout = async (workoutId: string) => {
+    setOpeningWorkoutId(workoutId);
+    try {
+      setSelectedWorkout(await api.workouts.get(workoutId));
+    } catch (err) {
+      alert('Trainingsplan konnte nicht geladen werden: ' + (err instanceof Error ? err.message : 'Unbekannter Fehler'));
+    } finally {
+      setOpeningWorkoutId(null);
+    }
+  };
+
   return (
     <View>
       <View style={[styles.webHeader, isMobile && styles.mobileHeader]}>
@@ -132,7 +157,11 @@ export default function WorkoutScreenWeb() {
         <View style={styles.workoutGrid}>
           {workouts.map((workout, index) => (
             <FadeIn key={workout.id} delay={index * 40} style={[styles.gridItem, isMobile && { width: '100%' }]}>
-              <WorkoutCard workout={workout} onPress={() => setSelectedWorkout(workout)} />
+              <WorkoutCard
+                workout={workout}
+                onPress={() => handleOpenWorkout(workout.id)}
+                loading={openingWorkoutId === workout.id}
+              />
             </FadeIn>
           ))}
         </View>
@@ -191,9 +220,13 @@ const styles = StyleSheet.create({
   category: { color: Colors.text, fontSize: 13, fontWeight: '800' },
   intensity: { color: Colors.textMuted, fontSize: 12, fontWeight: '600', marginTop: 2 },
   workoutTitle: { fontSize: 19, fontWeight: '800', color: Colors.text, lineHeight: 25, marginBottom: 18 },
-  metaRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap' },
+  cardFooter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' },
+  metaRow: { flexDirection: 'row', gap: 18, flexWrap: 'wrap', flex: 1, minWidth: 180 },
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   metaText: { fontSize: 14, color: Colors.textMuted, fontWeight: '600' },
+  viewAction: { minHeight: 38, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingHorizontal: 12, borderRadius: 10, backgroundColor: Colors.primaryGlow, borderWidth: 1, borderColor: Colors.borderSoft },
+  viewActionLoading: { opacity: 0.72 },
+  viewActionText: { color: Colors.primary, fontSize: 13, fontWeight: '800' },
   emptyState: { alignItems: 'center', marginTop: 80, gap: 12 },
   emptyTitle: { fontSize: 18, fontWeight: '800', color: Colors.text },
   emptySub: { fontSize: 15, color: Colors.textMuted, fontWeight: '500' },

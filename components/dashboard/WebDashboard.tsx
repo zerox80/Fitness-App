@@ -8,6 +8,7 @@ import { OverviewCard } from './OverviewCard';
 import { HeartCard } from './HeartCard';
 import { WeekCard } from './WeekCard';
 import { TrainingList } from './TrainingList';
+import { CalorieChatCard } from '@/components/activity/CalorieChatCard';
 
 export function WebDashboard({ data }: { data: DashboardData }) {
   const { width } = useWindowDimensions();
@@ -35,6 +36,10 @@ export function WebDashboard({ data }: { data: DashboardData }) {
       </View>
 
       <FadeIn delay={260}>
+        <CalorieChatCard onActivityUpdated={data.onActivityUpdated} />
+      </FadeIn>
+
+      <FadeIn delay={320}>
         <View style={webStyles.webTrainingSection}>
           <TrainingList desktop />
         </View>

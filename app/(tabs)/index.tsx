@@ -86,6 +86,7 @@ export default function HomeScreen() {
     stepProgress,
     steps,
     onRefresh,
+    onActivityUpdated: (updatedActivity) => setActivity(updatedActivity),
   };
 
   if (Platform.OS === 'web' && width >= DESKTOP_BREAKPOINT) {

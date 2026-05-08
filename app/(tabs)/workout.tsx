@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Clock, Dumbbell, Flame, HeartPulse, Play, Timer, Zap } from 'lucide-react-native';
+import { Clock, Dumbbell, Eye, Flame, HeartPulse, Play, Timer, Zap } from 'lucide-react-native';
 
 import { Colors } from '@/constants/Colors';
 import { FadeIn } from '@/components/FadeIn';
@@ -49,9 +49,16 @@ function toWorkoutModalData(workout: ApiWorkout): WorkoutModalData {
   };
 }
 
-function WorkoutDataCard({ workout, onPress }: { workout: ApiWorkout; onPress: () => void }) {
+function WorkoutDataCard({ workout, onPress, loading }: { workout: ApiWorkout; onPress: () => void; loading?: boolean }) {
   return (
-    <TouchableOpacity style={styles.workoutCard} activeOpacity={0.85} onPress={onPress}>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityLabel={`${workout.title} ansehen`}
+      style={styles.workoutCard}
+      activeOpacity={0.85}
+      onPress={onPress}
+      disabled={loading}
+    >
       <View style={styles.workoutIconBox}>
         <Dumbbell size={24} color={Colors.primary} />
       </View>
@@ -74,8 +81,9 @@ function WorkoutDataCard({ workout, onPress }: { workout: ApiWorkout; onPress: (
           </View>
         </View>
       </View>
-      <View style={styles.cardAction}>
-        <Play size={18} color={Colors.primary} fill={Colors.primary} />
+      <View style={[styles.cardAction, loading && styles.cardActionLoading]}>
+        <Eye size={17} color={Colors.primary} />
+        <Text style={styles.cardActionText} numberOfLines={1}>{loading ? 'Laden...' : 'Ansehen'}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -94,6 +102,7 @@ export default function WorkoutScreen() {
   const [generatedFocus, setGeneratedFocus] = useState('');
   const [resultVisible, setResultVisible] = useState(false);
   const [selectedWorkout, setSelectedWorkout] = useState<ApiWorkout | null>(null);
+  const [openingWorkoutId, setOpeningWorkoutId] = useState<string | null>(null);
 
   const loadWorkouts = useCallback(async () => {
     setLoading(true);
@@ -123,6 +132,17 @@ export default function WorkoutScreen() {
       alert('Fehler bei der Planung: ' + (err instanceof Error ? err.message : 'Unbekannter Fehler'));
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const handleOpenWorkout = async (workoutId: string) => {
+    setOpeningWorkoutId(workoutId);
+    try {
+      setSelectedWorkout(await api.workouts.get(workoutId));
+    } catch (err) {
+      alert('Trainingsplan konnte nicht geladen werden: ' + (err instanceof Error ? err.message : 'Unbekannter Fehler'));
+    } finally {
+      setOpeningWorkoutId(null);
     }
   };
 
@@ -176,7 +196,11 @@ export default function WorkoutScreen() {
         ) : (
           workouts.map((workout, index) => (
             <FadeIn key={workout.id} delay={160 + index * 50}>
-              <WorkoutDataCard workout={workout} onPress={() => setSelectedWorkout(workout)} />
+              <WorkoutDataCard
+                workout={workout}
+                onPress={() => handleOpenWorkout(workout.id)}
+                loading={openingWorkoutId === workout.id}
+              />
             </FadeIn>
           ))
         )}
@@ -299,13 +323,24 @@ const styles = StyleSheet.create({
   metricItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   metricText: { color: Colors.textMuted, fontSize: 13, fontWeight: '600' },
   cardAction: {
-    width: 38,
+    minWidth: 92,
     height: 38,
     borderRadius: 10,
     backgroundColor: Colors.primaryGlow,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
     flexShrink: 0,
+  },
+  cardActionLoading: {
+    opacity: 0.72,
+  },
+  cardActionText: {
+    color: Colors.primary,
+    fontSize: 12,
+    fontWeight: '800',
   },
   emptyBox: {
     alignItems: 'center',

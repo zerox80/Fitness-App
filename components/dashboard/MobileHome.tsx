@@ -21,6 +21,7 @@ import { HeartCard } from './HeartCard';
 import { WeekCard } from './WeekCard';
 import { TrainingList } from './TrainingList';
 import { DateRow } from './DateRow';
+import { CalorieChatCard } from '@/components/activity/CalorieChatCard';
 
 export function MobileHome({ data }: { data: DashboardData }) {
   const { width } = useWindowDimensions();
@@ -64,17 +65,23 @@ export function MobileHome({ data }: { data: DashboardData }) {
           </View>
         </FadeIn>
 
+        <FadeIn delay={200} style={{ width: '100%', alignItems: 'center' }}>
+          <View style={[styles.mobileSection, mobileFrameStyle]}>
+            <CalorieChatCard onActivityUpdated={data.onActivityUpdated} />
+          </View>
+        </FadeIn>
+
         <View style={[styles.smallCardsRow, mobileFrameStyle, { width: '100%' }, isNarrow && { flexDirection: 'column' }]}>
-          <FadeIn delay={220} style={[styles.smallCardFlex, isNarrow && { minWidth: '100%' }]}>
+          <FadeIn delay={280} style={[styles.smallCardFlex, isNarrow && { minWidth: '100%' }]}>
             <HeartCard />
           </FadeIn>
 
-          <FadeIn delay={280} style={[styles.smallCardFlex, isNarrow && { minWidth: '100%' }]}>
+          <FadeIn delay={340} style={[styles.smallCardFlex, isNarrow && { minWidth: '100%' }]}>
             <WeekCard compact={isNarrow} />
           </FadeIn>
         </View>
 
-        <FadeIn delay={340} style={[styles.mobileSection, mobileFrameStyle, { width: '100%' }]}>
+        <FadeIn delay={400} style={[styles.mobileSection, mobileFrameStyle, { width: '100%' }]}>
           <TrainingList />
         </FadeIn>
       </ScrollView>

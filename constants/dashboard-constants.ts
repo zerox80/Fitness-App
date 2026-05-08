@@ -9,6 +9,7 @@ import {
   Utensils,
 } from 'lucide-react-native';
 import { Colors, Layout } from '@/constants/Colors';
+import type { DailyActivity } from '@/lib/api';
 
 export const STEP_GOAL = 10000;
 export const DESKTOP_BREAKPOINT = Layout.desktop;
@@ -77,4 +78,5 @@ export type DashboardData = {
   stepProgress: number;
   steps: number;
   onRefresh: () => Promise<void>;
+  onActivityUpdated?: (activity: DailyActivity) => void;
 };
