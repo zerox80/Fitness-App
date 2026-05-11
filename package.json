@@ -51,12 +51,12 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/react": "~19.2.14",
-    "eslint": "^9.39.4",
+    "eslint": "^10.3.0",
     "eslint-config-expo": "~55.0.0",
-    "eslint-import-resolver-typescript": "^3.10.1",
+    "eslint-import-resolver-typescript": "^4.4.4",
     "expo-build-properties": "^55.0.13",
     "jsdom": "^29.1.1",
-    "typescript": "~5.9.2",
+    "typescript": "~6.0.3",
     "vitest": "^4.1.5"
   },
   "private": true
