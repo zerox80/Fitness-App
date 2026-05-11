@@ -4,7 +4,7 @@ version = "1.0.0"
 edition = "2021"
 
 [dependencies]
-tokio = { version = "1.44", features = ["full"] }
+tokio = { version = "1.52", features = ["full"] }
 axum = "0.8"
 axum-extra = { version = "0.12", features = ["typed-header"] }
 tower = "0.5"
@@ -25,6 +25,6 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [dev-dependencies]
-tokio = { version = "1.44", features = ["full", "test-util"] }
+tokio = { version = "1.52", features = ["full", "test-util"] }
 base64 = "0.22"
 http-body-util = "0.1"
