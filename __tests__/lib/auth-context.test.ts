@@ -96,7 +96,12 @@ describe('useAuth() outside provider', () => {
 describe('AuthProvider — loadUser behavior', () => {
   it('sets user when token exists and /auth/me succeeds', async () => {
     vi.useFakeTimers();
-    const mockUser = { id: '1', email: 'a@b.com', name: 'Test' };
+    const mockUser = {
+      id: '1',
+      email: 'a@b.com',
+      name: 'Test',
+      created_at: '2024-02-03T00:00:00Z',
+    };
     mockGetToken.mockResolvedValue('valid-token');
     mockApiAuthMe.mockResolvedValue(mockUser);
 

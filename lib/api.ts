@@ -72,6 +72,13 @@ export interface AuthResponse {
   };
 }
 
+export interface AuthUserResponse {
+  id: string;
+  email: string;
+  name: string;
+  created_at: string;
+}
+
 export interface ApiWorkout {
   id: string;
   user_id: string;
@@ -83,6 +90,7 @@ export interface ApiWorkout {
   exercises: GeneratedExercise[];
   completed_at: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 export interface CreateWorkoutData {
@@ -119,6 +127,22 @@ export interface UserStats {
   total_workouts: number;
   total_minutes: number;
   current_streak: number;
+}
+
+export interface WeeklyActivitySummary {
+  week_start: string;
+  total_steps: number;
+  total_calories: number;
+  total_active_minutes: number;
+  workout_count: number;
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  name: string;
+  created_at: string;
+  stats?: UserStats | null;
 }
 
 export interface DailyActivity {
@@ -252,6 +276,72 @@ export interface UpdateTaskData {
   target_sets?: number;
 }
 
+export type ApiMuscleGroup =
+  | 'chest'
+  | 'back'
+  | 'shoulders'
+  | 'biceps'
+  | 'triceps'
+  | 'abs'
+  | 'legs'
+  | 'glutes'
+  | 'calves'
+  | 'forearms'
+  | 'traps'
+  | 'lats'
+  | 'hamstrings'
+  | 'quadriceps';
+
+export type ApiEquipmentType =
+  | 'barbell'
+  | 'dumbbell'
+  | 'kettlebell'
+  | 'machine'
+  | 'cable'
+  | 'bodyweight'
+  | 'resistance_band'
+  | 'medicine_ball'
+  | 'bench'
+  | 'squat_rack'
+  | 'pull_up_bar'
+  | 'dip_station'
+  | 'treadmill'
+  | 'none';
+
+export type ApiDifficultyLevel = 'beginner' | 'intermediate' | 'advanced';
+
+export interface ApiExercise {
+  id: string;
+  name: string;
+  description: string | null;
+  muscle_groups: ApiMuscleGroup[];
+  equipment: ApiEquipmentType[];
+  difficulty: ApiDifficultyLevel;
+  instructions: string[] | null;
+  image_url: string | null;
+  video_url: string | null;
+  is_custom: boolean;
+  user_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ExerciseListParams {
+  muscle_group?: ApiMuscleGroup;
+  equipment?: ApiEquipmentType;
+  difficulty?: ApiDifficultyLevel;
+  search?: string;
+  page?: number;
+  per_page?: number;
+}
+
+export interface WorkoutListParams {
+  category?: string;
+  completed?: boolean;
+  page?: number;
+  per_page?: number;
+}
+
 let authToken: string | null = null;
 
 export function setToken(token: string | null) {
@@ -302,20 +392,57 @@ function pathWithDate(path: string, params?: ActivityDateParams) {
   return `${path}?${query.toString()}`;
 }
 
+function appendDefinedParams(query: URLSearchParams, params?: object) {
+  if (!params) {
+    return;
+  }
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      query.set(key, String(value));
+    }
+  });
+}
+
+async function listAllPages<T>(
+  fetchPage: (page: number, perPage: number) => Promise<T[]>,
+  perPage = 100
+) {
+  const all: T[] = [];
+  let page = 1;
+
+  for (;;) {
+    const current = await fetchPage(page, perPage);
+    all.push(...current);
+
+    if (current.length < perPage) {
+      return all;
+    }
+
+    page += 1;
+  }
+}
+
 export const api = {
   auth: {
     register: (data: RegisterData) => request<AuthResponse>('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
     login: (data: LoginData) => request<AuthResponse>('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
-    me: () => request<{ id: string; email: string; name: string }>('/auth/me'),
+    me: () => request<AuthUserResponse>('/auth/me'),
+  },
+  users: {
+    profile: () => request<UserProfile>('/users/me'),
   },
   workouts: {
-    list: (params?: { category?: string; completed?: boolean }) => {
+    list: (params?: WorkoutListParams) => {
       const query = new URLSearchParams();
-      if (params?.category) query.set('category', params.category);
-      if (params?.completed !== undefined) query.set('completed', String(params.completed));
+      appendDefinedParams(query, params);
       const qs = query.toString();
       return request<ApiWorkout[]>(`/workouts${qs ? `?${qs}` : ''}`);
     },
+    listAll: (params?: Omit<WorkoutListParams, 'page' | 'per_page'>) =>
+      listAllPages<ApiWorkout>((page, perPage) =>
+        api.workouts.list({ ...params, page, per_page: perPage })
+      ),
     create: (data: CreateWorkoutData) => request<ApiWorkout>('/workouts', { method: 'POST', body: JSON.stringify(data) }),
     generate: (data: GenerateWorkoutRequest) => request<GeneratedWorkout>('/workouts/generate', { method: 'POST', body: JSON.stringify(data) }),
     get: (id: string) => request<ApiWorkout>(`/workouts/${id}`),
@@ -325,6 +452,7 @@ export const api = {
   },
   stats: {
     get: () => request<UserStats>('/stats'),
+    weekly: () => request<WeeklyActivitySummary>('/stats/weekly'),
   },
   activity: {
     today: (params?: ActivityDateParams) => request<DailyActivity>(activityPath(params)),
@@ -355,5 +483,18 @@ export const api = {
     toggle: (id: string, params?: ActivityDateParams) => request<{ completed: boolean }>(pathWithDate(`/tasks/${id}/toggle`, params), { method: 'PUT' }),
     incrementSet: (id: string, params?: ActivityDateParams) => request<{ completed_sets: number }>(pathWithDate(`/tasks/${id}/increment-set`, params), { method: 'POST' }),
     completions: (id: string) => request<string[]>(`/tasks/${id}/completions`),
+  },
+  exercises: {
+    list: (params?: ExerciseListParams) => {
+      const query = new URLSearchParams();
+      appendDefinedParams(query, params);
+      const qs = query.toString();
+      return request<ApiExercise[]>(`/exercises${qs ? `?${qs}` : ''}`);
+    },
+    listAll: (params?: Omit<ExerciseListParams, 'page' | 'per_page'>) =>
+      listAllPages<ApiExercise>((page, perPage) =>
+        api.exercises.list({ ...params, page, per_page: perPage })
+      ),
+    get: (id: string) => request<ApiExercise>(`/exercises/${id}`),
   },
 };

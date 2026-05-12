@@ -4,7 +4,7 @@ use axum::{
 };
 use chrono::{NaiveDate, Utc};
 use serde::Deserialize;
-use std::time::Duration;
+use std::{future::Future, time::Duration};
 use uuid::Uuid;
 
 use crate::{
@@ -32,6 +32,20 @@ pub struct ActivityDateParams {
 
 fn requested_activity_date(params: &ActivityDateParams) -> NaiveDate {
     params.date.unwrap_or_else(|| Utc::now().date_naive())
+}
+
+async fn activity_after_upsert<U, G, UFut, GFut>(
+    upsert: U,
+    get_activity: G,
+) -> Result<DailyActivity, AppError>
+where
+    U: FnOnce() -> UFut,
+    G: FnOnce() -> GFut,
+    UFut: Future<Output = Result<(), AppError>>,
+    GFut: Future<Output = Result<DailyActivity, AppError>>,
+{
+    upsert().await?;
+    get_activity().await
 }
 
 pub async fn get_stats(
@@ -71,20 +85,23 @@ pub async fn update_activity(
 ) -> Result<Json<DailyActivity>, AppError> {
     let activity_date = requested_activity_date(&params);
 
-    crate::repository::activity::upsert_today(
-        &state.pool,
-        auth_user.user_id,
-        activity_date,
-        req.steps,
-        req.calories,
-        req.active_minutes,
-        req.move_progress,
-        req.exercise_progress,
-        req.stand_progress,
+    let activity = activity_after_upsert(
+        || {
+            crate::repository::activity::upsert_today(
+                &state.pool,
+                auth_user.user_id,
+                activity_date,
+                req.steps,
+                req.calories,
+                req.active_minutes,
+                req.move_progress,
+                req.exercise_progress,
+                req.stand_progress,
+            )
+        },
+        || stats::get_activity_for_date(&state, auth_user.user_id, activity_date),
     )
     .await?;
-
-    let activity = stats::get_activity_for_date(&state, auth_user.user_id, activity_date).await?;
 
     Ok(Json(activity))
 }
@@ -247,6 +264,34 @@ mod tests {
         assert_eq!(status, StatusCode::INTERNAL_SERVER_ERROR);
         assert_eq!(json["error"], CALORIE_CHAT_UNAVAILABLE_MESSAGE);
         assert!(!json["error"].as_str().unwrap().contains("MOONSHOT_API_KEY"));
+    }
+
+    #[tokio::test]
+    async fn update_activity_returns_full_activity_after_upsert() {
+        let activity = activity_after_upsert(
+            || async { Ok(()) },
+            || async {
+                Ok(DailyActivity {
+                    steps: 8_500,
+                    calories: 2_150,
+                    active_minutes: 54,
+                    move_progress: 0.82,
+                    exercise_progress: 0.71,
+                    stand_progress: 0.66,
+                    base_calories: 2_000,
+                    base_active_minutes: 45,
+                    additional_calories: 150,
+                    additional_active_minutes: 9,
+                })
+            },
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(activity.steps, 8_500);
+        assert_eq!(activity.base_calories, 2_000);
+        assert_eq!(activity.additional_calories, 150);
+        assert_eq!(activity.additional_active_minutes, 9);
     }
 
     #[tokio::test]

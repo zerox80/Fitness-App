@@ -1,87 +1,85 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
+
+const apiMocks = vi.hoisted(() => ({
+  getStats: vi.fn(),
+  getWeekly: vi.fn(),
+}));
+
+vi.mock('@/lib/api', () => ({
+  api: {
+    stats: {
+      get: apiMocks.getStats,
+      weekly: apiMocks.getWeekly,
+    },
+  },
+}));
+
+import { useStats } from '@/hooks/useStats';
+
+const stats = {
+  total_workouts: 7,
+  total_minutes: 320,
+  current_streak: 3,
+};
+
+const weeklySummary = {
+  week_start: '2026-05-04',
+  total_steps: 42000,
+  total_calories: 2100,
+  total_active_minutes: 180,
+  workout_count: 4,
+};
 
 describe('useStats', () => {
   afterEach(() => {
-    vi.useRealTimers();
+    cleanup();
+    apiMocks.getStats.mockReset();
+    apiMocks.getWeekly.mockReset();
   });
 
-  it('returns stats and weeklyGoal after loading', async () => {
-    vi.useFakeTimers();
-    const { renderHook, act } = await import('@testing-library/react');
-    const { useStats } = await import('@/hooks/useStats');
+  it('loads stats and weekly summary from backend APIs', async () => {
+    apiMocks.getStats.mockResolvedValue(stats);
+    apiMocks.getWeekly.mockResolvedValue(weeklySummary);
 
     const { result } = renderHook(() => useStats());
 
     expect(result.current.loading).toBe(true);
-    expect(result.current.stats).toBeNull();
 
-    await act(async () => {
-      vi.advanceTimersByTime(500);
-    });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
-    expect(result.current.loading).toBe(false);
-    expect(result.current.stats).not.toBeNull();
-    expect(result.current.weeklyGoal).not.toBeNull();
+    expect(result.current.stats).toEqual(stats);
+    expect(result.current.weeklySummary).toEqual(weeklySummary);
     expect(result.current.error).toBeNull();
   });
 
-  it('calculates totalWorkouts from completed workouts', async () => {
-    vi.useFakeTimers();
-    const { renderHook, act } = await import('@testing-library/react');
-    const { useStats } = await import('@/hooks/useStats');
+  it('refetch reloads backend stats', async () => {
+    apiMocks.getStats.mockResolvedValue(stats);
+    apiMocks.getWeekly.mockResolvedValue(weeklySummary);
 
     const { result } = renderHook(() => useStats());
 
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
     await act(async () => {
-      vi.advanceTimersByTime(500);
+      await result.current.refetch();
     });
 
-    expect(result.current.stats!.totalWorkouts).toBeGreaterThan(0);
+    expect(apiMocks.getStats).toHaveBeenCalledTimes(2);
+    expect(apiMocks.getWeekly).toHaveBeenCalledTimes(2);
   });
 
-  it('has valid weekly goal structure', async () => {
-    vi.useFakeTimers();
-    const { renderHook, act } = await import('@testing-library/react');
-    const { useStats } = await import('@/hooks/useStats');
+  it('sets an error when either stats request fails', async () => {
+    apiMocks.getStats.mockResolvedValue(stats);
+    apiMocks.getWeekly.mockRejectedValue(new Error('network'));
 
     const { result } = renderHook(() => useStats());
 
-    await act(async () => {
-      vi.advanceTimersByTime(500);
-    });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
-    const goal = result.current.weeklyGoal!;
-    expect(goal.workoutGoal).toBeGreaterThan(0);
-    expect(goal.durationGoalMinutes).toBeGreaterThan(0);
-    expect(goal.completedWorkouts).toBeGreaterThanOrEqual(0);
-    expect(goal.completedDurationMinutes).toBeGreaterThanOrEqual(0);
-  });
-
-  it('refetch reloads stats', async () => {
-    vi.useFakeTimers();
-    const { renderHook, act } = await import('@testing-library/react');
-    const { useStats } = await import('@/hooks/useStats');
-
-    const { result } = renderHook(() => useStats());
-
-    await act(async () => {
-      vi.advanceTimersByTime(500);
-    });
-
-    expect(result.current.loading).toBe(false);
-
-    act(() => {
-      result.current.refetch();
-    });
-
-    expect(result.current.loading).toBe(true);
-
-    await act(async () => {
-      vi.advanceTimersByTime(500);
-    });
-
-    expect(result.current.loading).toBe(false);
-    expect(result.current.stats).not.toBeNull();
+    expect(result.current.error).toBe('Statistiken konnten nicht geladen werden.');
+    expect(result.current.stats).toBeNull();
+    expect(result.current.weeklySummary).toBeNull();
   });
 });

@@ -31,7 +31,7 @@ export function WebDashboard({ data }: { data: DashboardData }) {
           <HeartCard desktop={!isMobile} />
         </FadeIn>
         <FadeIn delay={200} style={[webStyles.webMetricCardFlex, isMobile && { minWidth: '100%' }]}>
-          <WeekCard desktop={!isMobile} compact={isMobile} />
+          <WeekCard desktop={!isMobile} compact={isMobile} summary={data.weeklySummary} />
         </FadeIn>
       </View>
 

@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { api, DailyActivity } from '@/lib/api';
+import { api, DailyActivity, WeeklyActivitySummary } from '@/lib/api';
 import { readTodayHealthConnectActivity } from '@/lib/healthConnect';
 import { useAuth } from '@/lib/auth-context';
 import { DashboardData, DESKTOP_BREAKPOINT, STEP_GOAL } from '@/constants/dashboard-constants';
@@ -22,13 +22,18 @@ export default function HomeScreenWeb() {
   const { user } = useAuth();
   const { width } = useWindowDimensions();
   const [activity, setActivity] = useState<DailyActivity | null>(null);
+  const [weeklySummary, setWeeklySummary] = useState<WeeklyActivitySummary | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
     try {
       const now = new Date();
       const activityDate = formatLocalDateKey(now);
-      const serverActivity = await api.activity.today({ date: activityDate });
+      const [serverActivity, nextWeeklySummary] = await Promise.all([
+        api.activity.today({ date: activityDate }),
+        api.stats.weekly(),
+      ]);
+      setWeeklySummary(nextWeeklySummary);
       const healthActivity = await readTodayHealthConnectActivity(now);
 
       if (!healthActivity) {
@@ -93,6 +98,7 @@ export default function HomeScreenWeb() {
     refreshing,
     stepProgress,
     steps,
+    weeklySummary,
     onRefresh,
     onActivityUpdated: (updatedActivity) => setActivity(updatedActivity),
   };

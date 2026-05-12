@@ -94,8 +94,8 @@ pub async fn upsert_today(
     move_progress: f64,
     exercise_progress: f64,
     stand_progress: f64,
-) -> Result<DailyActivity, AppError> {
-    sqlx::query_as::<_, DailyActivity>(
+) -> Result<(), AppError> {
+    sqlx::query(
         r#"
         INSERT INTO activity_logs 
             (user_id, activity_date, steps, calories, active_minutes, move_progress, exercise_progress, stand_progress)
@@ -109,7 +109,6 @@ pub async fn upsert_today(
             exercise_progress = EXCLUDED.exercise_progress,
             stand_progress = EXCLUDED.stand_progress,
             updated_at = NOW()
-        RETURNING steps, calories, active_minutes, move_progress, exercise_progress, stand_progress
         "#,
     )
     .bind(user_id)
@@ -120,8 +119,9 @@ pub async fn upsert_today(
     .bind(move_progress)
     .bind(exercise_progress)
     .bind(stand_progress)
-    .fetch_one(pool)
+    .execute(pool)
     .await
+    .map(|_| ())
     .map_err(AppError::Database)
 }
 

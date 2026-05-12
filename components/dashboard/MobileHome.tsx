@@ -77,7 +77,7 @@ export function MobileHome({ data }: { data: DashboardData }) {
           </FadeIn>
 
           <FadeIn delay={340} style={[styles.smallCardFlex, isNarrow && { minWidth: '100%' }]}>
-            <WeekCard compact={isNarrow} />
+            <WeekCard compact={isNarrow} summary={data.weeklySummary} />
           </FadeIn>
         </View>
 

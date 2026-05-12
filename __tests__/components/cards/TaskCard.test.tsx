@@ -146,6 +146,27 @@ describe('TaskCard', () => {
     expect((incrementButton as HTMLButtonElement).disabled).toBe(true);
   });
 
+  it('toggles a completed multi-set task instead of incrementing past the target', async () => {
+    const onToggle = vi.fn().mockResolvedValue(undefined);
+    const onIncrementSet = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <TaskCard
+        task={{ ...baseTask, completed_sets_today: 3, completed_today: true, target_sets: 3 }}
+        onToggle={onToggle}
+        onIncrementSet={onIncrementSet}
+        onDelete={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Aufgabe aktualisieren' }));
+
+    await waitFor(() => {
+      expect(onToggle).toHaveBeenCalledWith('task-1');
+    });
+    expect(onIncrementSet).not.toHaveBeenCalled();
+  });
+
   it('shows an inline error when delete rejects', async () => {
     const onDelete = vi.fn().mockRejectedValue(new Error('Network failed'));
 

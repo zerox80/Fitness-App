@@ -199,11 +199,86 @@ describe('api.workouts.list()', () => {
   it('combines multiple params', async () => {
     mockFetch.mockResolvedValue(mockJsonResponse([]));
 
-    await api.workouts.list({ category: 'cardio', completed: false });
+    await api.workouts.list({ category: 'cardio', completed: false, page: 2, per_page: 50 });
 
     const url = mockFetch.mock.calls[0][0];
     expect(url).toContain('category=cardio');
     expect(url).toContain('completed=false');
+    expect(url).toContain('page=2');
+    expect(url).toContain('per_page=50');
+  });
+
+  it('listAll fetches workout pages until the final short page', async () => {
+    mockFetch
+      .mockResolvedValueOnce(mockJsonResponse(Array.from({ length: 100 }, (_, index) => ({ id: `wo-${index}` }))))
+      .mockResolvedValueOnce(mockJsonResponse([{ id: 'wo-final' }]));
+
+    const result = await api.workouts.listAll({ completed: true });
+
+    expect(result).toHaveLength(101);
+    expect(mockFetch.mock.calls[0][0]).toContain('page=1');
+    expect(mockFetch.mock.calls[0][0]).toContain('per_page=100');
+    expect(mockFetch.mock.calls[0][0]).toContain('completed=true');
+    expect(mockFetch.mock.calls[1][0]).toContain('page=2');
+  });
+});
+
+describe('api.exercises', () => {
+  it('list() builds exercise query params', async () => {
+    mockFetch.mockResolvedValue(mockJsonResponse([]));
+
+    await api.exercises.list({
+      muscle_group: 'chest',
+      equipment: 'barbell',
+      difficulty: 'beginner',
+      search: 'press',
+      page: 2,
+      per_page: 50,
+    });
+
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toContain('/exercises?');
+    expect(url).toContain('muscle_group=chest');
+    expect(url).toContain('equipment=barbell');
+    expect(url).toContain('difficulty=beginner');
+    expect(url).toContain('search=press');
+    expect(url).toContain('page=2');
+    expect(url).toContain('per_page=50');
+    expect(options.method).toBeUndefined();
+  });
+
+  it('get() sends GET to exercise detail endpoint', async () => {
+    mockFetch.mockResolvedValue(mockJsonResponse({ id: 'ex-001' }));
+
+    await api.exercises.get('ex-001');
+
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toContain('/exercises/ex-001');
+    expect(options.method).toBeUndefined();
+  });
+});
+
+describe('api.stats.weekly()', () => {
+  it('sends GET to the weekly stats endpoint', async () => {
+    mockFetch.mockResolvedValue(mockJsonResponse({ week_start: '2026-05-04' }));
+
+    await api.stats.weekly();
+
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toContain('/stats/weekly');
+    expect(options.method).toBeUndefined();
+  });
+});
+
+describe('api.users.profile()', () => {
+  it('sends GET to the current user profile endpoint', async () => {
+    mockFetch.mockResolvedValue(mockJsonResponse({ id: 'user-1' }));
+
+    await api.users.profile();
+
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toContain('/users/me');
+    expect(options.method).toBeUndefined();
   });
 });
 

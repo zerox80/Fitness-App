@@ -16,6 +16,7 @@ import { FadeIn } from '@/components/FadeIn';
 import { QuickStartModal } from '@/components/modals/QuickStartModal';
 import { GeneratedWorkoutModal, WorkoutModalData } from '@/components/modals/GeneratedWorkoutModal';
 import { api, ApiWorkout, GeneratedWorkout } from '@/lib/api';
+import { categoryFromGeneratedWorkoutFocus } from '@/utils/workoutCategory';
 
 const CATEGORIES = [
   { label: 'Alle', value: undefined, icon: Zap, color: Colors.primary },
@@ -89,10 +90,6 @@ function WorkoutDataCard({
             <Clock size={15} color={Colors.textMuted} />
             <Text style={styles.metricText}>{workout.duration_minutes} Min</Text>
           </View>
-          <View style={styles.metricItem}>
-            <Flame size={15} color={Colors.textMuted} />
-            <Text style={styles.metricText}>0 kcal</Text>
-          </View>
         </View>
       </View>
       <TouchableOpacity
@@ -144,13 +141,13 @@ export default function WorkoutScreen() {
       const category = CATEGORIES[activeCategory]?.value;
       if (category) {
         const [filteredWorkouts, allWorkouts] = await Promise.all([
-          api.workouts.list({ category }),
-          api.workouts.list(),
+          api.workouts.listAll({ category }),
+          api.workouts.listAll(),
         ]);
         setWorkouts(filteredWorkouts);
         setHasAnyWorkouts(allWorkouts.length > 0);
       } else {
-        const allWorkouts = await api.workouts.list();
+        const allWorkouts = await api.workouts.listAll();
         setWorkouts(allWorkouts);
         setHasAnyWorkouts(allWorkouts.length > 0);
       }
@@ -205,7 +202,7 @@ export default function WorkoutScreen() {
       setSelectedWorkout((current) => (current?.id === workoutId ? null : current));
       if (CATEGORIES[activeCategory]?.value) {
         try {
-          const allWorkouts = await api.workouts.list();
+          const allWorkouts = await api.workouts.listAll();
           setHasAnyWorkouts(allWorkouts.length > 0);
         } catch {
           setHasAnyWorkouts(remainingWorkouts.length > 0);
@@ -334,7 +331,7 @@ export default function WorkoutScreen() {
                 description: generatedWorkout.description,
                 duration_minutes: generatedWorkout.total_duration,
                 intensity: generatedWorkout.intensity.toLowerCase(),
-                category: generatedFocus.toLowerCase().replace(/\s+/g, '_'),
+                category: categoryFromGeneratedWorkoutFocus(generatedFocus),
                 exercises: generatedWorkout.exercises,
               });
               await loadWorkouts();

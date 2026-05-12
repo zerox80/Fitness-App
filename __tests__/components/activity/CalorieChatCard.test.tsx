@@ -220,7 +220,7 @@ describe('CalorieChatCard', () => {
       additional_calories: 420,
       additional_active_minutes: 45,
     });
-    expect(screen.getByText('Joggen')).toBeTruthy();
+    expect(screen.getAllByText('Joggen')).toHaveLength(2);
   });
 
   it('loads saved entries and deletes an incorrect entry', async () => {

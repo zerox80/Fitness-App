@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
-import { Clock, Dumbbell, Eye, Flame, Play, Trash2 } from 'lucide-react-native';
+import { Clock, Dumbbell, Eye, Play, Trash2 } from 'lucide-react-native';
 
 import { Colors } from '@/constants/Colors';
 import { DESKTOP_BREAKPOINT } from '@/constants/dashboard-constants';
@@ -8,6 +8,7 @@ import { FadeIn } from '@/components/FadeIn';
 import { QuickStartModal } from '@/components/modals/QuickStartModal';
 import { GeneratedWorkoutModal, WorkoutModalData } from '@/components/modals/GeneratedWorkoutModal';
 import { api, ApiWorkout, GeneratedWorkout } from '@/lib/api';
+import { categoryFromGeneratedWorkoutFocus } from '@/utils/workoutCategory';
 
 function formatIntensity(value: string) {
   const map: Record<string, string> = {
@@ -78,10 +79,6 @@ function WorkoutCard({
             <Clock size={16} color={Colors.textMuted} />
             <Text style={styles.metaText}>{workout.duration_minutes} Min</Text>
           </View>
-          <View style={styles.metaItem}>
-            <Flame size={16} color={Colors.textMuted} />
-            <Text style={styles.metaText}>0 kcal</Text>
-          </View>
         </View>
         <View style={styles.cardActions}>
           <TouchableOpacity
@@ -133,7 +130,7 @@ export default function WorkoutScreenWeb() {
   async function loadWorkouts() {
     setLoading(true);
     try {
-      setWorkouts(await api.workouts.list());
+      setWorkouts(await api.workouts.listAll());
     } catch {
       setWorkouts([]);
     } finally {
@@ -272,7 +269,7 @@ export default function WorkoutScreenWeb() {
                 description: generatedWorkout.description,
                 duration_minutes: generatedWorkout.total_duration,
                 intensity: generatedWorkout.intensity.toLowerCase(),
-                category: generatedFocus.toLowerCase().replace(/\s+/g, '_'),
+                category: categoryFromGeneratedWorkoutFocus(generatedFocus),
                 exercises: generatedWorkout.exercises,
               });
               await loadWorkouts();

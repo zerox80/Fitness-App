@@ -14,8 +14,8 @@ export function WorkoutCard({ workout, onPress }: WorkoutCardProps) {
   const totalVolume = workout.exercises.reduce((sum, ex) => {
     return sum + calculateVolume(ex.sets);
   }, 0);
-
   const totalSets = workout.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
+  const hasExerciseDetails = workout.exercises.length > 0;
 
   const statusColor =
     workout.status === 'completed'
@@ -34,7 +34,13 @@ export function WorkoutCard({ workout, onPress }: WorkoutCardProps) {
           {workout.title}
         </Text>
         <View style={[styles.badge, { backgroundColor: `${statusColor}18` }]}>
-          <Text style={[styles.badgeText, { color: statusColor }]}>{workout.status === 'completed' ? 'Erledigt' : workout.status === 'in_progress' ? 'Aktiv' : workout.type.toUpperCase()}</Text>
+          <Text style={[styles.badgeText, { color: statusColor }]}>
+            {workout.status === 'completed'
+              ? 'Erledigt'
+              : workout.status === 'in_progress'
+              ? 'Aktiv'
+              : workout.type.toUpperCase()}
+          </Text>
         </View>
       </View>
       {workout.description && (
@@ -44,21 +50,25 @@ export function WorkoutCard({ workout, onPress }: WorkoutCardProps) {
       )}
       <View style={styles.footer}>
         <View style={styles.metaItem}>
-          <Text style={styles.metaValue}>{workout.scheduledAt ? formatDate(workout.scheduledAt) : '—'}</Text>
+          <Text style={styles.metaValue}>{workout.scheduledAt ? formatDate(workout.scheduledAt) : '-'}</Text>
         </View>
         {workout.durationSeconds && (
           <View style={styles.metaItem}>
             <Text style={styles.metaValue}>{formatDuration(workout.durationSeconds)}</Text>
           </View>
         )}
-        <View style={styles.metaItem}>
-          <Text style={styles.metaValue}>{totalSets}</Text>
-          <Text style={styles.metaLabel}>Sätze</Text>
-        </View>
-        <View style={styles.metaItem}>
-          <Text style={styles.metaValue}>{totalVolume.toFixed(0)}</Text>
-          <Text style={styles.metaLabel}>kg Volumen</Text>
-        </View>
+        {hasExerciseDetails && (
+          <>
+            <View style={styles.metaItem}>
+              <Text style={styles.metaValue}>{totalSets}</Text>
+              <Text style={styles.metaLabel}>Saetze</Text>
+            </View>
+            <View style={styles.metaItem}>
+              <Text style={styles.metaValue}>{totalVolume.toFixed(0)}</Text>
+              <Text style={styles.metaLabel}>kg Volumen</Text>
+            </View>
+          </>
+        )}
       </View>
       {workout.tags.length > 0 && (
         <View style={styles.tags}>

@@ -7,6 +7,11 @@ import { DESKTOP_BREAKPOINT } from '@/constants/dashboard-constants';
 import { useAuth } from '@/lib/auth-context';
 import { api, UserStats } from '@/lib/api';
 
+function membershipYear(createdAt: string) {
+  const date = new Date(createdAt);
+  return Number.isNaN(date.getTime()) ? '' : String(date.getFullYear());
+}
+
 export default function ProfileScreenWeb() {
   const { width } = useWindowDimensions();
   const isMobile = width < DESKTOP_BREAKPOINT;
@@ -26,6 +31,7 @@ export default function ProfileScreenWeb() {
   }
 
   if (!user) return null;
+  const joinedYear = membershipYear(user.created_at);
 
   const statItems = [
     { label: 'Trainings', value: stats?.total_workouts ?? 0, icon: Trophy, color: Colors.primary },
@@ -60,7 +66,9 @@ export default function ProfileScreenWeb() {
             </View>
             <View style={styles.userCopy}>
               <Text style={[styles.userName, isMobile && { fontSize: 22 }]}>{user.name}</Text>
-              <Text style={styles.userEmail}>FitPulse Konto</Text>
+              <Text style={styles.userEmail}>
+                {joinedYear ? `Mitglied seit ${joinedYear}` : 'FitPulse Konto'}
+              </Text>
             </View>
           </View>
 

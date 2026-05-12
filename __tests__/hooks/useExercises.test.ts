@@ -1,157 +1,106 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, renderHook, waitFor } from '@testing-library/react';
+
+const apiMocks = vi.hoisted(() => ({
+  listAll: vi.fn(),
+}));
+
+vi.mock('@/lib/api', () => ({
+  api: {
+    exercises: {
+      listAll: apiMocks.listAll,
+    },
+  },
+}));
+
+import { useExercises } from '@/hooks/useExercises';
+
+const apiExercise = {
+  id: 'ex-001',
+  name: 'Bankdruecken',
+  description: 'Brustuebung',
+  muscle_groups: ['chest', 'triceps'],
+  equipment: ['barbell', 'bench'],
+  difficulty: 'intermediate',
+  instructions: ['Lie down', 'Press'],
+  image_url: 'https://example.com/bench.png',
+  video_url: null,
+  is_custom: false,
+  user_id: null,
+  created_at: '2026-05-07T00:00:00Z',
+  updated_at: '2026-05-07T00:00:00Z',
+};
 
 describe('useExercises', () => {
   afterEach(() => {
-    vi.useRealTimers();
+    cleanup();
+    apiMocks.listAll.mockReset();
   });
 
-  it('returns all exercises with no filter', async () => {
-    vi.useFakeTimers();
-    const { renderHook, act } = await import('@testing-library/react');
-    const { useExercises } = await import('@/hooks/useExercises');
+  it('fetches exercises from the backend and maps snake_case fields', async () => {
+    apiMocks.listAll.mockResolvedValue([apiExercise]);
 
     const { result } = renderHook(() => useExercises());
 
-    await act(async () => {
-      vi.advanceTimersByTime(300);
-    });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
-    expect(result.current.loading).toBe(false);
-    expect(result.current.exercises.length).toBeGreaterThan(0);
+    expect(apiMocks.listAll).toHaveBeenCalledWith({
+      muscle_group: undefined,
+      equipment: undefined,
+      difficulty: undefined,
+      search: undefined,
+    });
+    expect(result.current.exercises[0]).toMatchObject({
+      id: 'ex-001',
+      name: 'Bankdruecken',
+      description: 'Brustuebung',
+      muscleGroups: ['chest', 'triceps'],
+      equipment: ['barbell', 'bench'],
+      difficulty: 'intermediate',
+      instructions: ['Lie down', 'Press'],
+      imageUrl: 'https://example.com/bench.png',
+      isCustom: false,
+    });
     expect(result.current.error).toBeNull();
   });
 
-  it('filters by muscleGroup', async () => {
-    vi.useFakeTimers();
-    const { renderHook, act } = await import('@testing-library/react');
-    const { useExercises } = await import('@/hooks/useExercises');
-
-    const { result } = renderHook(() => useExercises({ muscleGroup: 'chest' }));
-
-    await act(async () => {
-      vi.advanceTimersByTime(300);
-    });
-
-    expect(
-      result.current.exercises.every((e) => e.muscleGroups.includes('chest'))
-    ).toBe(true);
-  });
-
-  it('filters by equipment', async () => {
-    vi.useFakeTimers();
-    const { renderHook, act } = await import('@testing-library/react');
-    const { useExercises } = await import('@/hooks/useExercises');
-
-    const { result } = renderHook(() => useExercises({ equipment: 'barbell' }));
-
-    await act(async () => {
-      vi.advanceTimersByTime(300);
-    });
-
-    expect(
-      result.current.exercises.every((e) => e.equipment.includes('barbell'))
-    ).toBe(true);
-  });
-
-  it('filters by difficulty', async () => {
-    vi.useFakeTimers();
-    const { renderHook, act } = await import('@testing-library/react');
-    const { useExercises } = await import('@/hooks/useExercises');
-
-    const { result } = renderHook(() => useExercises({ difficulty: 'beginner' }));
-
-    await act(async () => {
-      vi.advanceTimersByTime(300);
-    });
-
-    expect(
-      result.current.exercises.every((e) => e.difficulty === 'beginner')
-    ).toBe(true);
-  });
-
-  it('filters by search query (name)', async () => {
-    vi.useFakeTimers();
-    const { renderHook, act } = await import('@testing-library/react');
-    const { useExercises } = await import('@/hooks/useExercises');
-
-    const { result } = renderHook(() => useExercises({ search: 'Bankdrücken' }));
-
-    await act(async () => {
-      vi.advanceTimersByTime(300);
-    });
-
-    expect(result.current.exercises.length).toBeGreaterThan(0);
-    expect(
-      result.current.exercises.some((e) => e.name.toLowerCase().includes('bankdrücken'))
-    ).toBe(true);
-  });
-
-  it('filters by search query (muscleGroup)', async () => {
-    vi.useFakeTimers();
-    const { renderHook, act } = await import('@testing-library/react');
-    const { useExercises } = await import('@/hooks/useExercises');
-
-    const { result } = renderHook(() => useExercises({ search: 'chest' }));
-
-    await act(async () => {
-      vi.advanceTimersByTime(300);
-    });
-
-    expect(
-      result.current.exercises.some((e) =>
-        e.muscleGroups.some((m) => m.toLowerCase().includes('chest'))
-      )
-    ).toBe(true);
-  });
-
-  it('combines multiple filters', async () => {
-    vi.useFakeTimers();
-    const { renderHook, act } = await import('@testing-library/react');
-    const { useExercises } = await import('@/hooks/useExercises');
+  it('passes filters to the exercise API', async () => {
+    apiMocks.listAll.mockResolvedValue([]);
 
     const { result } = renderHook(() =>
-      useExercises({ muscleGroup: 'chest', equipment: 'barbell' })
+      useExercises({ muscleGroup: 'chest', equipment: 'barbell', difficulty: 'beginner', search: 'press' })
     );
 
-    await act(async () => {
-      vi.advanceTimersByTime(300);
-    });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
-    expect(
-      result.current.exercises.every(
-        (e) => e.muscleGroups.includes('chest') && e.equipment.includes('barbell')
-      )
-    ).toBe(true);
+    expect(apiMocks.listAll).toHaveBeenCalledWith({
+      muscle_group: 'chest',
+      equipment: 'barbell',
+      difficulty: 'beginner',
+      search: 'press',
+    });
   });
 
-  it('getExerciseById returns correct exercise', async () => {
-    vi.useFakeTimers();
-    const { renderHook, act } = await import('@testing-library/react');
-    const { useExercises } = await import('@/hooks/useExercises');
+  it('getExerciseById returns mapped exercises and null for missing IDs', async () => {
+    apiMocks.listAll.mockResolvedValue([apiExercise]);
 
     const { result } = renderHook(() => useExercises());
 
-    await act(async () => {
-      vi.advanceTimersByTime(300);
-    });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
-    const exercise = result.current.getExerciseById('ex-001');
-    expect(exercise).not.toBeNull();
-    expect(exercise!.name).toBe('Bankdrücken');
+    expect(result.current.getExerciseById('ex-001')?.name).toBe('Bankdruecken');
+    expect(result.current.getExerciseById('missing')).toBeNull();
   });
 
-  it('getExerciseById returns null for missing ID', async () => {
-    vi.useFakeTimers();
-    const { renderHook, act } = await import('@testing-library/react');
-    const { useExercises } = await import('@/hooks/useExercises');
+  it('sets an error when the API request fails', async () => {
+    apiMocks.listAll.mockRejectedValue(new Error('network'));
 
     const { result } = renderHook(() => useExercises());
 
-    await act(async () => {
-      vi.advanceTimersByTime(300);
-    });
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
-    expect(result.current.getExerciseById('nonexistent')).toBeNull();
+    expect(result.current.exercises).toEqual([]);
+    expect(result.current.error).toBe('Uebungen konnten nicht geladen werden.');
   });
 });

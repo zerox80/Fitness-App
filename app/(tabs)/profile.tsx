@@ -15,6 +15,11 @@ const SETTINGS = [
   { icon: User, title: 'Konto verwalten', value: '', color: Colors.textMuted },
 ];
 
+function membershipYear(createdAt: string) {
+  const date = new Date(createdAt);
+  return Number.isNaN(date.getTime()) ? '' : String(date.getFullYear());
+}
+
 export default function ProfileScreen() {
   const { width } = useWindowDimensions();
   const isWide = width >= 650;
@@ -39,6 +44,7 @@ export default function ProfileScreen() {
     { label: 'Minuten', value: stats?.total_minutes ?? 0, icon: TrendingUp, color: Colors.secondary },
     { label: 'Serie', value: stats?.current_streak ?? 0, icon: Calendar, color: Colors.tertiary },
   ];
+  const joinedYear = membershipYear(user?.created_at ?? '');
 
   if (!user) {
     return (
@@ -84,7 +90,9 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.userCopy}>
               <Text style={styles.name}>{user.name}</Text>
-              <Text style={styles.memberText}>Mitglied seit {new Date().getFullYear()}</Text>
+              <Text style={styles.memberText}>
+                {joinedYear ? `Mitglied seit ${joinedYear}` : 'FitPulse Konto'}
+              </Text>
             </View>
           </View>
         </FadeIn>

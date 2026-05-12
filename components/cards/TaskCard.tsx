@@ -43,7 +43,7 @@ export function TaskCard({ task, onToggle, onIncrementSet, onDelete }: TaskCardP
     setActionError(null);
     setPendingAction('complete');
     try {
-      if (task.target_sets > 1) {
+      if (task.target_sets > 1 && !isCompleted) {
         await onIncrementSet(task.id);
       } else {
         await onToggle(task.id);
@@ -78,7 +78,7 @@ export function TaskCard({ task, onToggle, onIncrementSet, onDelete }: TaskCardP
           style={styles.checkboxTouch}
           onPress={handlePress}
           accessibilityRole="button"
-          accessibilityLabel={task.target_sets > 1 ? 'Satz abschließen' : 'Aufgabe aktualisieren'}
+          accessibilityLabel={task.target_sets > 1 && !isCompleted ? 'Satz abschließen' : 'Aufgabe aktualisieren'}
           activeOpacity={0.7}
           disabled={isPending}
         >

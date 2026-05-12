@@ -1,12 +1,28 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Exercise, MuscleGroup, EquipmentType } from '@/types';
-import { defaultExercises } from '@/data/mockExercises';
+import { api, ApiExercise } from '@/lib/api';
 
 interface UseExercisesOptions {
   muscleGroup?: MuscleGroup;
   equipment?: EquipmentType;
   difficulty?: 'beginner' | 'intermediate' | 'advanced';
   search?: string;
+}
+
+export function mapApiExercise(exercise: ApiExercise): Exercise {
+  return {
+    id: exercise.id,
+    name: exercise.name,
+    description: exercise.description ?? undefined,
+    muscleGroups: exercise.muscle_groups,
+    equipment: exercise.equipment,
+    difficulty: exercise.difficulty,
+    instructions: exercise.instructions ?? undefined,
+    imageUrl: exercise.image_url ?? undefined,
+    videoUrl: exercise.video_url ?? undefined,
+    isCustom: exercise.is_custom,
+    userId: exercise.user_id ?? undefined,
+  };
 }
 
 export function useExercises(options: UseExercisesOptions = {}) {
@@ -18,29 +34,15 @@ export function useExercises(options: UseExercisesOptions = {}) {
     setLoading(true);
     setError(null);
     try {
-      await new Promise((r) => setTimeout(r, 300));
-      let data = [...defaultExercises];
-      if (options.muscleGroup) {
-        data = data.filter((e) => e.muscleGroups.includes(options.muscleGroup!));
-      }
-      if (options.equipment) {
-        data = data.filter((e) => e.equipment.includes(options.equipment!));
-      }
-      if (options.difficulty) {
-        data = data.filter((e) => e.difficulty === options.difficulty);
-      }
-      if (options.search) {
-        const q = options.search.toLowerCase();
-        data = data.filter(
-          (e) =>
-            e.name.toLowerCase().includes(q) ||
-            e.description?.toLowerCase().includes(q) ||
-            e.muscleGroups.some((m) => m.toLowerCase().includes(q))
-        );
-      }
-      setExercises(data);
-    } catch (e) {
-      setError('Übungen konnten nicht geladen werden.');
+      const data = await api.exercises.listAll({
+        muscle_group: options.muscleGroup,
+        equipment: options.equipment,
+        difficulty: options.difficulty,
+        search: options.search,
+      });
+      setExercises(data.map(mapApiExercise));
+    } catch {
+      setError('Uebungen konnten nicht geladen werden.');
     } finally {
       setLoading(false);
     }
