@@ -70,7 +70,10 @@ pub async fn update_task(
             id: task_id,
             user_id,
             title: req.title.as_deref(),
-            description: req.description.as_deref(),
+            description: req
+                .description
+                .as_ref()
+                .map(|description| description.as_deref()),
             recurrence: req.recurrence.as_ref(),
             custom_days: custom_days_update.as_deref(),
             category: req.category.as_ref(),
@@ -151,22 +154,9 @@ pub async fn increment_task_set(
     user_id: Uuid,
     date: NaiveDate,
 ) -> Result<i32, AppError> {
-    let task = tasks::find_by_id(&state.pool, task_id, user_id).await?;
-    let task = task.ok_or(AppError::NotFound)?;
-
-    let completed_ids_with_sets =
-        tasks::get_completions_for_date(&state.pool, user_id, date).await?;
-    let existing_sets = completed_ids_with_sets
-        .iter()
-        .find(|(id, _)| *id == task_id)
-        .map(|(_, sets)| *sets)
-        .unwrap_or(0);
-
-    let new_sets = next_completed_sets(existing_sets, task.target_sets);
-
-    tasks::complete_task(&state.pool, task_id, user_id, date, new_sets).await?;
-
-    Ok(new_sets)
+    tasks::increment_task_set(&state.pool, task_id, user_id, date)
+        .await?
+        .ok_or(AppError::NotFound)
 }
 
 pub async fn get_tasks_with_completion(
@@ -228,6 +218,7 @@ fn task_completion_is_complete(completed_sets: i32, target_sets: i32) -> bool {
     completed_sets >= target_sets
 }
 
+#[cfg(test)]
 fn next_completed_sets(existing_sets: i32, target_sets: i32) -> i32 {
     let target_sets = target_sets.max(1);
     (existing_sets + 1).clamp(1, target_sets)

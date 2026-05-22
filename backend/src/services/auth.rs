@@ -12,7 +12,7 @@ use crate::{
     models::{AuthResponse, LoginRequest, RegisterRequest},
     repository::users,
     state::AppState,
-    validators::user::{validate_email, validate_name, validate_password},
+    validators::user::{normalize_email, validate_email, validate_name, validate_password},
 };
 
 pub async fn register(state: &AppState, req: RegisterRequest) -> Result<AuthResponse, AppError> {
@@ -20,7 +20,8 @@ pub async fn register(state: &AppState, req: RegisterRequest) -> Result<AuthResp
     validate_name(&req.name)?;
     validate_password(&req.password)?;
 
-    let existing = users::find_by_email(&state.pool, &req.email).await?;
+    let email = normalize_email(&req.email);
+    let existing = users::find_by_email(&state.pool, &email).await?;
     if existing.is_some() {
         return Err(AppError::Validation("Email already in use".to_string()));
     }
@@ -32,7 +33,7 @@ pub async fn register(state: &AppState, req: RegisterRequest) -> Result<AuthResp
         .map_err(|_| AppError::Internal("Password hashing failed".to_string()))?
         .to_string();
 
-    let user = users::create(&state.pool, &req.email, &req.name, &password_hash).await?;
+    let user = users::create(&state.pool, &email, &req.name, &password_hash).await?;
 
     let token = generate_token(&user.id, &state.config.jwt_secret)?;
 
@@ -43,7 +44,8 @@ pub async fn register(state: &AppState, req: RegisterRequest) -> Result<AuthResp
 }
 
 pub async fn login(state: &AppState, req: LoginRequest) -> Result<AuthResponse, AppError> {
-    let user = users::find_by_email(&state.pool, &req.email).await?;
+    let email = normalize_email(&req.email);
+    let user = users::find_by_email(&state.pool, &email).await?;
 
     let parsed_hash = match &user {
         Some(u) => PasswordHash::new(&u.password_hash).ok(),

@@ -166,7 +166,7 @@ pub async fn update(
     id: Uuid,
     user_id: Uuid,
     title: Option<&str>,
-    description: Option<&str>,
+    description: Option<Option<&str>>,
     duration_minutes: Option<i32>,
     intensity: Option<&str>,
     category: Option<&str>,
@@ -178,16 +178,18 @@ pub async fn update(
         .map_err(|err| {
             AppError::Internal(format!("Failed to serialize workout exercises: {}", err))
         })?;
+    let description_is_set = description.is_some();
+    let description_value = description.flatten();
     let query = format!(
         r#"
         UPDATE workouts
         SET
             title = COALESCE($3, title),
-            description = COALESCE($4, description),
-            duration_minutes = COALESCE($5, duration_minutes),
-            intensity = COALESCE($6, intensity),
-            category = COALESCE($7, category),
-            exercises = COALESCE($8::jsonb, exercises),
+            description = CASE WHEN $4 THEN $5 ELSE description END,
+            duration_minutes = COALESCE($6, duration_minutes),
+            intensity = COALESCE($7, intensity),
+            category = COALESCE($8, category),
+            exercises = COALESCE($9::jsonb, exercises),
             updated_at = NOW()
         WHERE id = $1 AND user_id = $2
         RETURNING {}
@@ -199,7 +201,8 @@ pub async fn update(
         .bind(id)
         .bind(user_id)
         .bind(title)
-        .bind(description)
+        .bind(description_is_set)
+        .bind(description_value)
         .bind(duration_minutes)
         .bind(intensity)
         .bind(category)

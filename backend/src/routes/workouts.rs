@@ -1,4 +1,5 @@
 use axum::{extract::State, Json};
+use std::time::Duration;
 use uuid::Uuid;
 
 use crate::{
@@ -12,13 +13,29 @@ use crate::{
 
 const WORKOUT_GENERATION_UNAVAILABLE_MESSAGE: &str =
     "Trainingsplanung ist gerade nicht verfuegbar.";
+const WORKOUT_GENERATION_RATE_LIMIT: usize = 10;
+const WORKOUT_GENERATION_RATE_WINDOW: Duration = Duration::from_secs(600);
+const WORKOUT_GENERATION_RATE_LIMIT_MESSAGE: &str =
+    "Zu viele Trainingsplan-Anfragen. Bitte versuche es spaeter erneut.";
 
 pub async fn generate_workout(
     State(state): State<AppState>,
-    axum::Extension(_auth_user): axum::Extension<AuthUser>,
+    axum::Extension(auth_user): axum::Extension<AuthUser>,
     Json(req): Json<GenerateWorkoutRequest>,
 ) -> Result<Json<crate::dto::GeneratedWorkout>, AppError> {
     req.validate().map_err(AppError::Validation)?;
+
+    let rate_limit_key = format!("workout-generation:{}", auth_user.user_id);
+    if !state.rate_limiter.is_allowed(
+        &rate_limit_key,
+        WORKOUT_GENERATION_RATE_LIMIT,
+        WORKOUT_GENERATION_RATE_WINDOW,
+    ) {
+        return Err(AppError::RateLimited(
+            WORKOUT_GENERATION_RATE_LIMIT_MESSAGE.to_string(),
+        ));
+    }
+
     let ai_service = AiService::new(&state.config).map_err(workout_generation_error)?;
     let workout = ai_service
         .generate_workout(&req)

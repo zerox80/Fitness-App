@@ -118,6 +118,16 @@ describe('api.tasks.update()', () => {
     expect(options.method).toBe('PUT');
     expect(JSON.parse(options.body)).toEqual(data);
   });
+
+  it('sends null description to clear an existing task description', async () => {
+    const data = { description: null };
+    mockFetch.mockResolvedValue(mockJsonResponse({ id: 'task-1', description: null }));
+
+    await api.tasks.update('task-1', data);
+
+    const [, options] = mockFetch.mock.calls[0];
+    expect(JSON.parse(options.body)).toEqual(data);
+  });
 });
 
 describe('api.tasks.delete()', () => {

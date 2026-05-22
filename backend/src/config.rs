@@ -1,5 +1,8 @@
 use std::{env, net::IpAddr};
 
+pub const DEFAULT_CORS_ORIGIN: &str =
+    "http://localhost:4001,http://127.0.0.1:4001,http://localhost:8081,http://127.0.0.1:8081";
+
 #[derive(Clone, Debug)]
 pub struct Config {
     pub database_url: String,
@@ -26,7 +29,10 @@ impl Config {
                 .parse()
                 .expect("APP_PORT must be a valid u16"),
             jwt_secret: env::var("JWT_SECRET").expect("JWT_SECRET must be set"),
-            cors_origin: env::var("CORS_ORIGIN").unwrap_or_else(|_| "*".to_string()),
+            cors_origin: env::var("CORS_ORIGIN")
+                .ok()
+                .filter(|value| !value.trim().is_empty())
+                .unwrap_or_else(|| DEFAULT_CORS_ORIGIN.to_string()),
             session_cookie_name: env::var("SESSION_COOKIE_NAME")
                 .unwrap_or_else(|_| "fitpulse_session".to_string()),
             cookie_secure: parse_bool_env("COOKIE_SECURE", false),
@@ -86,5 +92,39 @@ pub fn parse_cors_origins(raw: &str) -> Option<Vec<String>> {
         None
     } else {
         Some(origins)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_cors_origin_uses_local_web_origins() {
+        assert_eq!(
+            parse_cors_origins(DEFAULT_CORS_ORIGIN),
+            Some(vec![
+                "http://localhost:4001".to_string(),
+                "http://127.0.0.1:4001".to_string(),
+                "http://localhost:8081".to_string(),
+                "http://127.0.0.1:8081".to_string(),
+            ])
+        );
+    }
+
+    #[test]
+    fn wildcard_cors_origin_is_explicitly_permissive() {
+        assert_eq!(parse_cors_origins("*"), None);
+    }
+
+    #[test]
+    fn parses_comma_separated_cors_origins() {
+        assert_eq!(
+            parse_cors_origins(" https://app.example.com, https://admin.example.com "),
+            Some(vec![
+                "https://app.example.com".to_string(),
+                "https://admin.example.com".to_string(),
+            ])
+        );
     }
 }

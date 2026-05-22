@@ -89,7 +89,9 @@ pub async fn update_exercise(
         exercise_id,
         user_id,
         req.name.as_deref().map(str::trim),
-        req.description.as_deref(),
+        req.description
+            .as_ref()
+            .map(|description| description.as_deref()),
         req.muscle_groups.as_ref(),
         req.equipment.as_ref(),
         req.difficulty,

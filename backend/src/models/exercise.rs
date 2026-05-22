@@ -81,11 +81,21 @@ pub struct CreateExerciseRequest {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UpdateExerciseRequest {
     pub name: Option<String>,
-    pub description: Option<String>,
+    #[serde(
+        default,
+        deserialize_with = "crate::models::nullable::deserialize_nullable_update",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub description: Option<Option<String>>,
     pub muscle_groups: Option<Vec<MuscleGroup>>,
     pub equipment: Option<Vec<EquipmentType>>,
     pub difficulty: Option<DifficultyLevel>,
-    pub instructions: Option<Vec<String>>,
+    #[serde(
+        default,
+        deserialize_with = "crate::models::nullable::deserialize_nullable_update",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub instructions: Option<Option<Vec<String>>>,
 }
 
 #[cfg(test)]
@@ -179,6 +189,14 @@ mod tests {
         assert_eq!(req.name, Some("Updated Exercise".to_string()));
         assert_eq!(req.description, None);
         assert_eq!(req.muscle_groups, None);
+    }
+
+    #[test]
+    fn test_update_exercise_request_null_fields_clear() {
+        let json = r#"{"description": null, "instructions": null}"#;
+        let req: UpdateExerciseRequest = serde_json::from_str(json).unwrap();
+        assert_eq!(req.description, Some(None));
+        assert_eq!(req.instructions, Some(None));
     }
 
     #[test]

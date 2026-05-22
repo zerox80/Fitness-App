@@ -1,5 +1,9 @@
 use crate::error::AppError;
 
+pub fn normalize_email(email: &str) -> String {
+    email.trim().to_ascii_lowercase()
+}
+
 pub fn validate_email(email: &str) -> Result<(), AppError> {
     if email.is_empty() || email.trim() != email {
         return Err(AppError::Validation("Email is required".to_string()));
@@ -103,6 +107,14 @@ mod tests {
     fn test_validate_email_whitespace() {
         assert!(validate_email(" user@example.com").is_err());
         assert!(validate_email("user @example.com").is_err());
+    }
+
+    #[test]
+    fn test_normalize_email_trims_and_lowercases() {
+        assert_eq!(
+            normalize_email(" User.Name+Tag@Example.COM "),
+            "user.name+tag@example.com"
+        );
     }
 
     // --- Password tests ---

@@ -402,6 +402,20 @@ describe('api.workouts.create()', () => {
   });
 });
 
+describe('api.workouts.update()', () => {
+  it('sends PUT with nullable description update data', async () => {
+    const data = { description: null };
+    mockFetch.mockResolvedValue(mockJsonResponse({ id: 'wo-001', description: null }));
+
+    await api.workouts.update('wo-001', data);
+
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toContain('/workouts/wo-001');
+    expect(options.method).toBe('PUT');
+    expect(JSON.parse(options.body)).toEqual(data);
+  });
+});
+
 describe('api.activity', () => {
   it('today() sends GET to /activity/today', async () => {
     mockFetch.mockResolvedValue(mockJsonResponse({ steps: 5000 }));

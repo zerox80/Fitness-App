@@ -1,5 +1,6 @@
 pub mod activity;
 pub mod exercise;
+pub mod nullable;
 pub mod task;
 pub mod user;
 pub mod workout;

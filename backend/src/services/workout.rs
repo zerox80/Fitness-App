@@ -59,7 +59,9 @@ pub async fn update_workout(
         workout_id,
         user_id,
         req.title.as_deref().map(str::trim),
-        req.description.as_deref(),
+        req.description
+            .as_ref()
+            .map(|description| description.as_deref()),
         req.duration_minutes,
         req.intensity.as_deref(),
         req.category.as_deref(),

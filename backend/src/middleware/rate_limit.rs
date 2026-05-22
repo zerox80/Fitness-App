@@ -18,8 +18,13 @@ const CLEANUP_INTERVAL: Duration = Duration::from_secs(30);
 
 #[derive(Clone)]
 pub struct RateLimiter {
-    requests: Arc<DashMap<String, VecDeque<Instant>>>,
+    requests: Arc<DashMap<String, RateLimitBucket>>,
     last_cleanup: Arc<Mutex<Instant>>,
+}
+
+struct RateLimitBucket {
+    entries: VecDeque<Instant>,
+    window: Duration,
 }
 
 impl RateLimiter {
@@ -31,19 +36,27 @@ impl RateLimiter {
         let now = Instant::now();
         let window_start = now - window;
 
-        self.cleanup_expired(now, window_start);
+        self.cleanup_expired(now);
 
-        let mut entries = self.requests.entry(key.to_string()).or_default();
-        prune_bucket(&mut entries, window_start);
-        if entries.len() >= max_requests {
+        let mut bucket = self
+            .requests
+            .entry(key.to_string())
+            .or_insert_with(|| RateLimitBucket {
+                entries: VecDeque::new(),
+                window,
+            });
+        bucket.window = window;
+
+        prune_bucket(&mut bucket.entries, window_start);
+        if bucket.entries.len() >= max_requests {
             return false;
         }
 
-        entries.push_back(now);
+        bucket.entries.push_back(now);
         true
     }
 
-    fn cleanup_expired(&self, now: Instant, window_start: Instant) {
+    fn cleanup_expired(&self, now: Instant) {
         let mut last_cleanup = self.last_cleanup.lock().unwrap();
         if now.duration_since(*last_cleanup) < CLEANUP_INTERVAL {
             return;
@@ -52,9 +65,9 @@ impl RateLimiter {
         *last_cleanup = now;
         drop(last_cleanup);
 
-        self.requests.retain(|_, entries| {
-            prune_bucket(entries, window_start);
-            !entries.is_empty()
+        self.requests.retain(|_, bucket| {
+            prune_bucket(&mut bucket.entries, now - bucket.window);
+            !bucket.entries.is_empty()
         });
     }
 }
@@ -256,5 +269,19 @@ mod tests {
         assert_eq!(limiter.requests.len(), 1);
         assert!(!limiter.requests.contains_key("user_temp"));
         assert!(limiter.requests.contains_key("user_active"));
+    }
+
+    #[test]
+    fn cleanup_uses_each_keys_own_window() {
+        let limiter = RateLimiter::new();
+
+        assert!(limiter.is_allowed("long_window", 1, Duration::from_millis(100)));
+        assert!(!limiter.is_allowed("long_window", 1, Duration::from_millis(100)));
+
+        thread::sleep(Duration::from_millis(20));
+        *limiter.last_cleanup.lock().unwrap() = Instant::now() - CLEANUP_INTERVAL;
+
+        assert!(limiter.is_allowed("short_window", 1, Duration::from_millis(10)));
+        assert!(!limiter.is_allowed("long_window", 1, Duration::from_millis(100)));
     }
 }

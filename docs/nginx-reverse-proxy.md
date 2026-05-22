@@ -92,8 +92,11 @@ TRUSTED_PROXY_IPS=127.0.0.1,::1
 For local development, this is acceptable:
 
 ```env
-CORS_ORIGIN=*
+CORS_ORIGIN=http://localhost:4001,http://127.0.0.1:4001,http://localhost:8081,http://127.0.0.1:8081
 ```
+
+Use `CORS_ORIGIN=*` only for native-only development where browser cookie
+sessions are not used.
 
 ## Important: Docker hostnames vs host machine
 

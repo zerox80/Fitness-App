@@ -39,7 +39,12 @@ pub struct CreateWorkoutRequest {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UpdateWorkoutRequest {
     pub title: Option<String>,
-    pub description: Option<String>,
+    #[serde(
+        default,
+        deserialize_with = "crate::models::nullable::deserialize_nullable_update",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub description: Option<Option<String>>,
     pub duration_minutes: Option<i32>,
     pub intensity: Option<String>,
     pub category: Option<String>,
@@ -123,6 +128,13 @@ mod tests {
         let req: UpdateWorkoutRequest = serde_json::from_str(json).unwrap();
         assert_eq!(req.title, None);
         assert_eq!(req.description, None);
+    }
+
+    #[test]
+    fn test_update_workout_request_null_description_clears() {
+        let json = r#"{"description": null}"#;
+        let req: UpdateWorkoutRequest = serde_json::from_str(json).unwrap();
+        assert_eq!(req.description, Some(None));
     }
 
     #[test]

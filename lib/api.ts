@@ -95,10 +95,19 @@ export interface ApiWorkout {
 
 export interface CreateWorkoutData {
   title: string;
-  description?: string;
+  description?: string | null;
   duration_minutes: number;
   intensity: string;
   category: string;
+  exercises?: GeneratedExercise[];
+}
+
+export interface UpdateWorkoutData {
+  title?: string;
+  description?: string | null;
+  duration_minutes?: number;
+  intensity?: string;
+  category?: string;
   exercises?: GeneratedExercise[];
 }
 
@@ -259,7 +268,7 @@ export interface ApiTaskWithCompletion extends ApiTask {
 
 export interface CreateTaskData {
   title: string;
-  description?: string;
+  description?: string | null;
   recurrence: ApiTaskRecurrence;
   custom_days?: number[];
   category: ApiTaskCategory;
@@ -268,7 +277,7 @@ export interface CreateTaskData {
 
 export interface UpdateTaskData {
   title?: string;
-  description?: string;
+  description?: string | null;
   recurrence?: ApiTaskRecurrence;
   custom_days?: number[];
   category?: ApiTaskCategory;
@@ -450,6 +459,7 @@ export const api = {
         api.workouts.list({ ...params, page, per_page: perPage })
       ),
     create: (data: CreateWorkoutData) => request<ApiWorkout>('/workouts', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: string, data: UpdateWorkoutData) => request<ApiWorkout>(`/workouts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     generate: (data: GenerateWorkoutRequest) => request<GeneratedWorkout>('/workouts/generate', { method: 'POST', body: JSON.stringify(data) }),
     get: (id: string) => request<ApiWorkout>(`/workouts/${id}`),
     complete: (id: string) => request<ApiWorkout>(`/workouts/${id}/complete`, { method: 'PUT' }),

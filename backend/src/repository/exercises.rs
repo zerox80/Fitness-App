@@ -91,22 +91,27 @@ pub async fn update(
     id: Uuid,
     user_id: Uuid,
     name: Option<&str>,
-    description: Option<&str>,
+    description: Option<Option<&str>>,
     muscle_groups: Option<&Vec<MuscleGroup>>,
     equipment: Option<&Vec<EquipmentType>>,
     difficulty: Option<DifficultyLevel>,
-    instructions: Option<Vec<String>>,
+    instructions: Option<Option<Vec<String>>>,
 ) -> Result<Option<Exercise>, AppError> {
+    let description_is_set = description.is_some();
+    let description_value = description.flatten();
+    let instructions_is_set = instructions.is_some();
+    let instructions_value = instructions.flatten();
+
     sqlx::query_as::<_, Exercise>(
         r#"
         UPDATE exercises
         SET
             name = COALESCE($3, name),
-            description = COALESCE($4, description),
-            muscle_groups = COALESCE($5, muscle_groups),
-            equipment = COALESCE($6, equipment),
-            difficulty = COALESCE($7, difficulty),
-            instructions = COALESCE($8, instructions),
+            description = CASE WHEN $4 THEN $5 ELSE description END,
+            muscle_groups = COALESCE($6, muscle_groups),
+            equipment = COALESCE($7, equipment),
+            difficulty = COALESCE($8, difficulty),
+            instructions = CASE WHEN $9 THEN $10 ELSE instructions END,
             updated_at = NOW()
         WHERE id = $1 AND user_id = $2
         RETURNING *
@@ -115,11 +120,13 @@ pub async fn update(
     .bind(id)
     .bind(user_id)
     .bind(name)
-    .bind(description)
+    .bind(description_is_set)
+    .bind(description_value)
     .bind(muscle_groups)
     .bind(equipment)
     .bind(difficulty)
-    .bind(instructions)
+    .bind(instructions_is_set)
+    .bind(instructions_value)
     .fetch_optional(pool)
     .await
     .map_err(AppError::Database)

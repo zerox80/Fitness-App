@@ -63,7 +63,8 @@ impl AiService {
                     { "role": "user", "content": user_prompt }
                 ],
                 "response_format": { "type": "json_object" },
-                "thinking": { "type": "disabled" }
+                "thinking": { "type": "disabled" },
+                "max_completion_tokens": 1200
             }))
             .send()
             .await
@@ -75,14 +76,13 @@ impl AiService {
             tracing::error!(
                 status = %status,
                 model = %self.model,
-                error_body = %error_body,
+                error_body_len = error_body.len(),
                 "AI API returned non-2xx status"
             );
             return Err(anyhow::anyhow!(
-                "AI API returned {} for model {}: {}",
+                "AI API returned {} for model {}",
                 status,
-                self.model,
-                error_body
+                self.model
             ));
         }
 
@@ -103,12 +103,13 @@ impl AiService {
             .as_str()
             .context("Failed to get content string from AI response message")?;
 
-        let generated: GeneratedWorkout = serde_json::from_str(content).with_context(|| {
-            format!(
-                "Failed to parse AI response into GeneratedWorkout. Content: {}",
-                content
-            )
-        })?;
+        let generated: GeneratedWorkout = serde_json::from_str(content)
+            .context("Failed to parse AI response into GeneratedWorkout")?;
+
+        generated
+            .validate()
+            .map_err(anyhow::Error::msg)
+            .context("AI generated workout failed validation")?;
 
         Ok(generated)
     }
@@ -177,14 +178,13 @@ Antworte ausschliesslich als gueltiges JSON-Objekt in diesem Format:
             tracing::error!(
                 status = %status,
                 model = %self.model,
-                error_body = %error_body,
+                error_body_len = error_body.len(),
                 "AI API returned non-2xx status for calorie chat"
             );
             return Err(anyhow::anyhow!(
-                "AI API returned {} for model {}: {}",
+                "AI API returned {} for model {}",
                 status,
-                self.model,
-                error_body
+                self.model
             ));
         }
 
@@ -214,12 +214,8 @@ fn extract_ai_message_content(response: &serde_json::Value) -> Result<&str> {
 
 pub(crate) fn parse_calorie_chat_content(content: &str) -> Result<CalorieChatResponse> {
     let normalized = strip_json_code_fence(content);
-    let response: CalorieChatResponse = serde_json::from_str(normalized).with_context(|| {
-        format!(
-            "Failed to parse AI response into CalorieChatResponse. Content: {}",
-            content
-        )
-    })?;
+    let response: CalorieChatResponse = serde_json::from_str(normalized)
+        .context("Failed to parse AI response into CalorieChatResponse")?;
 
     response
         .validate()

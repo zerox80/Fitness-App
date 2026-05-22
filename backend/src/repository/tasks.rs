@@ -17,7 +17,7 @@ pub struct UpdateTaskParams<'a> {
     pub id: Uuid,
     pub user_id: Uuid,
     pub title: Option<&'a str>,
-    pub description: Option<&'a str>,
+    pub description: Option<Option<&'a str>>,
     pub recurrence: Option<&'a TaskRecurrence>,
     pub custom_days: Option<&'a [i32]>,
     pub category: Option<&'a TaskCategory>,
@@ -65,17 +65,20 @@ pub async fn create(pool: &PgPool, params: CreateTaskParams<'_>) -> Result<Task,
 }
 
 pub async fn update(pool: &PgPool, params: UpdateTaskParams<'_>) -> Result<Option<Task>, AppError> {
+    let description_is_set = params.description.is_some();
+    let description_value = params.description.flatten();
+
     sqlx::query_as::<_, Task>(
         r#"
         UPDATE tasks
         SET
             title = COALESCE($3, title),
-            description = COALESCE($4, description),
-            recurrence = COALESCE($5, recurrence),
-            custom_days = COALESCE($6, custom_days),
-            category = COALESCE($7, category),
-            is_active = COALESCE($8, is_active),
-            target_sets = COALESCE($9, target_sets),
+            description = CASE WHEN $4 THEN $5 ELSE description END,
+            recurrence = COALESCE($6, recurrence),
+            custom_days = COALESCE($7, custom_days),
+            category = COALESCE($8, category),
+            is_active = COALESCE($9, is_active),
+            target_sets = COALESCE($10, target_sets),
             updated_at = NOW()
         WHERE id = $1 AND user_id = $2
         RETURNING *
@@ -84,7 +87,8 @@ pub async fn update(pool: &PgPool, params: UpdateTaskParams<'_>) -> Result<Optio
     .bind(params.id)
     .bind(params.user_id)
     .bind(params.title)
-    .bind(params.description)
+    .bind(description_is_set)
+    .bind(description_value)
     .bind(params.recurrence)
     .bind(params.custom_days)
     .bind(params.category)
@@ -128,6 +132,43 @@ pub async fn complete_task(
     .fetch_one(pool)
     .await
     .map_err(AppError::Database)
+}
+
+pub async fn increment_task_set(
+    pool: &PgPool,
+    task_id: Uuid,
+    user_id: Uuid,
+    date: NaiveDate,
+) -> Result<Option<i32>, AppError> {
+    let completed_sets = sqlx::query_scalar::<_, i32>(
+        r#"
+        WITH task_row AS (
+            SELECT id, user_id, target_sets
+            FROM tasks
+            WHERE id = $1 AND user_id = $2
+        ),
+        inserted AS (
+            INSERT INTO task_completions (task_id, user_id, completed_date, completed_sets)
+            SELECT id, user_id, $3, 1
+            FROM task_row
+            ON CONFLICT (task_id, completed_date) DO UPDATE
+            SET completed_sets = LEAST(
+                task_completions.completed_sets + 1,
+                (SELECT target_sets FROM task_row)
+            )
+            RETURNING completed_sets
+        )
+        SELECT completed_sets FROM inserted
+        "#,
+    )
+    .bind(task_id)
+    .bind(user_id)
+    .bind(date)
+    .fetch_optional(pool)
+    .await
+    .map_err(AppError::Database)?;
+
+    Ok(completed_sets)
 }
 
 pub async fn uncomplete_task(
