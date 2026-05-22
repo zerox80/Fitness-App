@@ -9,24 +9,35 @@ use uuid::Uuid;
 pub async fn get_stats(pool: &PgPool, user_id: Uuid) -> Result<UserStats, AppError> {
     sqlx::query_as::<_, UserStats>(
         r#"
-        SELECT 
+        WITH workout_dates AS (
+            SELECT DISTINCT created_at::date AS d
+            FROM workouts
+            WHERE user_id = $1
+        ),
+        ordered_dates AS (
+            SELECT d, ROW_NUMBER() OVER (ORDER BY d ASC) AS rn
+            FROM workout_dates
+        ),
+        streaks AS (
+            SELECT d, d - rn::int AS grp
+            FROM ordered_dates
+        ),
+        latest_streak AS (
+            SELECT grp, MAX(d) as max_date, COUNT(*) as streak_length
+            FROM streaks
+            GROUP BY grp
+            ORDER BY max_date DESC
+            LIMIT 1
+        )
+        SELECT
             COUNT(*) as total_workouts,
             COALESCE(SUM(duration_minutes), 0) as total_minutes,
             COALESCE((
-                WITH workout_dates AS (
-                    SELECT DISTINCT created_at::date AS d
-                    FROM workouts
-                    WHERE user_id = $1
-                    ORDER BY d DESC
-                ),
-                streak AS (
-                    SELECT d, d - ROW_NUMBER() OVER (ORDER BY d DESC)::int AS grp
-                    FROM workout_dates
-                )
-                SELECT COUNT(*) FROM streak
-                WHERE grp = (SELECT grp FROM streak LIMIT 1)
+                SELECT streak_length
+                FROM latest_streak
+                WHERE max_date >= CURRENT_DATE - 1
             ), 0) as current_streak
-        FROM workouts 
+        FROM workouts
         WHERE user_id = $1
         "#,
     )

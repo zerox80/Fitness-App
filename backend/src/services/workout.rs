@@ -6,7 +6,10 @@ use crate::{
     models::{CreateWorkoutRequest, UpdateWorkoutRequest, Workout},
     repository::workouts,
     state::AppState,
-    validators::workout::{validate_intensity, validate_workout_duration, validate_workout_title},
+    validators::workout::{
+        validate_intensity, validate_workout_duration, validate_workout_exercises,
+        validate_workout_title,
+    },
 };
 
 pub async fn create_workout(
@@ -17,11 +20,12 @@ pub async fn create_workout(
     validate_workout_title(&req.title)?;
     validate_workout_duration(req.duration_minutes)?;
     validate_intensity(&req.intensity)?;
+    validate_workout_exercises(&req.exercises)?;
 
     workouts::create(
         &state.pool,
         user_id,
-        &req.title,
+        req.title.trim(),
         req.description.as_deref(),
         req.duration_minutes,
         &req.intensity,
@@ -46,12 +50,15 @@ pub async fn update_workout(
     if let Some(ref intensity) = req.intensity {
         validate_intensity(intensity)?;
     }
+    if let Some(ref exercises) = req.exercises {
+        validate_workout_exercises(exercises)?;
+    }
 
     workouts::update(
         &state.pool,
         workout_id,
         user_id,
-        req.title.as_deref(),
+        req.title.as_deref().map(str::trim),
         req.description.as_deref(),
         req.duration_minutes,
         req.intensity.as_deref(),

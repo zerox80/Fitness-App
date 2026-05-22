@@ -3,27 +3,35 @@ use uuid::Uuid;
 use crate::{
     error::AppError,
     models::{CreateExerciseRequest, DifficultyLevel, EquipmentType, Exercise, MuscleGroup},
-    repository::exercises,
+    repository::exercises::{self, ExerciseListFilters},
     state::AppState,
 };
 
+pub struct ListExercisesParams<'a> {
+    pub user_id: Option<Uuid>,
+    pub muscle_group: Option<MuscleGroup>,
+    pub equipment: Option<EquipmentType>,
+    pub difficulty: Option<DifficultyLevel>,
+    pub search: Option<&'a str>,
+    pub limit: i64,
+    pub offset: i64,
+}
+
 pub async fn list_exercises(
     state: &AppState,
-    muscle_group: Option<MuscleGroup>,
-    equipment: Option<EquipmentType>,
-    difficulty: Option<DifficultyLevel>,
-    search: Option<&str>,
-    limit: i64,
-    offset: i64,
+    params: ListExercisesParams<'_>,
 ) -> Result<Vec<Exercise>, AppError> {
     exercises::list_filtered(
         &state.pool,
-        muscle_group,
-        equipment,
-        difficulty,
-        search,
-        limit,
-        offset,
+        ExerciseListFilters {
+            user_id: params.user_id,
+            muscle_group: params.muscle_group,
+            equipment: params.equipment,
+            difficulty: params.difficulty,
+            search: params.search,
+            limit: params.limit,
+            offset: params.offset,
+        },
     )
     .await
 }
@@ -31,8 +39,15 @@ pub async fn list_exercises(
 pub async fn get_exercise_by_id(
     state: &AppState,
     exercise_id: Uuid,
+    user_id: Option<Uuid>,
 ) -> Result<Option<Exercise>, AppError> {
-    exercises::find_by_id(&state.pool, exercise_id).await
+    let ex = exercises::find_by_id(&state.pool, exercise_id).await?;
+    if let Some(ref exercise) = ex {
+        if exercise.is_custom && exercise.user_id != user_id {
+            return Ok(None);
+        }
+    }
+    Ok(ex)
 }
 
 pub async fn create_exercise(
@@ -40,20 +55,12 @@ pub async fn create_exercise(
     user_id: Option<Uuid>,
     req: CreateExerciseRequest,
 ) -> Result<Exercise, AppError> {
-    if req.name.is_empty() || req.name.len() > 200 {
-        return Err(AppError::Validation(
-            "Exercise name must be between 1 and 200 characters".to_string(),
-        ));
-    }
-    if req.muscle_groups.is_empty() {
-        return Err(AppError::Validation(
-            "At least one muscle group is required".to_string(),
-        ));
-    }
+    validate_exercise_name(&req.name)?;
+    validate_muscle_groups(&req.muscle_groups)?;
 
     exercises::create(
         &state.pool,
-        &req.name,
+        req.name.trim(),
         req.description.as_deref(),
         &req.muscle_groups,
         &req.equipment,
@@ -70,11 +77,18 @@ pub async fn update_exercise(
     user_id: Uuid,
     req: crate::models::UpdateExerciseRequest,
 ) -> Result<Option<Exercise>, AppError> {
+    if let Some(name) = &req.name {
+        validate_exercise_name(name)?;
+    }
+    if let Some(muscle_groups) = &req.muscle_groups {
+        validate_muscle_groups(muscle_groups)?;
+    }
+
     exercises::update(
         &state.pool,
         exercise_id,
         user_id,
-        req.name.as_deref(),
+        req.name.as_deref().map(str::trim),
         req.description.as_deref(),
         req.muscle_groups.as_ref(),
         req.equipment.as_ref(),
@@ -92,6 +106,24 @@ pub async fn delete_exercise(
     exercises::delete(&state.pool, exercise_id, user_id).await
 }
 
+fn validate_exercise_name(name: &str) -> Result<(), AppError> {
+    if name.trim().is_empty() || name.len() > 200 {
+        return Err(AppError::Validation(
+            "Exercise name must be between 1 and 200 characters".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+fn validate_muscle_groups(muscle_groups: &[MuscleGroup]) -> Result<(), AppError> {
+    if muscle_groups.is_empty() {
+        return Err(AppError::Validation(
+            "At least one muscle group is required".to_string(),
+        ));
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -105,6 +137,8 @@ mod tests {
                 app_port: 3000,
                 jwt_secret: "test-secret".to_string(),
                 cors_origin: "*".to_string(),
+                session_cookie_name: "fitpulse_session".to_string(),
+                cookie_secure: false,
                 trust_proxy_headers: false,
                 trusted_proxy_ips: vec![],
                 ai_api_key: None,
@@ -193,5 +227,55 @@ mod tests {
         if let AppError::Validation(_) = result.unwrap_err() {
             panic!("Validation should pass for 200 chars");
         }
+    }
+
+    #[tokio::test]
+    async fn rejects_whitespace_only_name() {
+        let state = create_test_state();
+        let req = CreateExerciseRequest {
+            name: "   ".to_string(),
+            description: None,
+            muscle_groups: vec![MuscleGroup::Chest],
+            equipment: vec![EquipmentType::Barbell],
+            difficulty: DifficultyLevel::Beginner,
+            instructions: None,
+        };
+
+        let result = create_exercise(&state, None, req).await;
+        assert!(matches!(result, Err(AppError::Validation(_))));
+    }
+
+    #[tokio::test]
+    async fn update_rejects_blank_name_before_db_call() {
+        let state = create_test_state();
+        let req = crate::models::UpdateExerciseRequest {
+            name: Some("   ".to_string()),
+            description: None,
+            muscle_groups: None,
+            equipment: None,
+            difficulty: None,
+            instructions: None,
+        };
+
+        let result = update_exercise(&state, Uuid::new_v4(), Uuid::new_v4(), req).await;
+
+        assert!(matches!(result, Err(AppError::Validation(_))));
+    }
+
+    #[tokio::test]
+    async fn update_rejects_empty_muscle_groups_before_db_call() {
+        let state = create_test_state();
+        let req = crate::models::UpdateExerciseRequest {
+            name: None,
+            description: None,
+            muscle_groups: Some(vec![]),
+            equipment: None,
+            difficulty: None,
+            instructions: None,
+        };
+
+        let result = update_exercise(&state, Uuid::new_v4(), Uuid::new_v4(), req).await;
+
+        assert!(matches!(result, Err(AppError::Validation(_))));
     }
 }

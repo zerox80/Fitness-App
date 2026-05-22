@@ -8,6 +8,7 @@ const mockSetApiToken = vi.fn();
 const mockApiAuthLogin = vi.fn();
 const mockApiAuthRegister = vi.fn();
 const mockApiAuthMe = vi.fn();
+const mockApiAuthLogout = vi.fn();
 const MockApiError = vi.hoisted(
   () =>
     class ApiError extends Error {
@@ -35,8 +36,13 @@ vi.mock('@/lib/api', () => ({
       login: mockApiAuthLogin,
       register: mockApiAuthRegister,
       me: mockApiAuthMe,
+      logout: mockApiAuthLogout,
     },
   },
+}));
+
+vi.mock('react-native', () => ({
+  Platform: { OS: 'web' },
 }));
 
 beforeEach(() => {
@@ -94,7 +100,7 @@ describe('useAuth() outside provider', () => {
 });
 
 describe('AuthProvider — loadUser behavior', () => {
-  it('sets user when token exists and /auth/me succeeds', async () => {
+  it('sets user when cookie session exists and /auth/me succeeds', async () => {
     vi.useFakeTimers();
     const mockUser = {
       id: '1',
@@ -102,7 +108,6 @@ describe('AuthProvider — loadUser behavior', () => {
       name: 'Test',
       created_at: '2024-02-03T00:00:00Z',
     };
-    mockGetToken.mockResolvedValue('valid-token');
     mockApiAuthMe.mockResolvedValue(mockUser);
 
     const { AuthProvider, useAuth } = await import('@/lib/auth-context');
@@ -123,36 +128,13 @@ describe('AuthProvider — loadUser behavior', () => {
 
     expect(result.current.user).toEqual(mockUser);
     expect(result.current.isLoading).toBe(false);
-    expect(mockSetApiToken).toHaveBeenCalledWith('valid-token');
+    expect(mockGetToken).not.toHaveBeenCalled();
+    expect(mockSetApiToken).toHaveBeenCalledWith(null);
     vi.useRealTimers();
   });
 
-  it('sets isLoading=false and user=null when no token', async () => {
+  it('sets isLoading=false and user=null when no cookie session exists', async () => {
     vi.useFakeTimers();
-    mockGetToken.mockResolvedValue(null);
-
-    const { AuthProvider, useAuth } = await import('@/lib/auth-context');
-    const React = await import('react');
-    const { act, renderHook } = await import('@testing-library/react');
-
-    const wrapper = ({ children }: { children: React.ReactNode }) =>
-      React.createElement(AuthProvider, null, children);
-
-    const { result } = renderHook(() => useAuth(), { wrapper });
-
-    await act(async () => {
-      await vi.runAllTimersAsync();
-    });
-
-    expect(result.current.user).toBeNull();
-    expect(result.current.isLoading).toBe(false);
-    expect(mockApiAuthMe).not.toHaveBeenCalled();
-    vi.useRealTimers();
-  });
-
-  it('clears token and sets user to null on unauthorized API error', async () => {
-    vi.useFakeTimers();
-    mockGetToken.mockResolvedValue('bad-token');
     mockApiAuthMe.mockRejectedValue(new MockApiError('Unauthorized', 401));
 
     const { AuthProvider, useAuth } = await import('@/lib/auth-context');
@@ -170,14 +152,37 @@ describe('AuthProvider — loadUser behavior', () => {
 
     expect(result.current.user).toBeNull();
     expect(result.current.isLoading).toBe(false);
-    expect(mockRemoveToken).toHaveBeenCalled();
+    expect(mockApiAuthMe).toHaveBeenCalled();
+    expect(mockGetToken).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('clears API token and sets user to null on unauthorized API error', async () => {
+    vi.useFakeTimers();
+    mockApiAuthMe.mockRejectedValue(new MockApiError('Unauthorized', 401));
+
+    const { AuthProvider, useAuth } = await import('@/lib/auth-context');
+    const React = await import('react');
+    const { act, renderHook } = await import('@testing-library/react');
+
+    const wrapper = ({ children }: { children: React.ReactNode }) =>
+      React.createElement(AuthProvider, null, children);
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    await act(async () => {
+      await vi.runAllTimersAsync();
+    });
+
+    expect(result.current.user).toBeNull();
+    expect(result.current.isLoading).toBe(false);
+    expect(mockRemoveToken).not.toHaveBeenCalled();
     expect(mockSetApiToken).toHaveBeenCalledWith(null);
     vi.useRealTimers();
   });
 
-  it('keeps stored token on temporary network errors', async () => {
+  it('keeps cookie-session state untouched on temporary network errors', async () => {
     vi.useFakeTimers();
-    mockGetToken.mockResolvedValue('valid-token');
     mockApiAuthMe.mockRejectedValue(new Error('Network failed'));
 
     const { AuthProvider, useAuth } = await import('@/lib/auth-context');
@@ -195,15 +200,13 @@ describe('AuthProvider — loadUser behavior', () => {
 
     expect(result.current.user).toBeNull();
     expect(result.current.isLoading).toBe(false);
-    expect(mockSetApiToken).toHaveBeenCalledWith('valid-token');
+    expect(mockSetApiToken).toHaveBeenCalledWith(null);
     expect(mockRemoveToken).not.toHaveBeenCalled();
-    expect(mockSetApiToken).not.toHaveBeenCalledWith(null);
     vi.useRealTimers();
   });
 
-  it('keeps stored token on server errors', async () => {
+  it('keeps cookie-session state untouched on server errors', async () => {
     vi.useFakeTimers();
-    mockGetToken.mockResolvedValue('valid-token');
     mockApiAuthMe.mockRejectedValue(new MockApiError('Server error', 500));
 
     const { AuthProvider, useAuth } = await import('@/lib/auth-context');
@@ -222,13 +225,13 @@ describe('AuthProvider — loadUser behavior', () => {
     expect(result.current.user).toBeNull();
     expect(result.current.isLoading).toBe(false);
     expect(mockRemoveToken).not.toHaveBeenCalled();
-    expect(mockSetApiToken).not.toHaveBeenCalledWith(null);
+    expect(mockSetApiToken).toHaveBeenCalledWith(null);
     vi.useRealTimers();
   });
 });
 
 describe('login() flow', () => {
-  it('calls API, stores token, sets user', async () => {
+  it('calls API and sets user without storing token on web', async () => {
     vi.useFakeTimers();
     const loginResponse = {
       token: 'new-token',
@@ -255,15 +258,15 @@ describe('login() flow', () => {
     });
 
     expect(mockApiAuthLogin).toHaveBeenCalledWith({ email: 'a@b.com', password: 'pass' });
-    expect(mockSetTokenStorage).toHaveBeenCalledWith('new-token');
-    expect(mockSetApiToken).toHaveBeenCalledWith('new-token');
+    expect(mockSetTokenStorage).not.toHaveBeenCalled();
+    expect(mockSetApiToken).toHaveBeenCalledWith(null);
     expect(result.current.user).toEqual(loginResponse.user);
     vi.useRealTimers();
   });
 });
 
 describe('register() flow', () => {
-  it('calls API, stores token, sets user', async () => {
+  it('calls API and sets user without storing token on web', async () => {
     vi.useFakeTimers();
     const registerResponse = {
       token: 'reg-token',
@@ -290,8 +293,8 @@ describe('register() flow', () => {
     });
 
     expect(mockApiAuthRegister).toHaveBeenCalled();
-    expect(mockSetTokenStorage).toHaveBeenCalledWith('reg-token');
-    expect(mockSetApiToken).toHaveBeenCalledWith('reg-token');
+    expect(mockSetTokenStorage).not.toHaveBeenCalled();
+    expect(mockSetApiToken).toHaveBeenCalledWith(null);
     expect(result.current.user).toEqual(registerResponse.user);
     vi.useRealTimers();
   });
@@ -302,6 +305,7 @@ describe('logout() flow', () => {
     vi.useFakeTimers();
     mockGetToken.mockResolvedValue(null);
     mockRemoveToken.mockResolvedValue(undefined);
+    mockApiAuthLogout.mockResolvedValue({ logged_out: true });
 
     const { AuthProvider, useAuth } = await import('@/lib/auth-context');
     const React = await import('react');
@@ -320,16 +324,17 @@ describe('logout() flow', () => {
       await result.current.logout();
     });
 
-    expect(mockRemoveToken).toHaveBeenCalled();
+    expect(mockApiAuthLogout).toHaveBeenCalled();
+    expect(mockRemoveToken).not.toHaveBeenCalled();
     expect(mockSetApiToken).toHaveBeenCalledWith(null);
     expect(result.current.user).toBeNull();
     vi.useRealTimers();
   });
 
-  it('still clears API token even if removeToken throws', async () => {
+  it('still clears API token even if logout request fails', async () => {
     vi.useFakeTimers();
     mockGetToken.mockResolvedValue(null);
-    mockRemoveToken.mockImplementation(() => Promise.reject(new Error('storage error')));
+    mockApiAuthLogout.mockRejectedValue(new Error('network error'));
 
     const { AuthProvider, useAuth } = await import('@/lib/auth-context');
     const React = await import('react');
@@ -345,13 +350,11 @@ describe('logout() flow', () => {
     });
 
     await act(async () => {
-      try {
-        await result.current.logout();
-      } catch {
-        // removeToken rejects, but logout still clears state via finally
-      }
+      await result.current.logout();
     });
 
+    expect(mockApiAuthLogout).toHaveBeenCalled();
+    expect(mockRemoveToken).not.toHaveBeenCalled();
     expect(mockSetApiToken).toHaveBeenCalledWith(null);
     expect(result.current.user).toBeNull();
     vi.useRealTimers();

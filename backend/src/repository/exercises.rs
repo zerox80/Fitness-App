@@ -6,32 +6,39 @@ use crate::{
     models::{DifficultyLevel, EquipmentType, Exercise, MuscleGroup},
 };
 
+pub struct ExerciseListFilters<'a> {
+    pub user_id: Option<Uuid>,
+    pub muscle_group: Option<MuscleGroup>,
+    pub equipment: Option<EquipmentType>,
+    pub difficulty: Option<DifficultyLevel>,
+    pub search: Option<&'a str>,
+    pub limit: i64,
+    pub offset: i64,
+}
+
 pub async fn list_filtered(
     pool: &PgPool,
-    muscle_group: Option<MuscleGroup>,
-    equipment: Option<EquipmentType>,
-    difficulty: Option<DifficultyLevel>,
-    search: Option<&str>,
-    limit: i64,
-    offset: i64,
+    filters: ExerciseListFilters<'_>,
 ) -> Result<Vec<Exercise>, AppError> {
     let exercises = sqlx::query_as::<_, Exercise>(
         r#"
         SELECT * FROM exercises
-        WHERE ($1::muscle_group IS NULL OR $1 = ANY(muscle_groups))
-          AND ($2::equipment_type IS NULL OR $2 = ANY(equipment))
-          AND ($3::difficulty_level IS NULL OR difficulty = $3)
-          AND ($4::text IS NULL OR name ILIKE '%' || $4 || '%')
+        WHERE (user_id IS NULL OR user_id = $1)
+          AND ($2::muscle_group IS NULL OR $2 = ANY(muscle_groups))
+          AND ($3::equipment_type IS NULL OR $3 = ANY(equipment))
+          AND ($4::difficulty_level IS NULL OR difficulty = $4)
+          AND ($5::text IS NULL OR name ILIKE '%' || $5 || '%')
         ORDER BY name ASC
-        LIMIT $5 OFFSET $6
+        LIMIT $6 OFFSET $7
         "#,
     )
-    .bind(muscle_group)
-    .bind(equipment)
-    .bind(difficulty)
-    .bind(search)
-    .bind(limit)
-    .bind(offset)
+    .bind(filters.user_id)
+    .bind(filters.muscle_group)
+    .bind(filters.equipment)
+    .bind(filters.difficulty)
+    .bind(filters.search)
+    .bind(filters.limit)
+    .bind(filters.offset)
     .fetch_all(pool)
     .await
     .map_err(AppError::Database)?;
@@ -119,12 +126,13 @@ pub async fn update(
 }
 
 pub async fn delete(pool: &PgPool, id: Uuid, user_id: Uuid) -> Result<u64, AppError> {
-    let result = sqlx::query("DELETE FROM exercises WHERE id = $1 AND user_id = $2 AND is_custom = true")
-        .bind(id)
-        .bind(user_id)
-        .execute(pool)
-        .await
-        .map_err(AppError::Database)?;
+    let result =
+        sqlx::query("DELETE FROM exercises WHERE id = $1 AND user_id = $2 AND is_custom = true")
+            .bind(id)
+            .bind(user_id)
+            .execute(pool)
+            .await
+            .map_err(AppError::Database)?;
 
     Ok(result.rows_affected())
 }

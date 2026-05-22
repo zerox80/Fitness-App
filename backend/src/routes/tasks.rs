@@ -7,11 +7,7 @@ use serde::Deserialize;
 use uuid::Uuid;
 
 use crate::{
-    error::AppError,
-    middleware::auth::AuthUser,
-    models::task::*,
-    services::task,
-    state::AppState,
+    error::AppError, middleware::auth::AuthUser, models::task::*, services::task, state::AppState,
 };
 
 #[derive(Debug, Deserialize)]

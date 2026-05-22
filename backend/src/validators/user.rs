@@ -1,10 +1,14 @@
 use crate::error::AppError;
 
 pub fn validate_email(email: &str) -> Result<(), AppError> {
-    if email.is_empty() {
+    if email.is_empty() || email.trim() != email {
         return Err(AppError::Validation("Email is required".to_string()));
     }
-    if !email.contains('@') {
+    if email.chars().any(char::is_whitespace) {
+        return Err(AppError::Validation("Invalid email format".to_string()));
+    }
+    let parts: Vec<&str> = email.split('@').collect();
+    if parts.len() != 2 || parts[0].is_empty() || parts[1].is_empty() {
         return Err(AppError::Validation("Invalid email format".to_string()));
     }
     if email.len() > 254 {
@@ -87,7 +91,18 @@ mod tests {
 
     #[test]
     fn test_validate_email_just_at() {
-        assert!(validate_email("@").is_ok());
+        assert!(validate_email("@").is_err());
+    }
+
+    #[test]
+    fn test_validate_email_multiple_at() {
+        assert!(validate_email("user@@example.com").is_err());
+    }
+
+    #[test]
+    fn test_validate_email_whitespace() {
+        assert!(validate_email(" user@example.com").is_err());
+        assert!(validate_email("user @example.com").is_err());
     }
 
     // --- Password tests ---

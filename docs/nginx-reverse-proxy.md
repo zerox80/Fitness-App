@@ -84,6 +84,9 @@ For browser-based frontend deployments, prefer a specific CORS origin:
 
 ```env
 CORS_ORIGIN=https://app.example.com
+COOKIE_SECURE=true
+TRUST_PROXY_HEADERS=true
+TRUSTED_PROXY_IPS=127.0.0.1,::1
 ```
 
 For local development, this is acceptable:

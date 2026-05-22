@@ -35,6 +35,35 @@ pub struct UpdateActivityRequest {
     pub stand_progress: f64,
 }
 
+impl UpdateActivityRequest {
+    pub fn validate(&self) -> Result<(), String> {
+        if !(0..=200_000).contains(&self.steps) {
+            return Err("steps must be between 0 and 200000".to_string());
+        }
+        if !(0..=20_000).contains(&self.calories) {
+            return Err("calories must be between 0 and 20000".to_string());
+        }
+        if !(0..=1440).contains(&self.active_minutes) {
+            return Err("active_minutes must be between 0 and 1440".to_string());
+        }
+
+        validate_progress("move_progress", self.move_progress)?;
+        validate_progress("exercise_progress", self.exercise_progress)?;
+        validate_progress("stand_progress", self.stand_progress)?;
+        Ok(())
+    }
+}
+
+fn validate_progress(field: &str, value: f64) -> Result<(), String> {
+    if !value.is_finite() || !(0.0..=10.0).contains(&value) {
+        return Err(format!(
+            "{} must be a finite value between 0.0 and 10.0",
+            field
+        ));
+    }
+    Ok(())
+}
+
 #[derive(Serialize, Deserialize, Debug, sqlx::FromRow)]
 pub struct DailyActivity {
     pub steps: i32,
@@ -204,6 +233,48 @@ mod tests {
         assert_eq!(req.steps, 8000);
         assert_eq!(req.calories, 500);
         assert!((req.move_progress - 0.75).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn test_update_activity_request_validate_valid() {
+        let req = UpdateActivityRequest {
+            steps: 8000,
+            calories: 500,
+            active_minutes: 45,
+            move_progress: 0.75,
+            exercise_progress: 0.5,
+            stand_progress: 0.8,
+        };
+
+        assert!(req.validate().is_ok());
+    }
+
+    #[test]
+    fn test_update_activity_request_rejects_negative_steps() {
+        let req = UpdateActivityRequest {
+            steps: -1,
+            calories: 500,
+            active_minutes: 45,
+            move_progress: 0.75,
+            exercise_progress: 0.5,
+            stand_progress: 0.8,
+        };
+
+        assert!(req.validate().is_err());
+    }
+
+    #[test]
+    fn test_update_activity_request_rejects_nonfinite_progress() {
+        let req = UpdateActivityRequest {
+            steps: 8000,
+            calories: 500,
+            active_minutes: 45,
+            move_progress: f64::NAN,
+            exercise_progress: 0.5,
+            stand_progress: 0.8,
+        };
+
+        assert!(req.validate().is_err());
     }
 
     #[test]

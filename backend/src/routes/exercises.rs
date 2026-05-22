@@ -12,18 +12,22 @@ use crate::{
 
 pub async fn list_exercises(
     State(state): State<AppState>,
+    axum::Extension(auth_user): axum::Extension<AuthUser>,
     axum::extract::Query(filters): axum::extract::Query<ExerciseFilterParams>,
 ) -> Result<Json<Vec<Exercise>>, AppError> {
     let limit = filters.limit();
     let offset = filters.offset();
     let exercises = exercise::list_exercises(
         &state,
-        filters.muscle_group,
-        filters.equipment,
-        filters.difficulty,
-        filters.search.as_deref(),
-        limit,
-        offset,
+        exercise::ListExercisesParams {
+            user_id: Some(auth_user.user_id),
+            muscle_group: filters.muscle_group,
+            equipment: filters.equipment,
+            difficulty: filters.difficulty,
+            search: filters.search.as_deref(),
+            limit,
+            offset,
+        },
     )
     .await?;
     Ok(Json(exercises))
@@ -31,9 +35,10 @@ pub async fn list_exercises(
 
 pub async fn get_exercise(
     State(state): State<AppState>,
+    axum::Extension(auth_user): axum::Extension<AuthUser>,
     axum::extract::Path(exercise_id): axum::extract::Path<Uuid>,
 ) -> Result<Json<Exercise>, AppError> {
-    let ex = exercise::get_exercise_by_id(&state, exercise_id)
+    let ex = exercise::get_exercise_by_id(&state, exercise_id, Some(auth_user.user_id))
         .await?
         .ok_or(AppError::NotFound)?;
     Ok(Json(ex))

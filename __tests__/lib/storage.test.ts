@@ -16,11 +16,11 @@ describe('storage — web (Platform.OS === "web")', () => {
     localStorage.clear();
   });
 
-  it('getToken returns token from localStorage', async () => {
+  it('getToken ignores localStorage because web uses HttpOnly cookies', async () => {
     localStorage.setItem('fitpulse_token', 'web-token');
     const { getToken } = await import('@/lib/storage');
     const token = await getToken();
-    expect(token).toBe('web-token');
+    expect(token).toBeNull();
   });
 
   it('getToken returns null when no token stored', async () => {
@@ -29,16 +29,16 @@ describe('storage — web (Platform.OS === "web")', () => {
     expect(token).toBeNull();
   });
 
-  it('setToken stores to localStorage', async () => {
+  it('setToken is a no-op on web', async () => {
     const { setToken } = await import('@/lib/storage');
     await setToken('new-token');
-    expect(localStorage.getItem('fitpulse_token')).toBe('new-token');
+    expect(localStorage.getItem('fitpulse_token')).toBeNull();
   });
 
-  it('removeToken removes from localStorage', async () => {
+  it('removeToken is a no-op on web', async () => {
     localStorage.setItem('fitpulse_token', 'to-remove');
     const { removeToken } = await import('@/lib/storage');
     await removeToken();
-    expect(localStorage.getItem('fitpulse_token')).toBeNull();
+    expect(localStorage.getItem('fitpulse_token')).toBe('to-remove');
   });
 });

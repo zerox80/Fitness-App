@@ -35,14 +35,15 @@ afterEach(() => {
 });
 
 describe('setToken', () => {
-  it('sets token for subsequent requests', async () => {
+  it('does not send bearer token on web because web uses cookie sessions', async () => {
     setToken('my-token');
     mockFetch.mockResolvedValue(mockJsonResponse({ id: '1' }));
 
     await api.auth.me();
 
     const [, options] = mockFetch.mock.calls[0];
-    expect(options.headers['Authorization']).toBe('Bearer my-token');
+    expect(options.headers['Authorization']).toBeUndefined();
+    expect(options.credentials).toBe('include');
   });
 
   it('clears auth header when set to null', async () => {
@@ -58,14 +59,14 @@ describe('setToken', () => {
 });
 
 describe('request() — auth headers', () => {
-  it('adds Authorization header when token is set', async () => {
+  it('omits Authorization header on web even when token is set', async () => {
     setToken('test-jwt');
     mockFetch.mockResolvedValue(mockJsonResponse({ id: '1', email: 'a@b.com', name: 'A' }));
 
     await api.auth.me();
 
     const headers = mockFetch.mock.calls[0][1].headers;
-    expect(headers['Authorization']).toBe('Bearer test-jwt');
+    expect(headers['Authorization']).toBeUndefined();
   });
 
   it('omits Authorization header when token is null', async () => {
@@ -75,6 +76,15 @@ describe('request() — auth headers', () => {
 
     const headers = mockFetch.mock.calls[0][1].headers;
     expect(headers['Authorization']).toBeUndefined();
+  });
+
+  it('sends credentials include on web requests', async () => {
+    mockFetch.mockResolvedValue(mockJsonResponse({ id: '1', email: 'a@b.com', name: 'A' }));
+
+    await api.auth.me();
+
+    const [, options] = mockFetch.mock.calls[0];
+    expect(options.credentials).toBe('include');
   });
 });
 
@@ -305,6 +315,19 @@ describe('api.auth.login()', () => {
     const [, options] = mockFetch.mock.calls[0];
     expect(options.method).toBe('POST');
     expect(JSON.parse(options.body)).toEqual(data);
+  });
+});
+
+describe('api.auth.logout()', () => {
+  it('sends POST to logout endpoint', async () => {
+    mockFetch.mockResolvedValue(mockJsonResponse({ logged_out: true }));
+
+    await api.auth.logout();
+
+    const [url, options] = mockFetch.mock.calls[0];
+    expect(url).toContain('/auth/logout');
+    expect(options.method).toBe('POST');
+    expect(options.credentials).toBe('include');
   });
 });
 

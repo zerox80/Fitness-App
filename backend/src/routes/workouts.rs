@@ -2,13 +2,16 @@ use axum::{extract::State, Json};
 use uuid::Uuid;
 
 use crate::{
-    dto::{WorkoutFilterParams, GenerateWorkoutRequest},
+    dto::{GenerateWorkoutRequest, WorkoutFilterParams},
     error::AppError,
     middleware::auth::AuthUser,
     models::{CreateWorkoutRequest, UpdateWorkoutRequest, Workout},
-    services::{workout, ai::AiService},
+    services::{ai::AiService, workout},
     state::AppState,
 };
+
+const WORKOUT_GENERATION_UNAVAILABLE_MESSAGE: &str =
+    "Trainingsplanung ist gerade nicht verfuegbar.";
 
 pub async fn generate_workout(
     State(state): State<AppState>,
@@ -16,9 +19,17 @@ pub async fn generate_workout(
     Json(req): Json<GenerateWorkoutRequest>,
 ) -> Result<Json<crate::dto::GeneratedWorkout>, AppError> {
     req.validate().map_err(AppError::Validation)?;
-    let ai_service = AiService::new(&state.config).map_err(|e| AppError::Internal(e.to_string()))?;
-    let workout = ai_service.generate_workout(&req).await.map_err(|e| AppError::Internal(e.to_string()))?;
+    let ai_service = AiService::new(&state.config).map_err(workout_generation_error)?;
+    let workout = ai_service
+        .generate_workout(&req)
+        .await
+        .map_err(workout_generation_error)?;
     Ok(Json(workout))
+}
+
+fn workout_generation_error(error: anyhow::Error) -> AppError {
+    tracing::error!(%error, "workout generation failed");
+    AppError::Internal(WORKOUT_GENERATION_UNAVAILABLE_MESSAGE.to_string())
 }
 
 pub async fn list_workouts(

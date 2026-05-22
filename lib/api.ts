@@ -348,19 +348,24 @@ export function setToken(token: string | null) {
   authToken = token;
 }
 
+function shouldSendBearerToken() {
+  return Platform.OS !== 'web';
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...((options.headers as Record<string, string>) || {}),
   };
 
-  if (authToken) {
+  if (authToken && shouldSendBearerToken()) {
     headers['Authorization'] = `Bearer ${authToken}`;
   }
 
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers,
+    credentials: Platform.OS === 'web' ? 'include' : options.credentials,
   });
 
   if (!res.ok) {
@@ -427,6 +432,7 @@ export const api = {
   auth: {
     register: (data: RegisterData) => request<AuthResponse>('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
     login: (data: LoginData) => request<AuthResponse>('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
+    logout: () => request<{ logged_out: boolean }>('/auth/logout', { method: 'POST' }),
     me: () => request<AuthUserResponse>('/auth/me'),
   },
   users: {

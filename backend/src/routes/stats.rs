@@ -83,6 +83,7 @@ pub async fn update_activity(
     Query(params): Query<ActivityDateParams>,
     Json(req): Json<UpdateActivityRequest>,
 ) -> Result<Json<DailyActivity>, AppError> {
+    req.validate().map_err(AppError::Validation)?;
     let activity_date = requested_activity_date(&params);
 
     let activity = activity_after_upsert(
@@ -196,6 +197,8 @@ mod tests {
                 app_port: 3000,
                 jwt_secret: "test-secret".to_string(),
                 cors_origin: "*".to_string(),
+                session_cookie_name: "fitpulse_session".to_string(),
+                cookie_secure: false,
                 trust_proxy_headers: false,
                 trusted_proxy_ips: vec![],
                 ai_api_key: None,

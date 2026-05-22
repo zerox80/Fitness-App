@@ -1,7 +1,8 @@
 use crate::error::AppError;
+use crate::models::WorkoutExercise;
 
 pub fn validate_workout_title(title: &str) -> Result<(), AppError> {
-    if title.is_empty() {
+    if title.trim().is_empty() {
         return Err(AppError::Validation(
             "Workout title is required".to_string(),
         ));
@@ -11,6 +12,43 @@ pub fn validate_workout_title(title: &str) -> Result<(), AppError> {
             "Workout title must be at most 200 characters".to_string(),
         ));
     }
+    Ok(())
+}
+
+pub fn validate_workout_exercises(exercises: &[WorkoutExercise]) -> Result<(), AppError> {
+    if exercises.len() > 100 {
+        return Err(AppError::Validation(
+            "Workout must include at most 100 exercises".to_string(),
+        ));
+    }
+
+    for (index, exercise) in exercises.iter().enumerate() {
+        if exercise.name.trim().is_empty() {
+            return Err(AppError::Validation(format!(
+                "exercises[{}].name must not be empty",
+                index
+            )));
+        }
+        if exercise.reps.trim().is_empty() {
+            return Err(AppError::Validation(format!(
+                "exercises[{}].reps must not be empty",
+                index
+            )));
+        }
+        if !(1..=50).contains(&exercise.sets) {
+            return Err(AppError::Validation(format!(
+                "exercises[{}].sets must be between 1 and 50",
+                index
+            )));
+        }
+        if !(0..=3600).contains(&exercise.rest_seconds) {
+            return Err(AppError::Validation(format!(
+                "exercises[{}].rest_seconds must be between 0 and 3600",
+                index
+            )));
+        }
+    }
+
     Ok(())
 }
 
@@ -50,6 +88,12 @@ mod tests {
     #[test]
     fn test_validate_workout_title_empty() {
         let result = validate_workout_title("");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_validate_workout_title_whitespace_only() {
+        let result = validate_workout_title("   ");
         assert!(result.is_err());
     }
 
@@ -134,5 +178,41 @@ mod tests {
     #[test]
     fn test_validate_intensity_numeric() {
         assert!(validate_intensity("1").is_err());
+    }
+
+    #[test]
+    fn test_validate_workout_exercises_valid() {
+        let exercises = vec![WorkoutExercise {
+            name: "Squat".to_string(),
+            sets: 3,
+            reps: "10".to_string(),
+            rest_seconds: 90,
+        }];
+
+        assert!(validate_workout_exercises(&exercises).is_ok());
+    }
+
+    #[test]
+    fn test_validate_workout_exercises_rejects_blank_name() {
+        let exercises = vec![WorkoutExercise {
+            name: " ".to_string(),
+            sets: 3,
+            reps: "10".to_string(),
+            rest_seconds: 90,
+        }];
+
+        assert!(validate_workout_exercises(&exercises).is_err());
+    }
+
+    #[test]
+    fn test_validate_workout_exercises_rejects_invalid_sets() {
+        let exercises = vec![WorkoutExercise {
+            name: "Squat".to_string(),
+            sets: 0,
+            reps: "10".to_string(),
+            rest_seconds: 90,
+        }];
+
+        assert!(validate_workout_exercises(&exercises).is_err());
     }
 }

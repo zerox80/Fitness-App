@@ -54,7 +54,7 @@ export function useTasks() {
 
         const updatedTask = {
           ...t,
-          completed_sets_today: result.completed ? 1 : 0,
+          completed_sets_today: result.completed ? t.target_sets : 0,
         };
 
         return {

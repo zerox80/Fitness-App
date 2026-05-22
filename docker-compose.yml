@@ -24,6 +24,10 @@ services:
       - APP_PORT=3000
       - JWT_SECRET=${JWT_SECRET}
       - CORS_ORIGIN=${CORS_ORIGIN}
+      - SESSION_COOKIE_NAME=${SESSION_COOKIE_NAME:-fitpulse_session}
+      - COOKIE_SECURE=${COOKIE_SECURE:-false}
+      - TRUST_PROXY_HEADERS=${TRUST_PROXY_HEADERS:-false}
+      - TRUSTED_PROXY_IPS=${TRUSTED_PROXY_IPS:-127.0.0.1,::1}
       - RUST_LOG=debug
     env_file:
       - .env

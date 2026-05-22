@@ -48,12 +48,21 @@ pub async fn update_task(
     if let Some(ref title) = req.title {
         validate_task_title(title)?;
     }
-    if let Some(ref days) = req.custom_days {
-        validate_custom_days(days)?;
-    }
     if let Some(target_sets) = req.target_sets {
         validate_target_sets(target_sets)?;
     }
+
+    let existing = match tasks::find_by_id(&state.pool, task_id, user_id).await? {
+        Some(task) => task,
+        None => return Ok(None),
+    };
+
+    let custom_days_update = resolve_custom_days_update(
+        &existing.recurrence,
+        &existing.custom_days,
+        req.recurrence.as_ref(),
+        req.custom_days.as_deref(),
+    )?;
 
     tasks::update(
         &state.pool,
@@ -63,13 +72,34 @@ pub async fn update_task(
             title: req.title.as_deref(),
             description: req.description.as_deref(),
             recurrence: req.recurrence.as_ref(),
-            custom_days: req.custom_days.as_deref(),
+            custom_days: custom_days_update.as_deref(),
             category: req.category.as_ref(),
             is_active: req.is_active,
             target_sets: req.target_sets,
         },
     )
     .await
+}
+
+fn resolve_custom_days_update(
+    existing_recurrence: &TaskRecurrence,
+    existing_custom_days: &[i32],
+    requested_recurrence: Option<&TaskRecurrence>,
+    requested_custom_days: Option<&[i32]>,
+) -> Result<Option<Vec<i32>>, AppError> {
+    let final_recurrence = requested_recurrence.unwrap_or(existing_recurrence);
+
+    if final_recurrence == &TaskRecurrence::Custom {
+        let final_custom_days = requested_custom_days.unwrap_or(existing_custom_days);
+        validate_custom_days(final_custom_days)?;
+        return Ok(requested_custom_days.map(Vec::from));
+    }
+
+    if requested_recurrence.is_some() || requested_custom_days.is_some() {
+        return Ok(Some(Vec::new()));
+    }
+
+    Ok(None)
 }
 
 pub async fn get_user_tasks(state: &AppState, user_id: Uuid) -> Result<Vec<Task>, AppError> {
@@ -95,21 +125,22 @@ pub async fn toggle_task_completion(
     date: NaiveDate,
 ) -> Result<bool, AppError> {
     let task = tasks::find_by_id(&state.pool, task_id, user_id).await?;
-    if task.is_none() {
-        return Err(AppError::NotFound);
-    }
+    let task = task.ok_or(AppError::NotFound)?;
+    let target_sets = task.target_sets;
 
     let completed_ids_with_sets =
         tasks::get_completions_for_date(&state.pool, user_id, date).await?;
-    let existing_completion = completed_ids_with_sets
+    let existing_sets = completed_ids_with_sets
         .iter()
-        .find(|(id, _)| *id == task_id);
+        .find(|(id, _)| *id == task_id)
+        .map(|(_, sets)| *sets)
+        .unwrap_or(0);
 
-    if let Some((_, _)) = existing_completion {
+    if existing_sets >= target_sets {
         tasks::uncomplete_task(&state.pool, task_id, user_id, date).await?;
         Ok(false)
     } else {
-        tasks::complete_task(&state.pool, task_id, user_id, date, 1).await?;
+        tasks::complete_task(&state.pool, task_id, user_id, date, target_sets).await?;
         Ok(true)
     }
 }
@@ -259,5 +290,43 @@ mod tests {
         assert!(task_is_scheduled(&task, 0));
         assert!(!task_is_scheduled(&task, 1));
         assert!(!task_is_scheduled(&task, 6));
+    }
+
+    #[test]
+    fn custom_recurrence_update_requires_custom_days() {
+        let result = resolve_custom_days_update(
+            &TaskRecurrence::Daily,
+            &[],
+            Some(&TaskRecurrence::Custom),
+            None,
+        );
+
+        assert!(matches!(result, Err(AppError::Validation(_))));
+    }
+
+    #[test]
+    fn custom_recurrence_update_accepts_valid_custom_days() {
+        let result = resolve_custom_days_update(
+            &TaskRecurrence::Daily,
+            &[],
+            Some(&TaskRecurrence::Custom),
+            Some(&[0, 2, 4]),
+        )
+        .unwrap();
+
+        assert_eq!(result, Some(vec![0, 2, 4]));
+    }
+
+    #[test]
+    fn non_custom_recurrence_update_clears_custom_days() {
+        let result = resolve_custom_days_update(
+            &TaskRecurrence::Custom,
+            &[1, 3],
+            Some(&TaskRecurrence::Daily),
+            None,
+        )
+        .unwrap();
+
+        assert_eq!(result, Some(vec![]));
     }
 }

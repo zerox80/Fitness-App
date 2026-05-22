@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { Platform } from 'react-native';
 import { ApiError, api, setToken as setApiToken } from './api';
 import { getToken, setToken, removeToken } from './storage';
 
@@ -23,6 +24,10 @@ function isUnauthorizedError(error: unknown) {
   return error instanceof ApiError && (error.status === 401 || error.status === 403);
 }
 
+function usesCookieSession() {
+  return Platform.OS === 'web';
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,15 +38,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function loadUser() {
     try {
-      const token = await getToken();
-      if (token) {
-        setApiToken(token);
-        const me = await api.auth.me();
-        setUser(me);
+      if (usesCookieSession()) {
+        setApiToken(null);
+        setUser(await api.auth.me());
+      } else {
+        const token = await getToken();
+        if (token) {
+          setApiToken(token);
+          const me = await api.auth.me();
+          setUser(me);
+        }
       }
     } catch (error) {
       if (isUnauthorizedError(error)) {
-        await removeToken();
+        if (!usesCookieSession()) {
+          await removeToken();
+        }
         setApiToken(null);
       }
     } finally {
@@ -51,21 +63,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function login(email: string, password: string) {
     const res = await api.auth.login({ email, password });
-    await setToken(res.token);
-    setApiToken(res.token);
+    if (usesCookieSession()) {
+      setApiToken(null);
+    } else {
+      await setToken(res.token);
+      setApiToken(res.token);
+    }
     setUser(res.user);
   }
 
   async function register(email: string, name: string, password: string) {
     const res = await api.auth.register({ email, name, password });
-    await setToken(res.token);
-    setApiToken(res.token);
+    if (usesCookieSession()) {
+      setApiToken(null);
+    } else {
+      await setToken(res.token);
+      setApiToken(res.token);
+    }
     setUser(res.user);
   }
 
   async function logout() {
     try {
-      await removeToken();
+      await api.auth.logout().catch(() => undefined);
+      if (!usesCookieSession()) {
+        await removeToken();
+      }
     } finally {
       setApiToken(null);
       setUser(null);

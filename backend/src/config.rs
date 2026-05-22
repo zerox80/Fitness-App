@@ -6,6 +6,8 @@ pub struct Config {
     pub app_port: u16,
     pub jwt_secret: String,
     pub cors_origin: String,
+    pub session_cookie_name: String,
+    pub cookie_secure: bool,
     pub trust_proxy_headers: bool,
     pub trusted_proxy_ips: Vec<IpAddr>,
     pub ai_api_key: Option<String>,
@@ -25,20 +27,33 @@ impl Config {
                 .expect("APP_PORT must be a valid u16"),
             jwt_secret: env::var("JWT_SECRET").expect("JWT_SECRET must be set"),
             cors_origin: env::var("CORS_ORIGIN").unwrap_or_else(|_| "*".to_string()),
+            session_cookie_name: env::var("SESSION_COOKIE_NAME")
+                .unwrap_or_else(|_| "fitpulse_session".to_string()),
+            cookie_secure: parse_bool_env("COOKIE_SECURE", false),
             trust_proxy_headers: parse_bool_env("TRUST_PROXY_HEADERS", false),
             trusted_proxy_ips: parse_trusted_proxy_ips(
                 &env::var("TRUSTED_PROXY_IPS").unwrap_or_else(|_| "127.0.0.1,::1".to_string()),
             ),
             ai_api_key: env::var("MOONSHOT_API_KEY").ok(),
-            ai_api_base: env::var("MOONSHOT_API_BASE").unwrap_or_else(|_| "https://api.moonshot.ai/v1".to_string()),
+            ai_api_base: env::var("MOONSHOT_API_BASE")
+                .unwrap_or_else(|_| "https://api.moonshot.ai/v1".to_string()),
             ai_model: env::var("MOONSHOT_MODEL").unwrap_or_else(|_| "kimi-k2.6".to_string()),
         }
+    }
+
+    pub fn allowed_cors_origins(&self) -> Option<Vec<String>> {
+        parse_cors_origins(&self.cors_origin)
     }
 }
 
 fn parse_bool_env(key: &str, default: bool) -> bool {
     env::var(key)
-        .map(|value| matches!(value.to_ascii_lowercase().as_str(), "1" | "true" | "yes" | "on"))
+        .map(|value| {
+            matches!(
+                value.to_ascii_lowercase().as_str(),
+                "1" | "true" | "yes" | "on"
+            )
+        })
         .unwrap_or(default)
 }
 
@@ -52,4 +67,24 @@ fn parse_trusted_proxy_ips(raw: &str) -> Vec<IpAddr> {
                 .unwrap_or_else(|_| panic!("TRUSTED_PROXY_IPS contains invalid IP: {}", value))
         })
         .collect()
+}
+
+pub fn parse_cors_origins(raw: &str) -> Option<Vec<String>> {
+    let trimmed = raw.trim();
+    if trimmed == "*" {
+        return None;
+    }
+
+    let origins: Vec<String> = trimmed
+        .split(',')
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(ToOwned::to_owned)
+        .collect();
+
+    if origins.is_empty() {
+        None
+    } else {
+        Some(origins)
+    }
 }

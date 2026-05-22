@@ -4,8 +4,9 @@ use axum::{
     middleware::Next,
     response::Response,
 };
+use dashmap::DashMap;
 use std::{
-    collections::HashMap,
+    collections::VecDeque,
     net::{IpAddr, SocketAddr},
     sync::{Arc, Mutex},
     time::{Duration, Instant},
@@ -13,9 +14,12 @@ use std::{
 
 use crate::{config::Config, state::AppState};
 
-#[derive(Clone, Default)]
+const CLEANUP_INTERVAL: Duration = Duration::from_secs(30);
+
+#[derive(Clone)]
 pub struct RateLimiter {
-    requests: Arc<Mutex<HashMap<String, Vec<Instant>>>>,
+    requests: Arc<DashMap<String, VecDeque<Instant>>>,
+    last_cleanup: Arc<Mutex<Instant>>,
 }
 
 impl RateLimiter {
@@ -24,19 +28,52 @@ impl RateLimiter {
     }
 
     pub fn is_allowed(&self, key: &str, max_requests: usize, window: Duration) -> bool {
-        let mut requests = self.requests.lock().unwrap();
         let now = Instant::now();
         let window_start = now - window;
 
-        let entries = requests.entry(key.to_string()).or_default();
-        entries.retain(|&t| t > window_start);
+        self.cleanup_expired(now, window_start);
 
+        let mut entries = self.requests.entry(key.to_string()).or_default();
+        prune_bucket(&mut entries, window_start);
         if entries.len() >= max_requests {
             return false;
         }
 
-        entries.push(now);
+        entries.push_back(now);
         true
+    }
+
+    fn cleanup_expired(&self, now: Instant, window_start: Instant) {
+        let mut last_cleanup = self.last_cleanup.lock().unwrap();
+        if now.duration_since(*last_cleanup) < CLEANUP_INTERVAL {
+            return;
+        }
+
+        *last_cleanup = now;
+        drop(last_cleanup);
+
+        self.requests.retain(|_, entries| {
+            prune_bucket(entries, window_start);
+            !entries.is_empty()
+        });
+    }
+}
+
+impl Default for RateLimiter {
+    fn default() -> Self {
+        Self {
+            requests: Arc::new(DashMap::new()),
+            last_cleanup: Arc::new(Mutex::new(Instant::now())),
+        }
+    }
+}
+
+fn prune_bucket(entries: &mut VecDeque<Instant>, window_start: Instant) {
+    while entries
+        .front()
+        .is_some_and(|timestamp| *timestamp <= window_start)
+    {
+        entries.pop_front();
     }
 }
 
@@ -48,7 +85,10 @@ pub async fn rate_limit_middleware(
 ) -> Result<Response, StatusCode> {
     let key = client_ip_for_rate_limit(req.headers(), addr.ip(), &state.config).to_string();
 
-    if !state.rate_limiter.is_allowed(&key, 100, Duration::from_secs(60)) {
+    if !state
+        .rate_limiter
+        .is_allowed(&key, 100, Duration::from_secs(60))
+    {
         return Err(StatusCode::TOO_MANY_REQUESTS);
     }
 
@@ -146,6 +186,8 @@ mod tests {
             app_port: 3000,
             jwt_secret: "test-secret".to_string(),
             cors_origin: "*".to_string(),
+            session_cookie_name: "fitpulse_session".to_string(),
+            cookie_secure: false,
             trust_proxy_headers,
             trusted_proxy_ips: vec![IpAddr::V4(Ipv4Addr::LOCALHOST)],
             ai_api_key: None,
@@ -191,5 +233,28 @@ mod tests {
         let key = client_ip_for_rate_limit(&headers, remote_ip, &test_config(true));
 
         assert_eq!(key, remote_ip);
+    }
+
+    #[test]
+    fn test_rate_limiter_memory_cleanup() {
+        let limiter = RateLimiter::new();
+
+        // Add a request for user_temp with a short window of 10ms
+        limiter.is_allowed("user_temp", 1, Duration::from_millis(10));
+
+        // Ensure it is in the map
+        assert_eq!(limiter.requests.len(), 1);
+
+        // Wait for it to expire
+        thread::sleep(Duration::from_millis(15));
+        *limiter.last_cleanup.lock().unwrap() = Instant::now() - CLEANUP_INTERVAL;
+
+        // Make another request for a different user, which should trigger cleanup
+        limiter.is_allowed("user_active", 1, Duration::from_millis(10));
+
+        // The expired user_temp should have been removed, leaving only user_active
+        assert_eq!(limiter.requests.len(), 1);
+        assert!(!limiter.requests.contains_key("user_temp"));
+        assert!(limiter.requests.contains_key("user_active"));
     }
 }

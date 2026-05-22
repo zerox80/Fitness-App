@@ -11,12 +11,16 @@ use axum::{
     Router,
 };
 
-use crate::{middleware::auth::auth_middleware, middleware::rate_limit::rate_limit_middleware, state::AppState};
+use crate::{
+    middleware::auth::auth_middleware, middleware::rate_limit::rate_limit_middleware,
+    state::AppState,
+};
 
 pub fn create_router(state: AppState) -> Router {
     let public_routes = Router::new()
         .route("/api/auth/register", post(auth::register))
-        .route("/api/auth/login", post(auth::login));
+        .route("/api/auth/login", post(auth::login))
+        .route("/api/auth/logout", post(auth::logout));
 
     let protected_routes = Router::new()
         .route("/api/auth/me", get(auth::me))
@@ -35,7 +39,10 @@ pub fn create_router(state: AppState) -> Router {
                 .put(workouts::update_workout)
                 .delete(workouts::delete_workout),
         )
-        .route("/api/workouts/{id}/complete", put(workouts::complete_workout))
+        .route(
+            "/api/workouts/{id}/complete",
+            put(workouts::complete_workout),
+        )
         .route("/api/stats", get(stats::get_stats))
         .route("/api/stats/weekly", get(stats::get_weekly))
         .route(
@@ -50,7 +57,10 @@ pub fn create_router(state: AppState) -> Router {
             "/api/activity/entries/{id}",
             delete(stats::delete_activity_entry),
         )
-        .route("/api/activity/calorie-chat", post(stats::activity_calorie_chat))
+        .route(
+            "/api/activity/calorie-chat",
+            post(stats::activity_calorie_chat),
+        )
         .route(
             "/api/exercises",
             get(exercises::list_exercises).post(exercises::create_exercise),
@@ -65,33 +75,30 @@ pub fn create_router(state: AppState) -> Router {
             "/api/tasks",
             get(tasks::list_tasks).post(tasks::create_task),
         )
-        .route(
-            "/api/tasks/today",
-            get(tasks::get_today_tasks),
-        )
+        .route("/api/tasks/today", get(tasks::get_today_tasks))
         .route(
             "/api/tasks/{id}",
             get(tasks::get_task)
                 .put(tasks::update_task)
                 .delete(tasks::delete_task),
         )
-        .route(
-            "/api/tasks/{id}/toggle",
-            put(tasks::toggle_completion),
-        )
-        .route(
-            "/api/tasks/{id}/increment-set",
-            post(tasks::increment_set),
-        )
+        .route("/api/tasks/{id}/toggle", put(tasks::toggle_completion))
+        .route("/api/tasks/{id}/increment-set", post(tasks::increment_set))
         .route(
             "/api/tasks/{id}/completions",
             get(tasks::get_task_completions),
         )
-        .layer(middleware::from_fn_with_state(state.clone(), auth_middleware));
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            auth_middleware,
+        ));
 
     Router::new()
         .merge(public_routes)
         .merge(protected_routes)
-        .layer(middleware::from_fn_with_state(state.clone(), rate_limit_middleware))
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            rate_limit_middleware,
+        ))
         .with_state(state)
 }

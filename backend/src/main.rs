@@ -18,10 +18,7 @@ use tower_http::{compression::CompressionLayer, cors::CorsLayer, trace::TraceLay
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::{
-    config::Config,
-    db::create_pool,
-    middleware::rate_limit::RateLimiter,
-    routes::create_router,
+    config::Config, db::create_pool, middleware::rate_limit::RateLimiter, routes::create_router,
     state::AppState,
 };
 
@@ -41,12 +38,10 @@ async fn main() {
     tracing::info!("Logger initialized.");
 
     let config = Config::from_env();
-    let pool = create_pool(&config.database_url)
-        .await
-        .unwrap_or_else(|e| {
-            eprintln!("CRITICAL ERROR: Could not connect to database: {}", e);
-            std::process::exit(1);
-        });
+    let pool = create_pool(&config.database_url).await.unwrap_or_else(|e| {
+        eprintln!("CRITICAL ERROR: Could not connect to database: {}", e);
+        std::process::exit(1);
+    });
 
     tracing::info!("Database connection established. Running migrations...");
     sqlx::migrate!("./migrations")
@@ -67,17 +62,19 @@ async fn main() {
         rate_limiter: RateLimiter::new(),
     };
 
-    let cors = if config.cors_origin == "*" {
-        CorsLayer::permissive()
-    } else {
-        let origin = config
-            .cors_origin
-            .parse::<HeaderValue>()
-            .expect("Invalid CORS origin");
-        CorsLayer::new()
-            .allow_origin([origin])
-            .allow_methods(tower_http::cors::Any)
-            .allow_headers(tower_http::cors::Any)
+    let cors = match config.allowed_cors_origins() {
+        None => CorsLayer::permissive(),
+        Some(origins) => {
+            let origins = origins
+                .into_iter()
+                .map(|origin| origin.parse::<HeaderValue>().expect("Invalid CORS origin"))
+                .collect::<Vec<_>>();
+            CorsLayer::new()
+                .allow_origin(origins)
+                .allow_methods(tower_http::cors::Any)
+                .allow_headers(tower_http::cors::Any)
+                .allow_credentials(true)
+        }
     };
 
     let app = create_router(state.clone())
