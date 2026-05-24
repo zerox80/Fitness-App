@@ -468,7 +468,7 @@ export const api = {
   },
   stats: {
     get: () => request<UserStats>('/stats'),
-    weekly: () => request<WeeklyActivitySummary>('/stats/weekly'),
+    weekly: (params?: ActivityDateParams) => request<WeeklyActivitySummary>(pathWithDate('/stats/weekly', params)),
   },
   activity: {
     today: (params?: ActivityDateParams) => request<DailyActivity>(activityPath(params)),

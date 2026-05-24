@@ -34,13 +34,13 @@ pub fn create_router(state: AppState) -> Router {
         )
         .route("/api/workouts/generate", post(workouts::generate_workout))
         .route(
-            "/api/workouts/{id}",
+            "/api/workouts/:id",
             get(workouts::get_workout)
                 .put(workouts::update_workout)
                 .delete(workouts::delete_workout),
         )
         .route(
-            "/api/workouts/{id}/complete",
+            "/api/workouts/:id/complete",
             put(workouts::complete_workout),
         )
         .route("/api/stats", get(stats::get_stats))
@@ -54,7 +54,7 @@ pub fn create_router(state: AppState) -> Router {
             get(stats::list_activity_entries).post(stats::create_activity_entries),
         )
         .route(
-            "/api/activity/entries/{id}",
+            "/api/activity/entries/:id",
             delete(stats::delete_activity_entry),
         )
         .route(
@@ -66,7 +66,7 @@ pub fn create_router(state: AppState) -> Router {
             get(exercises::list_exercises).post(exercises::create_exercise),
         )
         .route(
-            "/api/exercises/{id}",
+            "/api/exercises/:id",
             get(exercises::get_exercise)
                 .put(exercises::update_exercise)
                 .delete(exercises::delete_exercise),
@@ -77,15 +77,15 @@ pub fn create_router(state: AppState) -> Router {
         )
         .route("/api/tasks/today", get(tasks::get_today_tasks))
         .route(
-            "/api/tasks/{id}",
+            "/api/tasks/:id",
             get(tasks::get_task)
                 .put(tasks::update_task)
                 .delete(tasks::delete_task),
         )
-        .route("/api/tasks/{id}/toggle", put(tasks::toggle_completion))
-        .route("/api/tasks/{id}/increment-set", post(tasks::increment_set))
+        .route("/api/tasks/:id/toggle", put(tasks::toggle_completion))
+        .route("/api/tasks/:id/increment-set", post(tasks::increment_set))
         .route(
-            "/api/tasks/{id}/completions",
+            "/api/tasks/:id/completions",
             get(tasks::get_task_completions),
         )
         .layer(middleware::from_fn_with_state(

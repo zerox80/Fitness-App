@@ -5,11 +5,11 @@ pub fn normalize_email(email: &str) -> String {
 }
 
 pub fn validate_email(email: &str) -> Result<(), AppError> {
-    if email.is_empty() || email.trim() != email {
+    if email.trim().is_empty() {
         return Err(AppError::Validation("Email is required".to_string()));
     }
-    if email.chars().any(char::is_whitespace) {
-        return Err(AppError::Validation("Invalid email format".to_string()));
+    if email.trim() != email || email.chars().any(char::is_whitespace) {
+        return Err(AppError::Validation("Email must not contain spaces".to_string()));
     }
     let parts: Vec<&str> = email.split('@').collect();
     if parts.len() != 2 || parts[0].is_empty() || parts[1].is_empty() {

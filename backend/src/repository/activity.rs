@@ -10,9 +10,9 @@ pub async fn get_stats(pool: &PgPool, user_id: Uuid) -> Result<UserStats, AppErr
     sqlx::query_as::<_, UserStats>(
         r#"
         WITH workout_dates AS (
-            SELECT DISTINCT created_at::date AS d
+            SELECT DISTINCT completed_at::date AS d
             FROM workouts
-            WHERE user_id = $1
+            WHERE user_id = $1 AND completed_at IS NOT NULL
         ),
         ordered_dates AS (
             SELECT d, ROW_NUMBER() OVER (ORDER BY d ASC) AS rn
@@ -38,7 +38,7 @@ pub async fn get_stats(pool: &PgPool, user_id: Uuid) -> Result<UserStats, AppErr
                 WHERE max_date >= CURRENT_DATE - 1
             ), 0) as current_streak
         FROM workouts
-        WHERE user_id = $1
+        WHERE user_id = $1 AND completed_at IS NOT NULL
         "#,
     )
     .bind(user_id)
@@ -163,7 +163,7 @@ pub async fn get_weekly_summary(
             base.total_steps,
             base.total_base_calories + additional.total_additional_calories as total_calories,
             base.total_base_active_minutes + additional.total_additional_active_minutes as total_active_minutes,
-            (SELECT COUNT(*) FROM workouts WHERE user_id = $1 AND created_at::date BETWEEN $2 AND $2 + INTERVAL '6 days') as workout_count
+            (SELECT COUNT(*) FROM workouts WHERE user_id = $1 AND completed_at IS NOT NULL AND completed_at::date BETWEEN $2 AND $2 + INTERVAL '6 days') as workout_count
         FROM base
         CROSS JOIN additional
         "#,

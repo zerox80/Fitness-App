@@ -32,7 +32,7 @@ export default function HomeScreen() {
       const activityDate = formatLocalDateKey(now);
       const [serverActivity, nextWeeklySummary] = await Promise.all([
         api.activity.today({ date: activityDate }),
-        api.stats.weekly(),
+        api.stats.weekly({ date: activityDate }),
       ]);
       setWeeklySummary(nextWeeklySummary);
       const healthActivity = await readTodayHealthConnectActivity(now);

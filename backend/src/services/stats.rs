@@ -27,8 +27,9 @@ pub async fn get_activity_for_date(
 pub async fn get_weekly_summary(
     state: &AppState,
     user_id: Uuid,
+    local_today: Option<NaiveDate>,
 ) -> Result<WeeklyActivitySummary, AppError> {
-    let today = Utc::now().date_naive();
+    let today = local_today.unwrap_or_else(|| Utc::now().date_naive());
     let start = week_start(today);
     activity::get_weekly_summary(&state.pool, user_id, start).await
 }

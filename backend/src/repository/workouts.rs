@@ -15,7 +15,7 @@ struct WorkoutRow {
     duration_minutes: i32,
     intensity: String,
     category: String,
-    exercises: String,
+    exercises: sqlx::types::Json<Vec<WorkoutExercise>>,
     completed_at: Option<DateTime<Utc>>,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
@@ -30,7 +30,7 @@ fn select_workout_columns() -> &'static str {
     duration_minutes,
     intensity,
     category,
-    COALESCE(exercises, '[]'::jsonb)::text AS exercises,
+    COALESCE(exercises, '[]'::jsonb) AS exercises,
     completed_at,
     created_at,
     updated_at
@@ -38,9 +38,6 @@ fn select_workout_columns() -> &'static str {
 }
 
 fn workout_from_row(row: WorkoutRow) -> Result<Workout, AppError> {
-    let exercises = serde_json::from_str::<Vec<WorkoutExercise>>(&row.exercises)
-        .map_err(|err| AppError::Internal(format!("Failed to parse workout exercises: {}", err)))?;
-
     Ok(Workout {
         id: row.id,
         user_id: row.user_id,
@@ -49,7 +46,7 @@ fn workout_from_row(row: WorkoutRow) -> Result<Workout, AppError> {
         duration_minutes: row.duration_minutes,
         intensity: row.intensity,
         category: row.category,
-        exercises,
+        exercises: row.exercises.0,
         completed_at: row.completed_at,
         created_at: row.created_at,
         updated_at: row.updated_at,
@@ -133,13 +130,10 @@ pub async fn create(
     category: &str,
     exercises: &[WorkoutExercise],
 ) -> Result<Workout, AppError> {
-    let exercises_json = serde_json::to_string(exercises).map_err(|err| {
-        AppError::Internal(format!("Failed to serialize workout exercises: {}", err))
-    })?;
     let query = format!(
         r#"
         INSERT INTO workouts (user_id, title, description, duration_minutes, intensity, category, exercises)
-        VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING {}
         "#,
         select_workout_columns()
@@ -152,7 +146,7 @@ pub async fn create(
         .bind(duration_minutes)
         .bind(intensity)
         .bind(category)
-        .bind(exercises_json)
+        .bind(sqlx::types::Json(exercises))
         .fetch_one(pool)
         .await
         .map_err(AppError::Database)?;
@@ -172,12 +166,6 @@ pub async fn update(
     category: Option<&str>,
     exercises: Option<&[WorkoutExercise]>,
 ) -> Result<Option<Workout>, AppError> {
-    let exercises_json = exercises
-        .map(serde_json::to_string)
-        .transpose()
-        .map_err(|err| {
-            AppError::Internal(format!("Failed to serialize workout exercises: {}", err))
-        })?;
     let description_is_set = description.is_some();
     let description_value = description.flatten();
     let query = format!(
@@ -189,7 +177,7 @@ pub async fn update(
             duration_minutes = COALESCE($6, duration_minutes),
             intensity = COALESCE($7, intensity),
             category = COALESCE($8, category),
-            exercises = COALESCE($9::jsonb, exercises),
+            exercises = COALESCE($9, exercises),
             updated_at = NOW()
         WHERE id = $1 AND user_id = $2
         RETURNING {}
@@ -206,7 +194,7 @@ pub async fn update(
         .bind(duration_minutes)
         .bind(intensity)
         .bind(category)
-        .bind(exercises_json)
+        .bind(exercises.map(sqlx::types::Json))
         .fetch_optional(pool)
         .await
         .map_err(AppError::Database)?;

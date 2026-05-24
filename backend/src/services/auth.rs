@@ -16,11 +16,11 @@ use crate::{
 };
 
 pub async fn register(state: &AppState, req: RegisterRequest) -> Result<AuthResponse, AppError> {
-    validate_email(&req.email)?;
+    let email = normalize_email(&req.email);
+    validate_email(&email)?;
     validate_name(&req.name)?;
     validate_password(&req.password)?;
 
-    let email = normalize_email(&req.email);
     let existing = users::find_by_email(&state.pool, &email).await?;
     if existing.is_some() {
         return Err(AppError::Validation("Email already in use".to_string()));

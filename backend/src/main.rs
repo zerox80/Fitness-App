@@ -38,10 +38,26 @@ async fn main() {
     tracing::info!("Logger initialized.");
 
     let config = Config::from_env();
-    let pool = create_pool(&config.database_url).await.unwrap_or_else(|e| {
-        eprintln!("CRITICAL ERROR: Could not connect to database: {}", e);
-        std::process::exit(1);
-    });
+    
+    let mut pool = None;
+    for attempt in 1..=5 {
+        tracing::info!("Connecting to database (attempt {}/5)...", attempt);
+        match create_pool(&config.database_url).await {
+            Ok(p) => {
+                pool = Some(p);
+                break;
+            }
+            Err(e) => {
+                if attempt == 5 {
+                    eprintln!("CRITICAL ERROR: Could not connect to database after 5 attempts: {}", e);
+                    std::process::exit(1);
+                }
+                tracing::warn!("Database connection failed, retrying in 2 seconds...");
+                tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+            }
+        }
+    }
+    let pool = pool.unwrap();
 
     tracing::info!("Database connection established. Running migrations...");
     sqlx::migrate!("./migrations")

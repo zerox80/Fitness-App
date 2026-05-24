@@ -60,9 +60,10 @@ pub async fn get_stats(
 pub async fn get_weekly(
     State(state): State<AppState>,
     axum::Extension(auth_user): axum::Extension<AuthUser>,
+    Query(params): Query<ActivityDateParams>,
 ) -> Result<Json<WeeklyActivitySummary>, AppError> {
     Ok(Json(
-        stats::get_weekly_summary(&state, auth_user.user_id).await?,
+        stats::get_weekly_summary(&state, auth_user.user_id, params.date).await?,
     ))
 }
 
