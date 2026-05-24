@@ -12,8 +12,9 @@ vi.mock('@/hooks/useTasks', () => ({
   useTasks: useTasksMock,
 }));
 
+const localSearchParamsState = vi.hoisted(() => ({ create: '0' }));
 vi.mock('expo-router', () => ({
-  useLocalSearchParams: () => ({}),
+  useLocalSearchParams: () => localSearchParamsState,
   useRouter: () => routerMocks,
 }));
 
@@ -59,9 +60,10 @@ vi.mock('react-native', async () => {
   }
 
   return {
-    RefreshControl: () => null,
-    ScrollView: ({ children, ...props }: any) =>
-      ReactActual.createElement('div', cleanProps(props), children),
+    RefreshControl: ({ onRefresh }: any) =>
+      ReactActual.createElement('button', { onClick: onRefresh, type: 'button', 'data-testid': 'refresh-btn' }, 'refresh'),
+    ScrollView: ({ children, refreshControl, ...props }: any) =>
+      ReactActual.createElement('div', cleanProps(props), [refreshControl, children]),
     StyleSheet: { create: (styles: unknown) => styles },
     Text: ({ children, ...props }: any) =>
       ReactActual.createElement('span', cleanProps(props), children),
@@ -86,11 +88,26 @@ vi.mock('@/components/activity/CalorieChatCard', () => ({
 }));
 
 vi.mock('@/components/cards/TaskCard', () => ({
-  TaskCard: ({ task }: any) => <div>{task.title}</div>,
+  TaskCard: ({ task, onToggle, onIncrementSet, onDelete }: any) => (
+    <div>
+      <span>{task.title}</span>
+      <button onClick={() => onToggle(task.id)} type="button">toggle</button>
+      <button onClick={() => onIncrementSet(task.id)} type="button">increment</button>
+      <button onClick={() => onDelete(task.id)} type="button">delete</button>
+    </div>
+  ),
 }));
 
 vi.mock('@/components/forms/TaskForm', () => ({
-  TaskForm: () => null,
+  TaskForm: ({ visible, onClose, onSubmit }: any) => {
+    if (!visible) return null;
+    return (
+      <div>
+        <button onClick={onClose} type="button">close</button>
+        <button onClick={() => onSubmit({ title: 'New Mock Task' })} type="button">submit</button>
+      </div>
+    );
+  },
 }));
 
 vi.mock('@/components/feedback/ErrorBanner', () => ({
@@ -140,6 +157,7 @@ describe('Task screens', () => {
   beforeEach(() => {
     useTasksMock.mockReset();
     routerMocks.setParams.mockReset();
+    localSearchParamsState.create = '0';
   });
 
   afterEach(() => {
@@ -165,5 +183,140 @@ describe('Task screens', () => {
 
     expect(screen.getByRole('alert').textContent).toContain('Tasks konnten nicht geladen werden.');
     expect(screen.queryByText('Alles erledigt')).toBeNull();
+  });
+
+  it('shows loading spinner when loading is true', () => {
+    mockUseTasks({ loading: true });
+
+    const { rerender } = render(<TasksScreen />);
+    expect(screen.getByText('Aufgaben laden...')).toBeTruthy();
+
+    rerender(<TasksScreenWeb />);
+    expect(screen.getByText('Aufgaben laden...')).toBeTruthy();
+  });
+
+  it('shows empty state when there are no tasks', () => {
+    mockUseTasks({ tasks: [] });
+
+    const { rerender } = render(<TasksScreen />);
+    expect(screen.getByText('Keine Aufgaben vorhanden')).toBeTruthy();
+
+    rerender(<TasksScreenWeb />);
+    expect(screen.getByText('Alles erledigt')).toBeTruthy();
+  });
+
+  it('triggers refetch on pulling to refresh', () => {
+    const { refetch } = mockUseTasks({ tasks: [] });
+
+    render(<TasksScreen />);
+    fireEvent.click(screen.getByTestId('refresh-btn'));
+
+    expect(refetch).toHaveBeenCalled();
+  });
+
+  it('opens and closes form, and submits a task', () => {
+    const createTask = vi.fn();
+    mockUseTasks({ tasks: [], createTask });
+
+    render(<TasksScreen />);
+    
+    // TaskForm is not visible initially
+    expect(screen.queryByText('close')).toBeNull();
+
+    // Click plus button to open form
+    const buttons = screen.getAllByRole('button');
+    const addBtn = buttons.find(b => b.textContent === '');
+    expect(addBtn).toBeTruthy();
+    fireEvent.click(addBtn!);
+
+    // Now TaskForm close/submit buttons are visible
+    expect(screen.getByText('close')).toBeTruthy();
+    expect(screen.getByText('submit')).toBeTruthy();
+
+    // Submit the form
+    fireEvent.click(screen.getByText('submit'));
+    expect(createTask).toHaveBeenCalledWith({ title: 'New Mock Task' });
+
+    // Close the form
+    fireEvent.click(screen.getByText('close'));
+    expect(screen.queryByText('close')).toBeNull();
+  });
+
+  it('handles task actions: toggle, increment, delete', () => {
+    const toggleTask = vi.fn();
+    const incrementSet = vi.fn();
+    const deleteTask = vi.fn();
+    
+    const mockTasks = [
+      { id: 't1', title: 'Task 1', completed: false, sets: 0, target_sets: 3 }
+    ];
+
+    mockUseTasks({ tasks: mockTasks, toggleTask, incrementSet, deleteTask });
+
+    const { rerender } = render(<TasksScreen />);
+    
+    expect(screen.getByText('Task 1')).toBeTruthy();
+
+    fireEvent.click(screen.getByText('toggle'));
+    expect(toggleTask).toHaveBeenCalledWith('t1');
+
+    fireEvent.click(screen.getByText('increment'));
+    expect(incrementSet).toHaveBeenCalledWith('t1');
+
+    fireEvent.click(screen.getByText('delete'));
+    expect(deleteTask).toHaveBeenCalledWith('t1');
+
+    // Test on web screen too
+    rerender(<TasksScreenWeb />);
+    fireEvent.click(screen.getByText('toggle'));
+    expect(toggleTask).toHaveBeenCalledWith('t1');
+
+    fireEvent.click(screen.getByText('increment'));
+    expect(incrementSet).toHaveBeenCalledWith('t1');
+
+    fireEvent.click(screen.getByText('delete'));
+    expect(deleteTask).toHaveBeenCalledWith('t1');
+  });
+
+  it('opens and closes form, and submits a task on web', () => {
+    const createTask = vi.fn();
+    mockUseTasks({ tasks: [], createTask });
+
+    render(<TasksScreenWeb />);
+    
+    // TaskForm is not visible initially
+    expect(screen.queryByText('close')).toBeNull();
+
+    // Click "Aufgabe hinzufügen" button to open form
+    fireEvent.click(screen.getByText('Aufgabe hinzufügen'));
+
+    // Now TaskForm close/submit buttons are visible
+    expect(screen.getByText('close')).toBeTruthy();
+    expect(screen.getByText('submit')).toBeTruthy();
+
+    // Submit the form
+    fireEvent.click(screen.getByText('submit'));
+    expect(createTask).toHaveBeenCalledWith({ title: 'New Mock Task' });
+
+    // Close the form
+    fireEvent.click(screen.getByText('close'));
+    expect(screen.queryByText('close')).toBeNull();
+  });
+
+  it('opens TaskForm automatically when router parameter create is 1 on native and web', () => {
+    localSearchParamsState.create = '1';
+    mockUseTasks({ tasks: [] });
+
+    const { unmount } = render(<TasksScreen />);
+    expect(screen.getByText('close')).toBeTruthy();
+    expect(routerMocks.setParams).toHaveBeenCalledWith({ create: '0' });
+
+    unmount();
+    routerMocks.setParams.mockClear();
+
+    localSearchParamsState.create = '1';
+    render(<TasksScreenWeb />);
+    expect(screen.getByText('close')).toBeTruthy();
+    expect(routerMocks.setParams).toHaveBeenCalledWith({ create: '0' });
   });
 });
