@@ -15,9 +15,9 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
-    "@react-navigation/bottom-tabs": "^7.15.5",
+    "@react-navigation/bottom-tabs": "^7.16.1",
     "@react-navigation/elements": "^2.6.3",
-    "@react-navigation/native": "^7.1.8",
+    "@react-navigation/native": "^7.2.4",
     "expo": "~56.0.3",
     "expo-constants": "~56.0.14",
     "expo-font": "~56.0.5",
@@ -33,7 +33,7 @@
     "expo-symbols": "~56.0.5",
     "expo-system-ui": "~56.0.5",
     "expo-web-browser": "~56.0.5",
-    "lucide-react-native": "^1.14.0",
+    "lucide-react-native": "^1.16.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-native": "0.83.6",
@@ -52,12 +52,12 @@
     "@testing-library/react": "^16.3.2",
     "@types/react": "~19.2.14",
     "eslint": "^9.39.4",
-    "eslint-config-expo": "~55.0.0",
-    "eslint-import-resolver-typescript": "^3.10.1",
+    "eslint-config-expo": "~56.0.0",
+    "eslint-import-resolver-typescript": "^4.4.4",
     "expo-build-properties": "^56.0.13",
     "jsdom": "^29.1.1",
-    "typescript": "~5.9.2",
-    "vitest": "^4.1.5"
+    "typescript": "~6.0.3",
+    "vitest": "^4.1.6"
   },
   "private": true
 }
