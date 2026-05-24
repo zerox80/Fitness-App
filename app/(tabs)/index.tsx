@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { Platform, useWindowDimensions } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router/react-navigation';
 
 import { api, DailyActivity, WeeklyActivitySummary } from '@/lib/api';
 import { readTodayHealthConnectActivity } from '@/lib/healthConnect';
