@@ -49,7 +49,7 @@
     "@testing-library/react": "^16.3.2",
     "@types/react": "~19.2.14",
     "@vitest/coverage-v8": "^4.1.6",
-    "eslint": "^9.39.4",
+    "eslint": "^10.4.0",
     "eslint-config-expo": "~56.0.0",
     "eslint-import-resolver-typescript": "^4.4.4",
     "expo-build-properties": "~56.0.14",
