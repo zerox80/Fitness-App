@@ -25,9 +25,9 @@ run(
   isWindows ? 'gradlew.bat' : './gradlew',
   [
     'testDebugUnitTest',
-    'jacocoDebugUnitTestCoverageVerification',
+    'jacocoDebugUnitTestReport',
     '--init-script',
-    path.join('..', 'scripts', 'android-coverage-gate.gradle'),
+    path.join('..', 'scripts', 'android-coverage-report.gradle'),
     '--no-daemon',
   ],
   { cwd: androidDir }

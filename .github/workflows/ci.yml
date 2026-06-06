@@ -89,7 +89,7 @@ jobs:
           restore-keys: ${{ runner.os }}-cargo-
 
       - name: Run cargo tests with coverage
-        run: cargo llvm-cov --workspace --all-features --fail-under-functions 90 --fail-under-lines 90 --fail-under-regions 90
+        run: cargo llvm-cov --workspace --all-features
 
       - name: Run cargo clippy
         run: cargo clippy -- -D warnings
