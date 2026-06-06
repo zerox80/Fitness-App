@@ -38,6 +38,7 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+coverage/
 
 # Rust backend
 backend/target/

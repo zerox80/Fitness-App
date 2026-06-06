@@ -56,8 +56,8 @@ jobs:
       - name: Run TypeScript
         run: npm run typecheck
 
-      - name: Run Vitest
-        run: npm test
+      - name: Run Vitest with coverage
+        run: npm run test:coverage
 
   # ── Backend: Rust ─────────────────────────────────────────────────
   backend-tests:
@@ -72,6 +72,9 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+
       - name: Cache cargo
         uses: actions/cache@v5
         with:
@@ -82,8 +85,8 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('backend/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
 
-      - name: Run cargo test
-        run: cargo test --no-fail-fast
+      - name: Run cargo tests with coverage
+        run: cargo llvm-cov --workspace --all-features --fail-under-lines 90
 
       - name: Run cargo clippy
         run: cargo clippy -- -D warnings
