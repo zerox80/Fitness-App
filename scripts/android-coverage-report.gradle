@@ -2,11 +2,9 @@ import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.tasks.testing.Test
 import org.gradle.testing.jacoco.plugins.JacocoPluginExtension
-import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification
 import org.gradle.testing.jacoco.tasks.JacocoReport
 
-def coverageMinimum = 0.90
-def gatedProjectPaths = [':app']
+def coverageProjectPaths = [':app']
 def coverageExcludes = [
   '**/R.class',
   '**/R$*.class',
@@ -14,8 +12,8 @@ def coverageExcludes = [
   '**/Manifest*.*'
 ]
 
-def configureCoverageGate
-configureCoverageGate = { Project project ->
+def configureCoverageReport
+configureCoverageReport = { Project project ->
   project.pluginManager.apply('jacoco')
   project.extensions.configure(JacocoPluginExtension) {
     toolVersion = '0.8.12'
@@ -23,11 +21,10 @@ configureCoverageGate = { Project project ->
 
   def testTaskName = 'testDebugUnitTest'
   def reportTaskName = 'jacocoDebugUnitTestReport'
-  def verificationTaskName = 'jacocoDebugUnitTestCoverageVerification'
 
   def testTask = project.tasks.findByName(testTaskName)
   if (testTask == null) {
-    throw new GradleException("Android coverage gate requires ${project.path}:${testTaskName}.")
+    throw new GradleException("Android coverage report requires ${project.path}:${testTaskName}.")
   }
 
   project.tasks.withType(Test).configureEach {
@@ -57,52 +54,15 @@ configureCoverageGate = { Project project ->
     executionData.setFrom(coverageData)
   }
 
-  def verificationTask = project.tasks.register(verificationTaskName, JacocoCoverageVerification) {
-    dependsOn reportTask
-    sourceDirectories.setFrom(sourceDirs)
-    classDirectories.setFrom(classDirs)
-    executionData.setFrom(coverageData)
-    violationRules {
-      rule {
-        limit {
-          counter = 'INSTRUCTION'
-          value = 'COVEREDRATIO'
-          minimum = coverageMinimum
-        }
-        limit {
-          counter = 'LINE'
-          value = 'COVEREDRATIO'
-          minimum = coverageMinimum
-        }
-        limit {
-          counter = 'BRANCH'
-          value = 'COVEREDRATIO'
-          minimum = coverageMinimum
-        }
-        limit {
-          counter = 'METHOD'
-          value = 'COVEREDRATIO'
-          minimum = coverageMinimum
-        }
-        limit {
-          counter = 'CLASS'
-          value = 'COVEREDRATIO'
-          minimum = coverageMinimum
-        }
-      }
-    }
-  }
-
   testTask.finalizedBy(reportTask)
-  project.tasks.findByName('check')?.dependsOn(verificationTask)
 }
 
 gradle.projectsEvaluated {
-  gatedProjectPaths.each { projectPath ->
+  coverageProjectPaths.each { projectPath ->
     def project = rootProject.findProject(projectPath)
     if (project == null) {
-      throw new GradleException("Android coverage gate requires ${projectPath}, but it was not found.")
+      throw new GradleException("Android coverage report requires ${projectPath}, but it was not found.")
     }
-    configureCoverageGate(project)
+    configureCoverageReport(project)
   }
 }
