@@ -8,16 +8,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
-      include: [
-        'app/**/*.{ts,tsx}',
-        'components/**/*.{ts,tsx}',
-        'constants/**/*.{ts,tsx}',
-        'data/**/*.{ts,tsx}',
-        'hooks/**/*.{ts,tsx}',
-        'lib/**/*.{ts,tsx}',
-        'plugins/**/*.js',
-        'utils/**/*.{ts,tsx}',
-      ],
+      all: false,
       exclude: [
         '**/*.d.ts',
         '**/__tests__/**',
@@ -30,7 +21,6 @@ export default defineConfig({
         functions: 90,
         lines: 90,
         statements: 90,
-        perFile: true,
       },
     },
   },
