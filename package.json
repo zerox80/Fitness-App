@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:coverage:report": "vitest run --coverage --config vitest.coverage-report.config.ts",
     "test:watch": "vitest"
   },
   "dependencies": {

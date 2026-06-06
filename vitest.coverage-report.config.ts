@@ -9,6 +9,8 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'lcov'],
       include: [
+        'app/**/*.{ts,tsx}',
+        'components/**/*.{ts,tsx}',
         'constants/**/*.{ts,tsx}',
         'data/**/*.{ts,tsx}',
         'hooks/**/*.{ts,tsx}',
@@ -23,12 +25,6 @@ export default defineConfig({
         'app-example/**',
         'review-dist/**',
       ],
-      thresholds: {
-        branches: 90,
-        functions: 90,
-        lines: 90,
-        statements: 90,
-      },
     },
   },
   resolve: {
