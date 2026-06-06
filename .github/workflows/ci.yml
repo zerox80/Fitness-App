@@ -89,7 +89,7 @@ jobs:
           restore-keys: ${{ runner.os }}-cargo-
 
       - name: Run cargo tests with coverage
-        run: cargo llvm-cov --workspace --all-features --fail-under-lines 90
+        run: cargo llvm-cov --workspace --all-features --fail-under-functions 90 --fail-under-lines 90 --fail-under-regions 90
 
       - name: Run cargo clippy
         run: cargo clippy -- -D warnings
@@ -117,11 +117,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Prebuild Android
-        run: npx expo prebuild --platform android --no-install
-
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
+
+      - name: Run Android tests with coverage
+        run: npm run test:android:coverage
 
       - name: Build Android Release
         working-directory: android

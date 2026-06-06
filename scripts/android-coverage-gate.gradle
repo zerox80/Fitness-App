@@ -1,0 +1,108 @@
+import org.gradle.api.GradleException
+import org.gradle.api.Project
+import org.gradle.api.tasks.testing.Test
+import org.gradle.testing.jacoco.plugins.JacocoPluginExtension
+import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification
+import org.gradle.testing.jacoco.tasks.JacocoReport
+
+def coverageMinimum = 0.90
+def gatedProjectPaths = [':app']
+def coverageExcludes = [
+  '**/R.class',
+  '**/R$*.class',
+  '**/BuildConfig.*',
+  '**/Manifest*.*'
+]
+
+def configureCoverageGate
+configureCoverageGate = { Project project ->
+  project.pluginManager.apply('jacoco')
+  project.extensions.configure(JacocoPluginExtension) {
+    toolVersion = '0.8.12'
+  }
+
+  def testTaskName = 'testDebugUnitTest'
+  def reportTaskName = 'jacocoDebugUnitTestReport'
+  def verificationTaskName = 'jacocoDebugUnitTestCoverageVerification'
+
+  def testTask = project.tasks.findByName(testTaskName)
+  if (testTask == null) {
+    throw new GradleException("Android coverage gate requires ${project.path}:${testTaskName}.")
+  }
+
+  project.tasks.withType(Test).configureEach {
+    jacoco.includeNoLocationClasses = true
+    jacoco.excludes = ['jdk.internal.*']
+  }
+
+  def sourceDirs = project.files('src/main/java', 'src/main/kotlin')
+  def classDirs = project.files(
+    project.fileTree(dir: "${project.buildDir}/intermediates/javac/debug/classes", excludes: coverageExcludes),
+    project.fileTree(dir: "${project.buildDir}/tmp/kotlin-classes/debug", excludes: coverageExcludes)
+  )
+  def coverageData = project.fileTree(dir: project.buildDir, includes: [
+    "jacoco/${testTaskName}.exec",
+    "outputs/unit_test_code_coverage/debugUnitTest/${testTaskName}.exec"
+  ])
+
+  def reportTask = project.tasks.register(reportTaskName, JacocoReport) {
+    dependsOn testTask
+    reports {
+      xml.required = true
+      html.required = true
+      csv.required = false
+    }
+    sourceDirectories.setFrom(sourceDirs)
+    classDirectories.setFrom(classDirs)
+    executionData.setFrom(coverageData)
+  }
+
+  def verificationTask = project.tasks.register(verificationTaskName, JacocoCoverageVerification) {
+    dependsOn reportTask
+    sourceDirectories.setFrom(sourceDirs)
+    classDirectories.setFrom(classDirs)
+    executionData.setFrom(coverageData)
+    violationRules {
+      rule {
+        limit {
+          counter = 'INSTRUCTION'
+          value = 'COVEREDRATIO'
+          minimum = coverageMinimum
+        }
+        limit {
+          counter = 'LINE'
+          value = 'COVEREDRATIO'
+          minimum = coverageMinimum
+        }
+        limit {
+          counter = 'BRANCH'
+          value = 'COVEREDRATIO'
+          minimum = coverageMinimum
+        }
+        limit {
+          counter = 'METHOD'
+          value = 'COVEREDRATIO'
+          minimum = coverageMinimum
+        }
+        limit {
+          counter = 'CLASS'
+          value = 'COVEREDRATIO'
+          minimum = coverageMinimum
+        }
+      }
+    }
+  }
+
+  testTask.finalizedBy(reportTask)
+  project.tasks.findByName('check')?.dependsOn(verificationTask)
+}
+
+gradle.projectsEvaluated {
+  gatedProjectPaths.each { projectPath ->
+    def project = rootProject.findProject(projectPath)
+    if (project == null) {
+      throw new GradleException("Android coverage gate requires ${projectPath}, but it was not found.")
+    }
+    configureCoverageGate(project)
+  }
+}
