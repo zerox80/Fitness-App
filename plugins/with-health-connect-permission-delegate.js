@@ -35,3 +35,6 @@ module.exports = createRunOncePlugin(
   'with-health-connect-permission-delegate',
   '1.0.0'
 );
+
+module.exports.addImport = addImport;
+module.exports.addDelegate = addDelegate;
