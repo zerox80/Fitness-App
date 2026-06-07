@@ -2,8 +2,10 @@ import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.tasks.testing.Test
 import org.gradle.testing.jacoco.plugins.JacocoPluginExtension
+import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification
 import org.gradle.testing.jacoco.tasks.JacocoReport
 
+def coverageMinimum = 0.50
 def coverageProjectPaths = [':app']
 def coverageExcludes = [
   '**/R.class',
@@ -21,6 +23,7 @@ configureCoverageReport = { Project project ->
 
   def testTaskName = 'testDebugUnitTest'
   def reportTaskName = 'jacocoDebugUnitTestReport'
+  def verificationTaskName = 'jacocoDebugUnitTestCoverageVerification'
 
   def testTask = project.tasks.findByName(testTaskName)
   if (testTask == null) {
@@ -54,7 +57,35 @@ configureCoverageReport = { Project project ->
     executionData.setFrom(coverageData)
   }
 
+  def verificationTask = project.tasks.register(verificationTaskName, JacocoCoverageVerification) {
+    dependsOn reportTask
+    sourceDirectories.setFrom(sourceDirs)
+    classDirectories.setFrom(classDirs)
+    executionData.setFrom(coverageData)
+    violationRules {
+      rule {
+        element = 'SOURCEFILE'
+        limit {
+          counter = 'LINE'
+          value = 'COVEREDRATIO'
+          minimum = coverageMinimum
+        }
+        limit {
+          counter = 'BRANCH'
+          value = 'COVEREDRATIO'
+          minimum = coverageMinimum
+        }
+        limit {
+          counter = 'METHOD'
+          value = 'COVEREDRATIO'
+          minimum = coverageMinimum
+        }
+      }
+    }
+  }
+
   testTask.finalizedBy(reportTask)
+  project.tasks.findByName('check')?.dependsOn(verificationTask)
 }
 
 gradle.projectsEvaluated {

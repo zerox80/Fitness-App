@@ -27,6 +27,13 @@ export default defineConfig({
         'app-example/**',
         'review-dist/**',
       ],
+      thresholds: {
+        perFile: true,
+        branches: 50,
+        functions: 50,
+        lines: 50,
+        statements: 50,
+      },
     },
   },
   resolve: {

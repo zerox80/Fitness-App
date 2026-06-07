@@ -26,6 +26,7 @@ run(
   [
     'testDebugUnitTest',
     'jacocoDebugUnitTestReport',
+    'jacocoDebugUnitTestCoverageVerification',
     '--init-script',
     path.join('..', 'scripts', 'android-coverage-report.gradle'),
     '--no-daemon',
