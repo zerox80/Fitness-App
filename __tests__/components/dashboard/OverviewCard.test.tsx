@@ -69,7 +69,7 @@ vi.mock('@/constants/dashboard-constants', () => ({
   sidebarItems: [],
 }));
 
-vi.mock('./dashboard.styles', () => ({
+vi.mock('@/components/dashboard/dashboard.styles', () => ({
   styles: {
     overviewCard: { padding: 16 },
     compactOverviewCard: { padding: 8 },
@@ -88,7 +88,7 @@ vi.mock('./dashboard.styles', () => ({
   },
 }));
 
-vi.mock('./dashboard-web.styles', () => ({
+vi.mock('@/components/dashboard/dashboard-web.styles', () => ({
   webStyles: {
     webOverviewCard: { maxWidth: 520 },
     webCardHeader: { flexDirection: 'row' },
@@ -101,19 +101,19 @@ vi.mock('./dashboard-web.styles', () => ({
   },
 }));
 
-vi.mock('./StepProgressRing', () => ({
+vi.mock('@/components/dashboard/StepProgressRing', () => ({
   StepProgressRing: ({ progress, size }: any) => (
     <div data-testid="step-ring" data-progress={progress} data-size={size} />
   ),
 }));
 
-vi.mock('./MetricRow', () => ({
+vi.mock('@/components/dashboard/MetricRow', () => ({
   MetricRow: ({ label, value, unit }: any) => (
     <div data-testid="metric" data-label={label}>{`${value} ${unit}`}</div>
   ),
 }));
 
-vi.mock('./DateRow', () => ({
+vi.mock('@/components/dashboard/DateRow', () => ({
   DateRow: ({ dateLabel, desktop }: any) => (
     <span data-testid="date-row" data-desktop={!!desktop}>{dateLabel}</span>
   ),

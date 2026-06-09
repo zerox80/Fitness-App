@@ -58,7 +58,7 @@ vi.mock('@/constants/dashboard-constants', () => ({
   sidebarItems: [],
 }));
 
-vi.mock('./dashboard.styles', () => ({
+vi.mock('@/components/dashboard/dashboard.styles', () => ({
   styles: {
     container: { flex: 1 },
     scrollContent: { padding: 16 },
@@ -76,27 +76,27 @@ vi.mock('./dashboard.styles', () => ({
   },
 }));
 
-vi.mock('./OverviewCard', () => ({
+vi.mock('@/components/dashboard/OverviewCard', () => ({
   OverviewCard: ({ compact, data: d }: any) => (
     <div data-testid="overview" data-compact={!!compact} data-name={d.name} />
   ),
 }));
 
-vi.mock('./HeartCard', () => ({
+vi.mock('@/components/dashboard/HeartCard', () => ({
   HeartCard: () => <div data-testid="heart-card" />,
 }));
 
-vi.mock('./WeekCard', () => ({
+vi.mock('@/components/dashboard/WeekCard', () => ({
   WeekCard: ({ compact, summary }: any) => (
     <div data-testid="week-card" data-compact={!!compact} data-workout={summary?.workout_count ?? 0} />
   ),
 }));
 
-vi.mock('./TrainingList', () => ({
+vi.mock('@/components/dashboard/TrainingList', () => ({
   TrainingList: () => <div data-testid="training-list" />,
 }));
 
-vi.mock('./DateRow', () => ({
+vi.mock('@/components/dashboard/DateRow', () => ({
   DateRow: ({ dateLabel }: any) => <span data-testid="date-row">{dateLabel}</span>,
 }));
 

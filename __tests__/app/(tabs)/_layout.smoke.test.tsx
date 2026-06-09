@@ -10,6 +10,13 @@ vi.mock('react-native', () => ({
   View: 'View',
   Pressable: 'Pressable',
 }));
+vi.mock('lucide-react-native', () => ({
+  Activity: () => null,
+  ClipboardList: () => null,
+  Home: () => null,
+  Plus: () => null,
+  User: () => null,
+}));
 vi.mock('expo-router', () => ({
   Tabs: Object.assign(({ children }: any) => children, {
     Screen: ({ name }: any) => null,

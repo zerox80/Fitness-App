@@ -21,30 +21,3 @@ vi.mock('react-native-svg', () => {
     Path,
   };
 });
-
-vi.mock('lucide-react-native', () => {
-  const createMockIcon = (name: string) => {
-    const MockIcon = () => null;
-    MockIcon.displayName = name;
-    return MockIcon;
-  };
-
-  return new Proxy(
-    {
-      createLucideIcon: (name: string) => createMockIcon(name),
-      useLucideContext: () => ({}),
-      LucideProvider: ({ children }: any) => children,
-    },
-    {
-      get(target, prop) {
-        if (prop in target) {
-          return target[prop as keyof typeof target];
-        }
-        if (typeof prop === 'string') {
-          return createMockIcon(prop);
-        }
-        return undefined;
-      },
-    }
-  );
-});

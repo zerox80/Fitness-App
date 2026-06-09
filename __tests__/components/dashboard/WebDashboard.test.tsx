@@ -44,7 +44,7 @@ vi.mock('@/constants/dashboard-constants', () => ({
   sidebarItems: [],
 }));
 
-vi.mock('./dashboard-web.styles', () => ({
+vi.mock('@/components/dashboard/dashboard-web.styles', () => ({
   webStyles: {
     webContent: { padding: 24 },
     webGreetingBlock: { marginBottom: 16 },
@@ -57,23 +57,23 @@ vi.mock('./dashboard-web.styles', () => ({
   },
 }));
 
-vi.mock('./OverviewCard', () => ({
+vi.mock('@/components/dashboard/OverviewCard', () => ({
   OverviewCard: ({ desktop, compact, data: d }: any) => (
     <div data-testid="overview" data-desktop={!!desktop} data-compact={!!compact} data-name={d.name} />
   ),
 }));
 
-vi.mock('./HeartCard', () => ({
+vi.mock('@/components/dashboard/HeartCard', () => ({
   HeartCard: ({ desktop }: any) => <div data-testid="heart-card" data-desktop={!!desktop} />,
 }));
 
-vi.mock('./WeekCard', () => ({
+vi.mock('@/components/dashboard/WeekCard', () => ({
   WeekCard: ({ desktop, compact, summary }: any) => (
     <div data-testid="week-card" data-desktop={!!desktop} data-compact={!!compact} data-workout={summary?.workout_count ?? 0} />
   ),
 }));
 
-vi.mock('./TrainingList', () => ({
+vi.mock('@/components/dashboard/TrainingList', () => ({
   TrainingList: ({ desktop }: any) => <div data-testid="training-list" data-desktop={!!desktop} />,
 }));
 

@@ -71,7 +71,7 @@ vi.mock('@/constants/dashboard-constants', () => ({
   sidebarItems: [],
 }));
 
-vi.mock('./dashboard.styles', () => ({
+vi.mock('@/components/dashboard/dashboard.styles', () => ({
   styles: {
     smallCard: { padding: 16 },
     smallCardHeader: { flexDirection: 'row' },
@@ -85,14 +85,14 @@ vi.mock('./dashboard.styles', () => ({
   },
 }));
 
-vi.mock('./dashboard-web.styles', () => ({
+vi.mock('@/components/dashboard/dashboard-web.styles', () => ({
   webStyles: {
     webSmallCard: { minWidth: 280 },
     webHeartValue: { fontSize: 30 },
   },
 }));
 
-vi.mock('./HeartRateChart', () => ({
+vi.mock('@/components/dashboard/HeartRateChart', () => ({
   HeartRateChart: ({ compact }: any) => (
     <div data-testid="heart-rate-chart" data-compact={!!compact} />
   ),
