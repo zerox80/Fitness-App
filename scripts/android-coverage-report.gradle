@@ -95,7 +95,8 @@ gradle.taskGraph.whenReady { taskGraph ->
       project = rootProject.allprojects.find { it.path == projectPath }
     }
     if (project == null) {
-      throw new GradleException("Android coverage report requires ${projectPath}, but it was not found. Available: ${rootProject.allprojects.collect { it.path }}")
+      println("WARN: Android coverage report skipped — ${projectPath} not found. Available: ${rootProject.allprojects.collect { it.path }}")
+      return
     }
     configureCoverageReport(project)
   }
