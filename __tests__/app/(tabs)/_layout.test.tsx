@@ -30,8 +30,8 @@ vi.mock('expo-router', () => ({
   router: { push: vi.fn() },
 }));
 
-vi.mock('../../components/haptic-tab', () => ({ HapticTab: () => null }));
-vi.mock('../../components/layout/WebLayout', () => ({ WebLayout: ({ children }: any) => children }));
+vi.mock('@/components/haptic-tab', () => ({ HapticTab: () => null }));
+vi.mock('@/components/layout/WebLayout', () => ({ WebLayout: ({ children }: any) => children }));
 
 import React from 'react';
 import { cleanup, render, screen } from '@testing-library/react';
