@@ -88,9 +88,12 @@ configureCoverageReport = { Project project ->
   project.tasks.findByName('check')?.dependsOn(verificationTask)
 }
 
-gradle.projectsEvaluated {
+gradle.taskGraph.whenReady { taskGraph ->
   coverageProjectPaths.each { projectPath ->
     def project = rootProject.findProject(projectPath)
+    if (project == null) {
+      project = rootProject.subprojects.find { it.path == projectPath }
+    }
     if (project == null) {
       throw new GradleException("Android coverage report requires ${projectPath}, but it was not found.")
     }
