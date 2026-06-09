@@ -5,6 +5,12 @@ export default defineConfig({
   test: {
     include: ['**/__tests__/**/*.test.{ts,tsx}'],
     environment: 'node',
+    setupFiles: ['./vitest.setup.ts'],
+    server: {
+      deps: {
+        inline: ['lucide-react-native', 'react-native-svg'],
+      },
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],

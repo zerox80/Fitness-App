@@ -49,7 +49,7 @@ export default function LoginScreen() {
         <FadeIn delay={0} style={isDesktop ? [styles.card, { width: cardWidth }] : styles.mobileContent}>
           <View style={styles.contentInner}>
             {user && (
-              <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()} activeOpacity={0.7}>
+              <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()} activeOpacity={0.7} accessibilityLabel="Schließen">
                 <X size={22} color={Colors.text} />
               </TouchableOpacity>
             )}

@@ -36,6 +36,12 @@ vi.mock('react-native', async () => {
     StyleSheet: { create: (styles: unknown) => styles },
     Text: ({ children, ...props }: any) =>
       ReactActual.createElement('span', cleanProps(props), children),
+    TouchableOpacity: ({ accessibilityLabel, children, onPress, ...props }: any) =>
+      ReactActual.createElement(
+        'button',
+        { ...cleanProps(props), 'aria-label': accessibilityLabel, onClick: onPress, type: 'button' },
+        children
+      ),
     View: ({ children, ...props }: any) =>
       ReactActual.createElement('div', cleanProps(props), children),
     useWindowDimensions: () => ({ width: widthState.value, height: 800 }),
