@@ -56,6 +56,7 @@ vi.mock('lucide-react-native', () => ({
   Dumbbell: () => null,
   Eye: () => null,
   Flame: () => null,
+  HeartPulse: () => null,
   Play: () => null,
   Timer: () => null,
   Trash2: () => null,

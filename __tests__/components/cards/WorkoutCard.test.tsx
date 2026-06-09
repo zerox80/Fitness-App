@@ -47,8 +47,8 @@ vi.mock('@/utils/date', () => ({
 }));
 
 vi.mock('@/utils/numbers', () => ({
-  calculateVolume: (sets: Array<{ reps: number; weight: number }>) =>
-    sets.reduce((sum, s) => sum + s.reps * s.weight, 0),
+  calculateVolume: (sets: Array<{ reps?: number; weightKg?: number }>) =>
+    sets.reduce((sum, s) => sum + (s.reps ?? 0) * (s.weightKg ?? 0), 0),
 }));
 
 import { WorkoutCard } from '@/components/cards/WorkoutCard';
