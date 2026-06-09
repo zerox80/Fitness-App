@@ -6,8 +6,10 @@ export default defineConfig({
     include: ['**/__tests__/**/*.test.{ts,tsx}'],
     environment: 'node',
     setupFiles: ['./vitest.setup.ts'],
-    deps: {
-      inline: ['lucide-react-native', 'react-native-svg', 'expo-router', 'react-native-reanimated', 'react-native-worklets'],
+    server: {
+      deps: {
+        inline: ['lucide-react-native', 'react-native-svg', 'expo-router', 'react-native-reanimated', 'react-native-worklets'],
+      },
     },
     coverage: {
       provider: 'v8',
