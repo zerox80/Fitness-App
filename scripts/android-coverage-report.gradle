@@ -92,10 +92,10 @@ gradle.taskGraph.whenReady { taskGraph ->
   coverageProjectPaths.each { projectPath ->
     def project = rootProject.findProject(projectPath)
     if (project == null) {
-      project = rootProject.subprojects.find { it.path == projectPath }
+      project = rootProject.allprojects.find { it.path == projectPath }
     }
     if (project == null) {
-      throw new GradleException("Android coverage report requires ${projectPath}, but it was not found.")
+      throw new GradleException("Android coverage report requires ${projectPath}, but it was not found. Available: ${rootProject.allprojects.collect { it.path }}")
     }
     configureCoverageReport(project)
   }
