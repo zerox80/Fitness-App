@@ -120,7 +120,7 @@ function data(overrides: Partial<DashboardData> = {}): DashboardData {
     stepProgress: 0,
     steps: 0,
     weeklySummary: null,
-    onRefresh: () => undefined,
+    onRefresh: async () => undefined,
     onActivityUpdated: () => undefined,
     ...overrides,
   };
@@ -151,6 +151,7 @@ describe('MobileHome', () => {
   it('passes the weekly summary into WeekCard', () => {
     const weeklySummary = {
       week_start: '2026-06-02',
+      total_steps: 0,
       workout_count: 3,
       total_active_minutes: 60,
       total_calories: 1200,

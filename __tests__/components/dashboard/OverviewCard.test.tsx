@@ -133,7 +133,7 @@ function data(overrides: Partial<DashboardData> = {}): DashboardData {
     stepProgress: 0.42,
     steps: 4200,
     weeklySummary: null,
-    onRefresh: () => undefined,
+    onRefresh: async () => undefined,
     onActivityUpdated: () => undefined,
     ...overrides,
   };

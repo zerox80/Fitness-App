@@ -66,6 +66,7 @@ import type { WeeklyActivitySummary } from '@/lib/api';
 function summary(overrides: Partial<WeeklyActivitySummary> = {}): WeeklyActivitySummary {
   return {
     week_start: '2026-06-02',
+    total_steps: 0,
     workout_count: 4,
     total_active_minutes: 120,
     total_calories: 2400,

@@ -68,8 +68,8 @@ function workout(overrides: Partial<Workout> = {}): Workout {
         exercise: {} as Workout['exercises'][number]['exercise'],
         orderIndex: 0,
         sets: [
-          { id: 's-1', reps: 8, weight: 60 },
-          { id: 's-2', reps: 6, weight: 65 },
+          { id: 's-1', setNumber: 1, reps: 8, weightKg: 60, isWarmup: false, isDropset: false, isFailure: false, completed: true },
+          { id: 's-2', setNumber: 2, reps: 6, weightKg: 65, isWarmup: false, isDropset: false, isFailure: false, completed: true },
         ],
         restSeconds: 90,
       },
@@ -119,8 +119,8 @@ describe('WorkoutCard', () => {
               exercise: {} as Workout['exercises'][number]['exercise'],
               orderIndex: 0,
               sets: [
-                { id: 's-1', reps: 8, weight: 60 },
-                { id: 's-2', reps: 6, weight: 65 },
+                { id: 's-1', setNumber: 1, reps: 8, weightKg: 60, isWarmup: false, isDropset: false, isFailure: false, completed: true },
+                { id: 's-2', setNumber: 2, reps: 6, weightKg: 65, isWarmup: false, isDropset: false, isFailure: false, completed: true },
               ],
               restSeconds: 90,
             },

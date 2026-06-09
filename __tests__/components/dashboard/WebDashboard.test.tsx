@@ -95,7 +95,7 @@ function data(overrides: Partial<DashboardData> = {}): DashboardData {
     stepProgress: 0,
     steps: 0,
     weeklySummary: null,
-    onRefresh: () => undefined,
+    onRefresh: async () => undefined,
     onActivityUpdated: () => undefined,
     ...overrides,
   };
