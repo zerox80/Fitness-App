@@ -7,7 +7,7 @@ use jsonwebtoken::{encode, EncodingKey, Header};
 use std::sync::OnceLock;
 
 use crate::{
-    error::AppError,
+    error::{is_unique_violation, AppError},
     middleware::auth::Claims,
     models::{AuthResponse, LoginRequest, RegisterRequest},
     repository::users,
@@ -33,7 +33,14 @@ pub async fn register(state: &AppState, req: RegisterRequest) -> Result<AuthResp
         .map_err(|_| AppError::Internal("Password hashing failed".to_string()))?
         .to_string();
 
-    let user = users::create(&state.pool, &email, &req.name, &password_hash).await?;
+    // The find_by_email check above is racy: a concurrent registration can
+    // insert the same email first, in which case the unique index fires.
+    let user = match users::create(&state.pool, &email, &req.name, &password_hash).await {
+        Err(AppError::Database(db_error)) if is_unique_violation(&db_error) => {
+            return Err(AppError::Validation("Email already in use".to_string()));
+        }
+        other => other?,
+    };
 
     let token = generate_token(&user.id, &state.config.jwt_secret)?;
 

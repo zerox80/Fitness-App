@@ -23,6 +23,12 @@ pub enum AppError {
     Internal(String),
 }
 
+pub fn is_unique_violation(error: &sqlx::Error) -> bool {
+    error
+        .as_database_error()
+        .is_some_and(|db_error| db_error.kind() == sqlx::error::ErrorKind::UniqueViolation)
+}
+
 impl IntoResponse for AppError {
     fn into_response(self) -> axum::response::Response {
         let (status, message) = match self {
@@ -133,6 +139,68 @@ mod tests {
         let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
         let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
         assert_eq!(json["error"], "Too many requests");
+    }
+
+    #[derive(Debug)]
+    struct StubDatabaseError {
+        unique_violation: bool,
+    }
+
+    impl std::fmt::Display for StubDatabaseError {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "stub database error")
+        }
+    }
+
+    impl std::error::Error for StubDatabaseError {}
+
+    impl sqlx::error::DatabaseError for StubDatabaseError {
+        fn message(&self) -> &str {
+            "stub database error"
+        }
+
+        fn as_error(&self) -> &(dyn std::error::Error + Send + Sync + 'static) {
+            self
+        }
+
+        fn as_error_mut(&mut self) -> &mut (dyn std::error::Error + Send + Sync + 'static) {
+            self
+        }
+
+        fn into_error(self: Box<Self>) -> Box<dyn std::error::Error + Send + Sync + 'static> {
+            self
+        }
+
+        fn kind(&self) -> sqlx::error::ErrorKind {
+            if self.unique_violation {
+                sqlx::error::ErrorKind::UniqueViolation
+            } else {
+                sqlx::error::ErrorKind::ForeignKeyViolation
+            }
+        }
+    }
+
+    #[test]
+    fn unique_violation_is_detected() {
+        let error = sqlx::Error::Database(Box::new(StubDatabaseError {
+            unique_violation: true,
+        }));
+
+        assert!(is_unique_violation(&error));
+    }
+
+    #[test]
+    fn other_database_errors_are_not_unique_violations() {
+        let error = sqlx::Error::Database(Box::new(StubDatabaseError {
+            unique_violation: false,
+        }));
+
+        assert!(!is_unique_violation(&error));
+    }
+
+    #[test]
+    fn non_database_errors_are_not_unique_violations() {
+        assert!(!is_unique_violation(&sqlx::Error::RowNotFound));
     }
 
     #[tokio::test]
