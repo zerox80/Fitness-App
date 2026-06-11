@@ -17,9 +17,13 @@ pub async fn get_profile(
         .await?
         .ok_or(AppError::NotFound)?;
 
-    let stats = activity::get_stats(&state.pool, auth_user.user_id)
-        .await
-        .ok();
+    let stats = activity::get_stats(
+        &state.pool,
+        auth_user.user_id,
+        chrono::Utc::now().date_naive(),
+    )
+    .await
+    .ok();
 
     Ok(Json(UserProfileDto {
         id: user.id,

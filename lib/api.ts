@@ -198,7 +198,7 @@ export const api = {
     deleteAll: () => request<{ deleted: boolean; count: number }>('/workouts', { method: 'DELETE' }),
   },
   stats: {
-    get: () => request<UserStats>('/stats'),
+    get: (params?: ActivityDateParams) => request<UserStats>(pathWithDate('/stats', params)),
     weekly: (params?: ActivityDateParams) => request<WeeklyActivitySummary>(pathWithDate('/stats/weekly', params)),
   },
   activity: {

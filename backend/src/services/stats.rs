@@ -12,8 +12,13 @@ use crate::{
     utils::time::week_start,
 };
 
-pub async fn get_user_stats(state: &AppState, user_id: Uuid) -> Result<UserStats, AppError> {
-    activity::get_stats(&state.pool, user_id).await
+pub async fn get_user_stats(
+    state: &AppState,
+    user_id: Uuid,
+    local_today: Option<NaiveDate>,
+) -> Result<UserStats, AppError> {
+    let today = local_today.unwrap_or_else(|| Utc::now().date_naive());
+    activity::get_stats(&state.pool, user_id, today).await
 }
 
 pub async fn get_activity_for_date(

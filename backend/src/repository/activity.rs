@@ -6,7 +6,14 @@ use chrono::NaiveDate;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-pub async fn get_stats(pool: &PgPool, user_id: Uuid) -> Result<UserStats, AppError> {
+/// `reference_date` anchors the streak check (a streak is "current" when its
+/// last workout was on or after the day before that date). Clients pass their
+/// local date so streaks do not break early for users ahead of UTC.
+pub async fn get_stats(
+    pool: &PgPool,
+    user_id: Uuid,
+    reference_date: NaiveDate,
+) -> Result<UserStats, AppError> {
     sqlx::query_as::<_, UserStats>(
         r#"
         WITH workout_dates AS (
@@ -35,13 +42,14 @@ pub async fn get_stats(pool: &PgPool, user_id: Uuid) -> Result<UserStats, AppErr
             COALESCE((
                 SELECT streak_length
                 FROM latest_streak
-                WHERE max_date >= CURRENT_DATE - 1
+                WHERE max_date >= $2::date - 1
             ), 0) as current_streak
         FROM workouts
         WHERE user_id = $1 AND completed_at IS NOT NULL
         "#,
     )
     .bind(user_id)
+    .bind(reference_date)
     .fetch_one(pool)
     .await
     .map_err(AppError::Database)

@@ -6,6 +6,7 @@ import { Colors } from '@/constants/Colors';
 import { DESKTOP_BREAKPOINT } from '@/constants/dashboard-constants';
 import { useAuth } from '@/lib/auth-context';
 import { api, UserStats } from '@/lib/api';
+import { formatLocalDateKey } from '@/utils/date';
 
 function membershipYear(createdAt: string) {
   const date = new Date(createdAt);
@@ -24,7 +25,7 @@ export default function ProfileScreenWeb() {
 
   async function loadStats() {
     try {
-      setStats(await api.stats.get());
+      setStats(await api.stats.get({ date: formatLocalDateKey(new Date()) }));
     } catch {
       setStats(null);
     }
