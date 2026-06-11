@@ -50,13 +50,6 @@ pub struct AuthResponse {
     pub user: UserResponse,
 }
 
-#[derive(Deserialize, Debug)]
-#[allow(dead_code)]
-pub struct UpdateUserRequest {
-    pub name: Option<String>,
-    pub email: Option<String>,
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -121,19 +114,4 @@ mod tests {
         assert!(json.contains("a@b.com"));
     }
 
-    #[test]
-    fn test_update_user_request_optional_fields() {
-        let json = r#"{"name": "New Name"}"#;
-        let req: UpdateUserRequest = serde_json::from_str(json).unwrap();
-        assert_eq!(req.name, Some("New Name".to_string()));
-        assert_eq!(req.email, None);
-    }
-
-    #[test]
-    fn test_update_user_request_all_none() {
-        let json = r#"{}"#;
-        let req: UpdateUserRequest = serde_json::from_str(json).unwrap();
-        assert_eq!(req.name, None);
-        assert_eq!(req.email, None);
-    }
 }

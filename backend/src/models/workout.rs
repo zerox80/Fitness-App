@@ -51,16 +51,6 @@ pub struct UpdateWorkoutRequest {
     pub exercises: Option<Vec<WorkoutExercise>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, sqlx::FromRow)]
-#[allow(dead_code)]
-pub struct WorkoutSummary {
-    pub id: Uuid,
-    pub title: String,
-    pub category: String,
-    pub completed_at: Option<DateTime<Utc>>,
-    pub created_at: DateTime<Utc>,
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -163,16 +153,4 @@ mod tests {
         assert!(json.contains("Squat"));
     }
 
-    #[test]
-    fn test_workout_summary_serialize() {
-        let summary = WorkoutSummary {
-            id: Uuid::new_v4(),
-            title: "Summary".to_string(),
-            category: "cardio".to_string(),
-            completed_at: Some(Utc::now()),
-            created_at: Utc::now(),
-        };
-        let json = serde_json::to_string(&summary).unwrap();
-        assert!(json.contains("cardio"));
-    }
 }

@@ -1,19 +1,17 @@
-use argon2::{
-    password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
-    Argon2,
-};
-use chrono::Utc;
-use jsonwebtoken::{encode, EncodingKey, Header};
-use std::sync::OnceLock;
+use argon2::{password_hash::PasswordVerifier, Argon2};
 
 use crate::{
     error::{is_unique_violation, AppError},
-    middleware::auth::Claims,
     models::{AuthResponse, LoginRequest, RegisterRequest},
     repository::users,
     state::AppState,
+    utils::jwt::generate_token,
+    utils::password::{dummy_hash, hash_password, parse_password_hash},
     validators::user::{normalize_email, validate_email, validate_name, validate_password},
 };
+
+// Keep in sync with SESSION_MAX_AGE_SECONDS in utils/session_cookie.rs.
+const TOKEN_LIFETIME_HOURS: i64 = 72;
 
 pub async fn register(state: &AppState, req: RegisterRequest) -> Result<AuthResponse, AppError> {
     let email = normalize_email(&req.email);
@@ -26,12 +24,7 @@ pub async fn register(state: &AppState, req: RegisterRequest) -> Result<AuthResp
         return Err(AppError::Validation("Email already in use".to_string()));
     }
 
-    let salt = SaltString::generate(&mut OsRng);
-    let argon2 = Argon2::default();
-    let password_hash = argon2
-        .hash_password(req.password.as_bytes(), &salt)
-        .map_err(|_| AppError::Internal("Password hashing failed".to_string()))?
-        .to_string();
+    let password_hash = hash_password(&req.password)?;
 
     // The find_by_email check above is racy: a concurrent registration can
     // insert the same email first, in which case the unique index fires.
@@ -42,7 +35,7 @@ pub async fn register(state: &AppState, req: RegisterRequest) -> Result<AuthResp
         other => other?,
     };
 
-    let token = generate_token(&user.id, &state.config.jwt_secret)?;
+    let token = generate_token(&user.id, &state.config.jwt_secret, TOKEN_LIFETIME_HOURS)?;
 
     Ok(AuthResponse {
         token,
@@ -54,21 +47,14 @@ pub async fn login(state: &AppState, req: LoginRequest) -> Result<AuthResponse, 
     let email = normalize_email(&req.email);
     let user = users::find_by_email(&state.pool, &email).await?;
 
-    let parsed_hash = match &user {
-        Some(u) => PasswordHash::new(&u.password_hash).ok(),
-        None => None,
-    };
-
-    static DUMMY_HASH: OnceLock<PasswordHash<'static>> = OnceLock::new();
-
+    // Always verify against some hash so unknown emails take the same time
+    // as wrong passwords (no user enumeration via timing).
+    let parsed_hash = user
+        .as_ref()
+        .and_then(|u| parse_password_hash(&u.password_hash));
     let hash_ref = match &parsed_hash {
-        Some(h) => h,
-        None => DUMMY_HASH.get_or_init(|| {
-            PasswordHash::new(
-                "$argon2id$v=19$m=19456,t=2,p=1$AAAAAAAAAAAAAAAAAAAAAA$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-            )
-            .expect("Valid dummy hash")
-        }),
+        Some(hash) => hash,
+        None => dummy_hash(),
     };
 
     Argon2::default()
@@ -77,26 +63,10 @@ pub async fn login(state: &AppState, req: LoginRequest) -> Result<AuthResponse, 
 
     let user = user.ok_or_else(|| AppError::Auth("Invalid credentials".to_string()))?;
 
-    let token = generate_token(&user.id, &state.config.jwt_secret)?;
+    let token = generate_token(&user.id, &state.config.jwt_secret, TOKEN_LIFETIME_HOURS)?;
 
     Ok(AuthResponse {
         token,
         user: user.into(),
     })
-}
-
-fn generate_token(user_id: &uuid::Uuid, secret: &str) -> Result<String, AppError> {
-    let now = Utc::now();
-    let claims = Claims {
-        sub: user_id.to_string(),
-        iat: now.timestamp() as usize,
-        exp: (now + chrono::Duration::hours(72)).timestamp() as usize,
-    };
-
-    encode(
-        &Header::default(),
-        &claims,
-        &EncodingKey::from_secret(secret.as_bytes()),
-    )
-    .map_err(|_| AppError::Internal("Token generation failed".to_string()))
 }

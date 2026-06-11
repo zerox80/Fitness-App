@@ -1,30 +1,4 @@
-use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
-use uuid::Uuid;
-
-#[derive(Serialize, Debug)]
-#[allow(dead_code)]
-pub struct WorkoutDetailDto {
-    pub id: Uuid,
-    pub title: String,
-    pub description: Option<String>,
-    pub duration_minutes: i32,
-    pub intensity: String,
-    pub category: String,
-    pub completed_at: Option<DateTime<Utc>>,
-    pub created_at: DateTime<Utc>,
-    pub exercise_count: i64,
-}
-
-#[derive(Serialize, Debug)]
-#[allow(dead_code)]
-pub struct WorkoutListDto {
-    pub id: Uuid,
-    pub title: String,
-    pub category: String,
-    pub completed_at: Option<DateTime<Utc>>,
-    pub created_at: DateTime<Utc>,
-}
+use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
 pub struct WorkoutFilterParams {

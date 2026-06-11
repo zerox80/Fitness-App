@@ -5,7 +5,6 @@ use uuid::Uuid;
 use crate::error::AppError;
 use crate::middleware::auth::Claims;
 
-#[allow(dead_code)]
 pub fn generate_token(user_id: &Uuid, secret: &str, expiry_hours: i64) -> Result<String, AppError> {
     let now = Utc::now();
     let claims = Claims {
@@ -20,11 +19,6 @@ pub fn generate_token(user_id: &Uuid, secret: &str, expiry_hours: i64) -> Result
         &EncodingKey::from_secret(secret.as_bytes()),
     )
     .map_err(|_| AppError::Internal("Token generation failed".to_string()))
-}
-
-#[allow(dead_code)]
-pub fn generate_refresh_token(user_id: &Uuid, secret: &str) -> Result<String, AppError> {
-    generate_token(user_id, secret, 24 * 7) // 7 days
 }
 
 #[cfg(test)]
@@ -59,19 +53,6 @@ mod tests {
         let exp = claims["exp"].as_u64().unwrap();
         let now = Utc::now().timestamp() as u64;
         assert!(exp > now);
-    }
-
-    #[test]
-    fn test_generate_refresh_token_has_7_day_expiry() {
-        let user_id = Uuid::new_v4();
-        let token = generate_refresh_token(&user_id, "test_secret").unwrap();
-        let parts: Vec<&str> = token.split('.').collect();
-        let payload = base64_decode(parts[1]);
-        let claims: serde_json::Value = serde_json::from_str(&payload).unwrap();
-        let exp = claims["exp"].as_u64().unwrap();
-        let iat = claims["iat"].as_u64().unwrap();
-        let diff_hours = (exp - iat) / 3600;
-        assert_eq!(diff_hours, 24 * 7);
     }
 
     #[test]
