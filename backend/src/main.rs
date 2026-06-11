@@ -1,4 +1,5 @@
 mod config;
+mod cors;
 mod db;
 mod dto;
 mod error;
@@ -13,13 +14,12 @@ mod validators;
 
 use std::net::SocketAddr;
 
-use axum::http::HeaderValue;
-use tower_http::{compression::CompressionLayer, cors::CorsLayer, trace::TraceLayer};
+use tower_http::{compression::CompressionLayer, trace::TraceLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::{
-    config::Config, db::create_pool, middleware::rate_limit::RateLimiter, routes::create_router,
-    state::AppState,
+    config::Config, cors::build_cors_layer, db::create_pool, middleware::rate_limit::RateLimiter,
+    routes::create_router, state::AppState,
 };
 
 #[tokio::main]
@@ -78,20 +78,7 @@ async fn main() {
         rate_limiter: RateLimiter::new(),
     };
 
-    let cors = match config.allowed_cors_origins() {
-        None => CorsLayer::permissive(),
-        Some(origins) => {
-            let origins = origins
-                .into_iter()
-                .map(|origin| origin.parse::<HeaderValue>().expect("Invalid CORS origin"))
-                .collect::<Vec<_>>();
-            CorsLayer::new()
-                .allow_origin(origins)
-                .allow_methods(tower_http::cors::Any)
-                .allow_headers(tower_http::cors::Any)
-                .allow_credentials(true)
-        }
-    };
+    let cors = build_cors_layer(&config);
 
     let app = create_router(state.clone())
         .layer(cors)
