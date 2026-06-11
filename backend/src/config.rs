@@ -41,8 +41,10 @@ impl Config {
                 &env::var("TRUSTED_PROXY_IPS").unwrap_or_else(|_| "127.0.0.1,::1".to_string()),
             ),
             ai_api_key: env::var("MOONSHOT_API_KEY").ok(),
-            ai_api_base: env::var("MOONSHOT_API_BASE")
-                .unwrap_or_else(|_| "https://api.moonshot.ai/v1".to_string()),
+            ai_api_base: normalize_api_base(
+                &env::var("MOONSHOT_API_BASE")
+                    .unwrap_or_else(|_| "https://api.moonshot.ai/v1".to_string()),
+            ),
             ai_model: env::var("MOONSHOT_MODEL").unwrap_or_else(|_| "kimi-k2.6".to_string()),
         }
     }
@@ -73,6 +75,12 @@ fn parse_trusted_proxy_ips(raw: &str) -> Vec<IpAddr> {
                 .unwrap_or_else(|_| panic!("TRUSTED_PROXY_IPS contains invalid IP: {}", value))
         })
         .collect()
+}
+
+// The AI service appends "/chat/completions"; a trailing slash in the env
+// var would produce a double slash in the request URL.
+fn normalize_api_base(raw: &str) -> String {
+    raw.trim().trim_end_matches('/').to_string()
 }
 
 pub fn parse_cors_origins(raw: &str) -> Option<Vec<String>> {
@@ -115,6 +123,18 @@ mod tests {
     #[test]
     fn wildcard_cors_origin_is_explicitly_permissive() {
         assert_eq!(parse_cors_origins("*"), None);
+    }
+
+    #[test]
+    fn normalize_api_base_strips_trailing_slashes_and_whitespace() {
+        assert_eq!(
+            normalize_api_base(" https://api.moonshot.ai/v1/ "),
+            "https://api.moonshot.ai/v1"
+        );
+        assert_eq!(
+            normalize_api_base("https://api.moonshot.ai/v1"),
+            "https://api.moonshot.ai/v1"
+        );
     }
 
     #[test]

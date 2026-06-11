@@ -24,7 +24,7 @@ jobs:
             -not -path "*/dist/*")
 
           for file in $files; do
-            count=$(grep -c $'' "$file")
+            count=$(wc -l < "$file")
             if [ "$count" -gt 500 ]; then
               echo "::error file=$file,line=1::File $file has $count lines (limit: 500)."
               errors=$((errors + 1))
