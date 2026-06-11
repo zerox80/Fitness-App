@@ -7,7 +7,7 @@ pub fn validate_task_title(title: &str) -> Result<(), AppError> {
     if title.trim().is_empty() {
         return Err(AppError::Validation("Task title is required".to_string()));
     }
-    if title.len() > 200 {
+    if title.chars().count() > 200 {
         return Err(AppError::Validation(
             "Task title must be at most 200 characters".to_string(),
         ));
@@ -78,6 +78,13 @@ mod tests {
     fn test_validate_task_title_too_long() {
         let title = "a".repeat(201);
         assert!(validate_task_title(&title).is_err());
+    }
+
+    #[test]
+    fn test_validate_task_title_counts_chars_not_bytes() {
+        let title = "ü".repeat(200);
+        assert!(validate_task_title(&title).is_ok());
+        assert!(validate_task_title(&"ü".repeat(201)).is_err());
     }
 
     #[test]

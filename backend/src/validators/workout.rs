@@ -7,7 +7,7 @@ pub fn validate_workout_title(title: &str) -> Result<(), AppError> {
             "Workout title is required".to_string(),
         ));
     }
-    if title.len() > 200 {
+    if title.chars().count() > 200 {
         return Err(AppError::Validation(
             "Workout title must be at most 200 characters".to_string(),
         ));
@@ -107,6 +107,13 @@ mod tests {
     fn test_validate_workout_title_too_long() {
         let title = "a".repeat(201);
         assert!(validate_workout_title(&title).is_err());
+    }
+
+    #[test]
+    fn test_validate_workout_title_counts_chars_not_bytes() {
+        let title = "ö".repeat(200);
+        assert!(validate_workout_title(&title).is_ok());
+        assert!(validate_workout_title(&"ö".repeat(201)).is_err());
     }
 
     #[test]
