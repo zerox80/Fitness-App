@@ -1,0 +1,7 @@
+# Never bake local secrets into the image - dotenvy would load a copied
+# .env at runtime and silently override the container environment.
+.env
+.env.*
+
+# Build artifacts (the image builds from source; cargo-chef caches deps)
+target/

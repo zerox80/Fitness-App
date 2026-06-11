@@ -1,0 +1,13 @@
+# Frontend build context (Dockerfile.frontend) - keep secrets and junk
+# out of the image and the build context small.
+.env
+.env.*
+.git
+node_modules
+android
+ios
+dist
+review-dist
+backend/target
+coverage
+.expo
