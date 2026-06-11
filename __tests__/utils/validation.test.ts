@@ -19,14 +19,14 @@ describe('ValidationRules', () => {
     expect(ValidationRules.password.minLength).toBe(8);
   });
 
-  it('has correct display name bounds', () => {
+  it('has display name bounds matching the backend (2-100)', () => {
     expect(ValidationRules.displayName.minLength).toBe(2);
-    expect(ValidationRules.displayName.maxLength).toBe(50);
+    expect(ValidationRules.displayName.maxLength).toBe(100);
   });
 
-  it('has correct workout title bounds', () => {
+  it('has workout title bounds matching the backend (1-200)', () => {
     expect(ValidationRules.workoutTitle.minLength).toBe(1);
-    expect(ValidationRules.workoutTitle.maxLength).toBe(100);
+    expect(ValidationRules.workoutTitle.maxLength).toBe(200);
   });
 });
 
@@ -112,11 +112,11 @@ describe('validateDisplayName', () => {
   });
 
   it('returns null for max length', () => {
-    expect(validateDisplayName('A'.repeat(50))).toBeNull();
+    expect(validateDisplayName('A'.repeat(100))).toBeNull();
   });
 
   it('returns error for too long name', () => {
-    expect(validateDisplayName('A'.repeat(51))).not.toBeNull();
+    expect(validateDisplayName('A'.repeat(101))).not.toBeNull();
   });
 });
 
@@ -138,11 +138,11 @@ describe('validateWorkoutTitle', () => {
   });
 
   it('returns null for max length', () => {
-    expect(validateWorkoutTitle('A'.repeat(100))).toBeNull();
+    expect(validateWorkoutTitle('A'.repeat(200))).toBeNull();
   });
 
   it('returns error for too long title', () => {
-    expect(validateWorkoutTitle('A'.repeat(101))).not.toBeNull();
+    expect(validateWorkoutTitle('A'.repeat(201))).not.toBeNull();
   });
 });
 

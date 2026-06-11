@@ -39,12 +39,15 @@ pub fn validate_name(name: &str) -> Result<(), AppError> {
     if name.is_empty() {
         return Err(AppError::Validation("Name is required".to_string()));
     }
-    if name.len() < 2 {
+    // chars(), not len(): multi-byte names ("Jürgen") must not lose
+    // characters to a byte-based limit.
+    let char_count = name.chars().count();
+    if char_count < 2 {
         return Err(AppError::Validation(
             "Name must be at least 2 characters".to_string(),
         ));
     }
-    if name.len() > 100 {
+    if char_count > 100 {
         return Err(AppError::Validation(
             "Name must be at most 100 characters".to_string(),
         ));
@@ -181,6 +184,14 @@ mod tests {
     fn test_validate_name_too_long() {
         let name = "a".repeat(101);
         assert!(validate_name(&name).is_err());
+    }
+
+    #[test]
+    fn test_validate_name_counts_chars_not_bytes() {
+        // 100 umlauts are 200 bytes but exactly 100 characters.
+        let name = "ä".repeat(100);
+        assert!(validate_name(&name).is_ok());
+        assert!(validate_name(&"ä".repeat(101)).is_err());
     }
 
     #[test]

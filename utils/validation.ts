@@ -7,15 +7,17 @@ export const ValidationRules = {
     minLength: 8,
     message: 'Das Passwort muss mindestens 8 Zeichen lang sein.',
   },
+  // Length limits mirror the backend validators (validators/user.rs and
+  // validators/workout.rs).
   displayName: {
     minLength: 2,
-    maxLength: 50,
-    message: 'Der Name muss zwischen 2 und 50 Zeichen lang sein.',
+    maxLength: 100,
+    message: 'Der Name muss zwischen 2 und 100 Zeichen lang sein.',
   },
   workoutTitle: {
     minLength: 1,
-    maxLength: 100,
-    message: 'Der Titel muss zwischen 1 und 100 Zeichen lang sein.',
+    maxLength: 200,
+    message: 'Der Titel muss zwischen 1 und 200 Zeichen lang sein.',
   },
 };
 
