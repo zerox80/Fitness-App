@@ -76,6 +76,27 @@ pub fn validate_intensity(intensity: &str) -> Result<(), AppError> {
     Ok(())
 }
 
+pub fn validate_category(category: &str) -> Result<(), AppError> {
+    // Union of the categories the app produces (quick-start generator,
+    // category filter chips, and the WorkoutType union on the frontend).
+    const VALID: &[&str] = &[
+        "strength",
+        "cardio",
+        "hiit",
+        "flexibility",
+        "sport",
+        "recovery",
+        "custom",
+    ];
+    if !VALID.contains(&category) {
+        return Err(AppError::Validation(format!(
+            "Category must be one of: {}",
+            VALID.join(", ")
+        )));
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -178,6 +199,28 @@ mod tests {
     #[test]
     fn test_validate_intensity_numeric() {
         assert!(validate_intensity("1").is_err());
+    }
+
+    #[test]
+    fn test_validate_category_accepts_known_categories() {
+        for category in [
+            "strength",
+            "cardio",
+            "hiit",
+            "flexibility",
+            "sport",
+            "recovery",
+            "custom",
+        ] {
+            assert!(validate_category(category).is_ok(), "{category}");
+        }
+    }
+
+    #[test]
+    fn test_validate_category_rejects_unknown_values() {
+        assert!(validate_category("yoga-blast").is_err());
+        assert!(validate_category("").is_err());
+        assert!(validate_category("Strength").is_err());
     }
 
     #[test]
