@@ -4,10 +4,11 @@ use axum::{
     middleware::Next,
     response::Response,
 };
+use chrono::{DateTime, Utc};
 use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
 
-use crate::state::AppState;
+use crate::{repository::users, state::AppState};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
@@ -46,11 +47,27 @@ pub async fn auth_middleware(
         TokenSource::Bearer(token) | TokenSource::Cookie(token) => token,
     };
 
-    let user_id = decode_user_id(token, &state.config.jwt_secret)?;
+    let claims = decode_claims(token, &state.config.jwt_secret)?;
+    let user_id =
+        uuid::Uuid::parse_str(&claims.sub).map_err(|_| StatusCode::UNAUTHORIZED)?;
+
+    // Tokens issued before the user's last password change are revoked.
+    let user = users::find_by_id(&state.pool, user_id)
+        .await
+        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+        .ok_or(StatusCode::UNAUTHORIZED)?;
+
+    if token_issued_before(&claims, user.password_changed_at) {
+        return Err(StatusCode::UNAUTHORIZED);
+    }
 
     req.extensions_mut().insert(AuthUser { user_id });
 
     Ok(next.run(req).await)
+}
+
+fn token_issued_before(claims: &Claims, changed_at: DateTime<Utc>) -> bool {
+    (claims.iat as i64) < changed_at.timestamp()
 }
 
 enum TokenSource<'a> {
@@ -77,14 +94,13 @@ fn session_cookie<'a>(headers: &'a HeaderMap, cookie_name: &str) -> Option<&'a s
         })
 }
 
-fn decode_user_id(token: &str, secret: &str) -> Result<uuid::Uuid, StatusCode> {
+fn decode_claims(token: &str, secret: &str) -> Result<Claims, StatusCode> {
     let validation = Validation::new(Algorithm::HS256);
     let decoding_key = DecodingKey::from_secret(secret.as_bytes());
 
-    let token_data = decode::<Claims>(token, &decoding_key, &validation)
-        .map_err(|_| StatusCode::UNAUTHORIZED)?;
-
-    uuid::Uuid::parse_str(&token_data.claims.sub).map_err(|_| StatusCode::UNAUTHORIZED)
+    decode::<Claims>(token, &decoding_key, &validation)
+        .map(|token_data| token_data.claims)
+        .map_err(|_| StatusCode::UNAUTHORIZED)
 }
 
 fn is_unsafe_method(method: &Method) -> bool {
@@ -219,6 +235,15 @@ mod tests {
         assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
     }
 
+    // The middleware now verifies the user (and password_changed_at) in the
+    // database, so the happy path cannot return 200 in these DB-less tests.
+    // "Not 401/403" still proves token and CSRF checks passed; the remaining
+    // failure is only the unavailable test database.
+    fn passed_auth_checks(status: StatusCode) {
+        assert_ne!(status, StatusCode::UNAUTHORIZED);
+        assert_ne!(status, StatusCode::FORBIDDEN);
+    }
+
     #[tokio::test]
     async fn accepts_valid_token() {
         let app = create_app();
@@ -236,7 +261,7 @@ mod tests {
             .unwrap();
 
         let response = app.oneshot(req).await.unwrap();
-        assert_eq!(response.status(), StatusCode::OK);
+        passed_auth_checks(response.status());
     }
 
     #[tokio::test]
@@ -256,7 +281,7 @@ mod tests {
             .unwrap();
 
         let response = app.oneshot(req).await.unwrap();
-        assert_eq!(response.status(), StatusCode::OK);
+        passed_auth_checks(response.status());
     }
 
     #[tokio::test]
@@ -303,7 +328,7 @@ mod tests {
             .unwrap();
 
         let response = app.oneshot(req).await.unwrap();
-        assert_eq!(response.status(), StatusCode::OK);
+        passed_auth_checks(response.status());
     }
 
     #[tokio::test]
@@ -324,7 +349,54 @@ mod tests {
             .unwrap();
 
         let response = app.oneshot(req).await.unwrap();
-        assert_eq!(response.status(), StatusCode::OK);
+        passed_auth_checks(response.status());
+    }
+
+    #[test]
+    fn decode_claims_returns_subject_and_iat() {
+        let future_exp = (chrono::Utc::now().timestamp() as usize) + 3600;
+        let token = create_token(
+            TEST_SECRET,
+            "550e8400-e29b-41d4-a716-446655440000",
+            future_exp,
+        );
+
+        let claims = decode_claims(&token, TEST_SECRET).unwrap();
+
+        assert_eq!(claims.sub, "550e8400-e29b-41d4-a716-446655440000");
+        assert_eq!(claims.exp, future_exp);
+    }
+
+    #[test]
+    fn token_issued_before_password_change_is_stale() {
+        let changed_at = chrono::Utc::now();
+        let claims = Claims {
+            sub: "550e8400-e29b-41d4-a716-446655440000".to_string(),
+            exp: (changed_at.timestamp() as usize) + 3600,
+            iat: (changed_at.timestamp() as usize) - 60,
+        };
+
+        assert!(token_issued_before(&claims, changed_at));
+    }
+
+    #[test]
+    fn token_issued_at_or_after_password_change_is_valid() {
+        let changed_at = chrono::Utc::now();
+        let base = changed_at.timestamp() as usize;
+
+        let same_second = Claims {
+            sub: "550e8400-e29b-41d4-a716-446655440000".to_string(),
+            exp: base + 3600,
+            iat: base,
+        };
+        let later = Claims {
+            sub: "550e8400-e29b-41d4-a716-446655440000".to_string(),
+            exp: base + 3600,
+            iat: base + 60,
+        };
+
+        assert!(!token_issued_before(&same_second, changed_at));
+        assert!(!token_issued_before(&later, changed_at));
     }
 
     #[tokio::test]

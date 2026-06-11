@@ -8,6 +8,7 @@ pub struct User {
     pub email: String,
     pub name: String,
     pub password_hash: String,
+    pub password_changed_at: DateTime<Utc>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -68,6 +69,7 @@ mod tests {
             email: "test@example.com".to_string(),
             name: "Test User".to_string(),
             password_hash: "hashed_pw".to_string(),
+            password_changed_at: Utc::now(),
             created_at: Utc::now(),
             updated_at: Utc::now(),
         };

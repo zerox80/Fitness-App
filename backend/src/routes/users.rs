@@ -52,7 +52,11 @@ pub async fn change_password(
 
     let new_hash = crate::utils::password::hash_password(&req.new_password)?;
 
-    sqlx::query("UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2")
+    // password_changed_at invalidates all tokens issued before this moment
+    // (checked in the auth middleware).
+    sqlx::query(
+        "UPDATE users SET password_hash = $1, password_changed_at = NOW(), updated_at = NOW() WHERE id = $2",
+    )
         .bind(&new_hash)
         .bind(auth_user.user_id)
         .execute(&state.pool)
