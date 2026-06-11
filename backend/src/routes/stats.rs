@@ -172,7 +172,7 @@ pub async fn activity_calorie_chat(
 
 fn calorie_chat_error(error: anyhow::Error) -> AppError {
     tracing::error!(%error, "activity calorie chat failed");
-    AppError::Internal(CALORIE_CHAT_UNAVAILABLE_MESSAGE.to_string())
+    AppError::InternalPublic(CALORIE_CHAT_UNAVAILABLE_MESSAGE.to_string())
 }
 
 #[cfg(test)]

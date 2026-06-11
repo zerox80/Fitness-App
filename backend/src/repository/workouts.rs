@@ -53,21 +53,6 @@ fn workout_from_row(row: WorkoutRow) -> Result<Workout, AppError> {
     })
 }
 
-#[allow(dead_code)]
-pub async fn list_by_user(pool: &PgPool, user_id: Uuid) -> Result<Vec<Workout>, AppError> {
-    let query = format!(
-        "SELECT {} FROM workouts WHERE user_id = $1 ORDER BY created_at DESC",
-        select_workout_columns()
-    );
-    let rows = sqlx::query_as::<_, WorkoutRow>(&query)
-        .bind(user_id)
-        .fetch_all(pool)
-        .await
-        .map_err(AppError::Database)?;
-
-    rows.into_iter().map(workout_from_row).collect()
-}
-
 pub async fn list_filtered(
     pool: &PgPool,
     user_id: Uuid,

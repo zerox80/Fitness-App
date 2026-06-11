@@ -46,7 +46,7 @@ pub async fn generate_workout(
 
 fn workout_generation_error(error: anyhow::Error) -> AppError {
     tracing::error!(%error, "workout generation failed");
-    AppError::Internal(WORKOUT_GENERATION_UNAVAILABLE_MESSAGE.to_string())
+    AppError::InternalPublic(WORKOUT_GENERATION_UNAVAILABLE_MESSAGE.to_string())
 }
 
 pub async fn list_workouts(

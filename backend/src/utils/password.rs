@@ -23,7 +23,12 @@ pub fn verify_password(password: &str, hash: &str) -> Result<bool, AppError> {
         .is_ok())
 }
 
-#[allow(dead_code)]
+pub fn parse_password_hash(hash: &str) -> Option<PasswordHash<'_>> {
+    PasswordHash::new(hash).ok()
+}
+
+/// Constant-cost stand-in hash so login takes the same time whether or not
+/// the email exists (prevents user enumeration via timing).
 pub fn dummy_hash() -> &'static PasswordHash<'static> {
     static DUMMY: OnceLock<PasswordHash<'static>> = OnceLock::new();
     DUMMY.get_or_init(|| {

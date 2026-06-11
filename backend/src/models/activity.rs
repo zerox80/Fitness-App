@@ -9,22 +9,6 @@ pub struct UserStats {
     pub current_streak: i64,
 }
 
-#[derive(Serialize, Deserialize, Debug, sqlx::FromRow)]
-#[allow(dead_code)]
-pub struct ActivityLog {
-    pub id: Uuid,
-    pub user_id: Uuid,
-    pub activity_date: NaiveDate,
-    pub steps: i32,
-    pub calories: i32,
-    pub active_minutes: i32,
-    pub move_progress: f64,
-    pub exercise_progress: f64,
-    pub stand_progress: f64,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
-}
-
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UpdateActivityRequest {
     pub steps: i32,

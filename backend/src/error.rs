@@ -21,6 +21,18 @@ pub enum AppError {
 
     #[error("Internal server error: {0}")]
     Internal(String),
+
+    /// Internal failure with a message that is safe to show to end users
+    /// (e.g. "AI features are currently unavailable"). Plain `Internal`
+    /// messages are logged but never sent to the client.
+    #[error("Internal server error: {0}")]
+    InternalPublic(String),
+}
+
+pub fn is_unique_violation(error: &sqlx::Error) -> bool {
+    error
+        .as_database_error()
+        .is_some_and(|db_error| db_error.kind() == sqlx::error::ErrorKind::UniqueViolation)
 }
 
 impl IntoResponse for AppError {
@@ -34,7 +46,14 @@ impl IntoResponse for AppError {
             AppError::Validation(msg) => (StatusCode::BAD_REQUEST, msg),
             AppError::NotFound => (StatusCode::NOT_FOUND, "Resource not found".to_string()),
             AppError::RateLimited(msg) => (StatusCode::TOO_MANY_REQUESTS, msg),
-            AppError::Internal(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
+            AppError::Internal(msg) => {
+                tracing::error!(%msg, "internal server error");
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "Internal server error".to_string(),
+                )
+            }
+            AppError::InternalPublic(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
         };
 
         let body = Json(json!({ "error": message }));
@@ -114,14 +133,27 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_internal_into_response_status() {
-        let err = AppError::Internal("failure".to_string());
+    async fn test_internal_into_response_hides_message() {
+        let err = AppError::Internal("argon2 parameter mismatch in hasher".to_string());
         let response = err.into_response();
         assert_eq!(response.status(), StatusCode::INTERNAL_SERVER_ERROR);
 
         let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
         let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
-        assert_eq!(json["error"], "failure");
+        assert_eq!(json["error"], "Internal server error");
+        let body_str = String::from_utf8_lossy(&body);
+        assert!(!body_str.contains("argon2"));
+    }
+
+    #[tokio::test]
+    async fn test_internal_public_into_response_keeps_message() {
+        let err = AppError::InternalPublic("Dienst gerade nicht verfügbar.".to_string());
+        let response = err.into_response();
+        assert_eq!(response.status(), StatusCode::INTERNAL_SERVER_ERROR);
+
+        let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(json["error"], "Dienst gerade nicht verfügbar.");
     }
 
     #[tokio::test]
@@ -133,6 +165,68 @@ mod tests {
         let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
         let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
         assert_eq!(json["error"], "Too many requests");
+    }
+
+    #[derive(Debug)]
+    struct StubDatabaseError {
+        unique_violation: bool,
+    }
+
+    impl std::fmt::Display for StubDatabaseError {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "stub database error")
+        }
+    }
+
+    impl std::error::Error for StubDatabaseError {}
+
+    impl sqlx::error::DatabaseError for StubDatabaseError {
+        fn message(&self) -> &str {
+            "stub database error"
+        }
+
+        fn as_error(&self) -> &(dyn std::error::Error + Send + Sync + 'static) {
+            self
+        }
+
+        fn as_error_mut(&mut self) -> &mut (dyn std::error::Error + Send + Sync + 'static) {
+            self
+        }
+
+        fn into_error(self: Box<Self>) -> Box<dyn std::error::Error + Send + Sync + 'static> {
+            self
+        }
+
+        fn kind(&self) -> sqlx::error::ErrorKind {
+            if self.unique_violation {
+                sqlx::error::ErrorKind::UniqueViolation
+            } else {
+                sqlx::error::ErrorKind::ForeignKeyViolation
+            }
+        }
+    }
+
+    #[test]
+    fn unique_violation_is_detected() {
+        let error = sqlx::Error::Database(Box::new(StubDatabaseError {
+            unique_violation: true,
+        }));
+
+        assert!(is_unique_violation(&error));
+    }
+
+    #[test]
+    fn other_database_errors_are_not_unique_violations() {
+        let error = sqlx::Error::Database(Box::new(StubDatabaseError {
+            unique_violation: false,
+        }));
+
+        assert!(!is_unique_violation(&error));
+    }
+
+    #[test]
+    fn non_database_errors_are_not_unique_violations() {
+        assert!(!is_unique_violation(&sqlx::Error::RowNotFound));
     }
 
     #[tokio::test]
