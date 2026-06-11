@@ -192,8 +192,10 @@ pub async fn complete(
     workout_id: Uuid,
     user_id: Uuid,
 ) -> Result<Option<Workout>, AppError> {
+    // Idempotent: completing an already-completed workout keeps the original
+    // completion time and returns the workout instead of a 404.
     let query = format!(
-        "UPDATE workouts SET completed_at = $1 WHERE id = $2 AND user_id = $3 AND completed_at IS NULL RETURNING {}",
+        "UPDATE workouts SET completed_at = COALESCE(completed_at, $1) WHERE id = $2 AND user_id = $3 RETURNING {}",
         select_workout_columns()
     );
     let row = sqlx::query_as::<_, WorkoutRow>(&query)
