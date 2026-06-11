@@ -7,8 +7,8 @@ use crate::{
     repository::workouts,
     state::AppState,
     validators::workout::{
-        validate_intensity, validate_workout_duration, validate_workout_exercises,
-        validate_workout_title,
+        validate_category, validate_intensity, validate_workout_duration,
+        validate_workout_exercises, validate_workout_title,
     },
 };
 
@@ -17,9 +17,14 @@ pub async fn create_workout(
     user_id: Uuid,
     req: CreateWorkoutRequest,
 ) -> Result<Workout, AppError> {
+    // The quick-start generator produces "Low"/"Medium"/"High"; stored
+    // workouts use lowercase, so normalize before validating.
+    let intensity = req.intensity.to_ascii_lowercase();
+
     validate_workout_title(&req.title)?;
     validate_workout_duration(req.duration_minutes)?;
-    validate_intensity(&req.intensity)?;
+    validate_intensity(&intensity)?;
+    validate_category(&req.category)?;
     validate_workout_exercises(&req.exercises)?;
 
     workouts::create(
@@ -28,7 +33,7 @@ pub async fn create_workout(
         req.title.trim(),
         req.description.as_deref(),
         req.duration_minutes,
-        &req.intensity,
+        &intensity,
         &req.category,
         &req.exercises,
     )
@@ -41,14 +46,19 @@ pub async fn update_workout(
     user_id: Uuid,
     req: UpdateWorkoutRequest,
 ) -> Result<Option<Workout>, AppError> {
+    let intensity = req.intensity.as_deref().map(str::to_ascii_lowercase);
+
     if let Some(ref title) = req.title {
         validate_workout_title(title)?;
     }
     if let Some(duration) = req.duration_minutes {
         validate_workout_duration(duration)?;
     }
-    if let Some(ref intensity) = req.intensity {
+    if let Some(ref intensity) = intensity {
         validate_intensity(intensity)?;
+    }
+    if let Some(ref category) = req.category {
+        validate_category(category)?;
     }
     if let Some(ref exercises) = req.exercises {
         validate_workout_exercises(exercises)?;
@@ -63,7 +73,7 @@ pub async fn update_workout(
             .as_ref()
             .map(|description| description.as_deref()),
         req.duration_minutes,
-        req.intensity.as_deref(),
+        intensity.as_deref(),
         req.category.as_deref(),
         req.exercises.as_deref(),
     )
