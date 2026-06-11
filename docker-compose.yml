@@ -21,6 +21,9 @@ services:
     restart: unless-stopped
     environment:
       - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      # Note: entries here override the same keys from env_file (.env), so the
+      # backend always listens on 3000 inside the container regardless of the
+      # APP_PORT value in .env; the host port mapping below exposes it as 4000.
       - APP_PORT=3000
       - JWT_SECRET=${JWT_SECRET}
       - CORS_ORIGIN=${CORS_ORIGIN}
