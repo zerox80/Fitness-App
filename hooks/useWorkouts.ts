@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Workout, WorkoutStatus, WorkoutType } from '@/types';
-import { api, ApiWorkout } from '@/lib/api';
+import { ExerciseSet, Workout, WorkoutExercise, WorkoutStatus, WorkoutType } from '@/types';
+import { api, ApiWorkout, GeneratedExercise } from '@/lib/api';
 
 interface UseWorkoutsOptions {
   status?: WorkoutStatus;
@@ -30,6 +30,42 @@ function categoryToType(category: string): WorkoutType {
   return WORKOUT_TYPES.includes(category as WorkoutType) ? (category as WorkoutType) : 'custom';
 }
 
+function mapApiExercise(
+  workout: ApiWorkout,
+  exercise: GeneratedExercise,
+  index: number
+): WorkoutExercise {
+  const completed = Boolean(workout.completed_at);
+  const parsedReps = Number.parseInt(exercise.reps, 10);
+  const reps = Number.isNaN(parsedReps) ? undefined : parsedReps;
+
+  const sets: ExerciseSet[] = Array.from({ length: Math.max(0, exercise.sets) }, (_, setIndex) => ({
+    id: `${workout.id}-${index}-set-${setIndex + 1}`,
+    setNumber: setIndex + 1,
+    reps,
+    isWarmup: false,
+    isDropset: false,
+    isFailure: false,
+    completed,
+  }));
+
+  return {
+    id: `${workout.id}-${index}`,
+    exerciseId: '',
+    exercise: {
+      id: '',
+      name: exercise.name,
+      muscleGroups: [],
+      equipment: [],
+      difficulty: 'beginner',
+      isCustom: false,
+    },
+    orderIndex: index,
+    sets,
+    restSeconds: exercise.rest_seconds,
+  };
+}
+
 export function mapApiWorkout(workout: ApiWorkout): Workout {
   const status: WorkoutStatus = workout.completed_at ? 'completed' : 'planned';
 
@@ -42,7 +78,9 @@ export function mapApiWorkout(workout: ApiWorkout): Workout {
     status,
     completedAt: workout.completed_at ?? undefined,
     durationSeconds: workout.duration_minutes * 60,
-    exercises: [],
+    exercises: (workout.exercises ?? []).map((exercise, index) =>
+      mapApiExercise(workout, exercise, index)
+    ),
     tags: [workout.category].filter(Boolean),
     createdAt: workout.created_at,
     updatedAt: workout.updated_at ?? workout.created_at,
