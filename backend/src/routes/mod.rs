@@ -12,15 +12,23 @@ use axum::{
 };
 
 use crate::{
-    middleware::auth::auth_middleware, middleware::rate_limit::rate_limit_middleware,
+    middleware::auth::auth_middleware,
+    middleware::rate_limit::{auth_rate_limit_middleware, rate_limit_middleware},
     state::AppState,
 };
 
 pub fn create_router(state: AppState) -> Router {
-    let public_routes = Router::new()
+    let credential_routes = Router::new()
         .route("/api/auth/register", post(auth::register))
         .route("/api/auth/login", post(auth::login))
-        .route("/api/auth/logout", post(auth::logout));
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            auth_rate_limit_middleware,
+        ));
+
+    let public_routes = Router::new()
+        .route("/api/auth/logout", post(auth::logout))
+        .merge(credential_routes);
 
     let protected_routes = Router::new()
         .route("/api/auth/me", get(auth::me))

@@ -12,9 +12,14 @@ use std::{
     time::{Duration, Instant},
 };
 
-use crate::{config::Config, state::AppState};
+use crate::{config::Config, error::AppError, state::AppState};
 
 const CLEANUP_INTERVAL: Duration = Duration::from_secs(30);
+
+const AUTH_RATE_LIMIT: usize = 10;
+const AUTH_RATE_WINDOW: Duration = Duration::from_secs(600);
+const AUTH_RATE_LIMIT_MESSAGE: &str =
+    "Zu viele Anmeldeversuche. Bitte versuche es später erneut.";
 
 #[derive(Clone)]
 pub struct RateLimiter {
@@ -103,6 +108,27 @@ pub async fn rate_limit_middleware(
         .is_allowed(&key, 100, Duration::from_secs(60))
     {
         return Err(StatusCode::TOO_MANY_REQUESTS);
+    }
+
+    Ok(next.run(req).await)
+}
+
+// Much tighter limit for credential endpoints (login/register) to slow
+// down brute-force attempts; the global limiter alone allows 100 req/min.
+pub async fn auth_rate_limit_middleware(
+    State(state): State<AppState>,
+    ConnectInfo(addr): ConnectInfo<SocketAddr>,
+    req: Request,
+    next: Next,
+) -> Result<Response, AppError> {
+    let ip = client_ip_for_rate_limit(req.headers(), addr.ip(), &state.config);
+    let key = format!("auth:{}", ip);
+
+    if !state
+        .rate_limiter
+        .is_allowed(&key, AUTH_RATE_LIMIT, AUTH_RATE_WINDOW)
+    {
+        return Err(AppError::RateLimited(AUTH_RATE_LIMIT_MESSAGE.to_string()));
     }
 
     Ok(next.run(req).await)
@@ -246,6 +272,61 @@ mod tests {
         let key = client_ip_for_rate_limit(&headers, remote_ip, &test_config(true));
 
         assert_eq!(key, remote_ip);
+    }
+
+    fn test_state() -> AppState {
+        AppState {
+            pool: sqlx::PgPool::connect_lazy("postgres://localhost/test").unwrap(),
+            config: test_config(false),
+            rate_limiter: RateLimiter::default(),
+        }
+    }
+
+    fn auth_test_app() -> axum::Router {
+        axum::Router::new()
+            .route("/login", axum::routing::post(|| async { "ok" }))
+            .layer(axum::middleware::from_fn_with_state(
+                test_state(),
+                auth_rate_limit_middleware,
+            ))
+    }
+
+    fn login_request(client_ip: [u8; 4]) -> axum::http::Request<axum::body::Body> {
+        axum::http::Request::builder()
+            .method("POST")
+            .uri("/login")
+            .extension(ConnectInfo(SocketAddr::from((client_ip, 50000))))
+            .body(axum::body::Body::empty())
+            .unwrap()
+    }
+
+    #[tokio::test]
+    async fn auth_rate_limit_blocks_eleventh_attempt_from_one_ip() {
+        use tower::ServiceExt;
+
+        let app = auth_test_app();
+
+        for _ in 0..AUTH_RATE_LIMIT {
+            let response = app.clone().oneshot(login_request([10, 0, 0, 1])).await.unwrap();
+            assert_eq!(response.status(), StatusCode::OK);
+        }
+
+        let response = app.oneshot(login_request([10, 0, 0, 1])).await.unwrap();
+        assert_eq!(response.status(), StatusCode::TOO_MANY_REQUESTS);
+    }
+
+    #[tokio::test]
+    async fn auth_rate_limit_is_per_ip() {
+        use tower::ServiceExt;
+
+        let app = auth_test_app();
+
+        for _ in 0..=AUTH_RATE_LIMIT {
+            let _ = app.clone().oneshot(login_request([10, 0, 0, 2])).await.unwrap();
+        }
+
+        let response = app.oneshot(login_request([10, 0, 0, 3])).await.unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
     }
 
     #[test]
