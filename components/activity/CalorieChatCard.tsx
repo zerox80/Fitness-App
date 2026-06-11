@@ -7,6 +7,7 @@ import {
   View,
 } from 'react-native';
 import { Check, Flame, Send, Trash2 } from 'lucide-react-native';
+import { useFocusEffect } from 'expo-router/react-navigation';
 
 import { api } from '@/lib/api';
 import type { ActivityEntry, CalorieChatMessage, CalorieEstimate, DailyActivity } from '@/lib/api';
@@ -84,9 +85,14 @@ export function CalorieChatCard({ onActivityUpdated }: CalorieChatCardProps) {
     }
   }, [activityDate]);
 
-  useEffect(() => {
-    loadEntries();
-  }, [loadEntries]);
+  // Reload on focus, not just on mount: this card is rendered on both the
+  // home and the tasks screen, and entries changed in one instance would
+  // otherwise stay stale in the other.
+  useFocusEffect(
+    useCallback(() => {
+      loadEntries();
+    }, [loadEntries])
+  );
 
   const submitMessage = async () => {
     if (!canSubmit) {

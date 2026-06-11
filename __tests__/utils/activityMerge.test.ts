@@ -49,6 +49,14 @@ describe('mergeHealthActivity', () => {
     expect(merged.calories).toBe(330);
   });
 
+  it('keeps the higher server step count when Health Connect reports fewer steps', () => {
+    const merged = mergeHealthActivity(serverActivity, {
+      steps: 800,
+    });
+
+    expect(merged.steps).toBe(1200);
+  });
+
   it('adds saved additional calories on top of Health Connect base calories', () => {
     const merged = mergeHealthActivity(
       {
