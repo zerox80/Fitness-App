@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
 import React from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 
 const widthState = vi.hoisted(() => ({ value: 1200 }));
 const platformState = vi.hoisted(() => ({ OS: 'web' as 'web' | 'ios' | 'android' }));
+const listWorkoutsMock = vi.hoisted(() => vi.fn());
 
 vi.mock('react-native', async () => {
   const ReactActual = await vi.importActual<typeof import('react')>('react');
@@ -41,53 +42,36 @@ vi.mock('react-native', async () => {
 
 vi.mock('lucide-react-native', () => ({
   ChevronRight: ({ size, color }: any) => <span data-size={size} data-color={color} />,
-  Flame: () => null,
-  Footprints: () => null,
-  PersonStanding: () => null,
-  Timer: () => null,
-  Heart: () => null,
   Activity: () => null,
-  Bike: () => null,
   Dumbbell: () => null,
-  Home: () => null,
-  User: () => null,
-  Utensils: () => null,
-  Target: () => null,
-  Settings: () => null,
-  CalendarDays: () => null,
-  Zap: () => null,
-  Trophy: () => null,
-  TrendingUp: () => null,
-  Shield: () => null,
-  Bell: () => null,
-  Mail: () => null,
-  Lock: () => null,
-  X: () => null,
-  Check: () => null,
-  Apple: () => null,
-  ListChecks: () => null,
-  Repeat: () => null,
-  Trash2: () => null,
-  Plus: () => null,
-  ClipboardList: () => null,
-  Play: () => null,
-  Eye: () => null,
+  Flame: () => null,
   HeartPulse: () => null,
+  Timer: () => null,
 }));
 
 vi.mock('@/constants/dashboard-constants', () => ({
-  palette: { softMuted: '#9aa2ac' },
-  trainings: [
-    { title: 'Laufen', meta: '30 Min · 5,2 km · Mittel', kcal: 320, icon: () => null, color: '#178864' },
-    { title: 'Krafttraining', meta: '45 Min · Ganzkörper', kcal: 280, icon: () => null, color: '#1F9E9A' },
-  ],
+  palette: {
+    softMuted: '#9aa2ac',
+    green: '#178864',
+    teal: '#1F9E9A',
+    red: '#D2554B',
+    muted: '#5C6670',
+  },
   WEB_CONTENT_MAX_WIDTH: 1520,
   DESKTOP_BREAKPOINT: 900,
   WIDE_BREAKPOINT: 1200,
+  ULTRA_WIDE_BREAKPOINT: 1800,
   STEP_GOAL: 10000,
   avatarUri: null,
-  weeklyProgress: [],
   sidebarItems: [],
+}));
+
+vi.mock('@/lib/api', () => ({
+  api: {
+    workouts: {
+      list: listWorkoutsMock,
+    },
+  },
 }));
 
 vi.mock('./dashboard.styles', () => ({
@@ -125,44 +109,99 @@ vi.mock('./dashboard-web.styles', () => ({
 
 import { TrainingList } from '@/components/dashboard/TrainingList';
 
+function apiWorkout(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'workout-1',
+    user_id: 'user-1',
+    title: 'Push Day',
+    description: null,
+    duration_minutes: 45,
+    intensity: 'medium',
+    category: 'strength',
+    exercises: [],
+    completed_at: null,
+    created_at: '2026-06-01T10:00:00Z',
+    updated_at: '2026-06-01T10:00:00Z',
+    ...overrides,
+  };
+}
+
 describe('TrainingList', () => {
+  beforeEach(() => {
+    listWorkoutsMock.mockResolvedValue([
+      apiWorkout(),
+      apiWorkout({ id: 'workout-2', title: 'Morgenlauf', category: 'cardio', intensity: 'high', duration_minutes: 30 }),
+    ]);
+  });
+
   afterEach(() => {
     cleanup();
     widthState.value = 1200;
     platformState.OS = 'web';
+    listWorkoutsMock.mockReset();
   });
 
   function setWindowWidth(value: number) {
     Object.defineProperty(window, 'innerWidth', { configurable: true, value, writable: true });
   }
 
-  it('renders a "Trainings" header and the "Alle anzeigen" link', () => {
+  it('renders a "Trainings" header and the "Alle anzeigen" link', async () => {
     setWindowWidth(1200);
     render(<TrainingList />);
     expect(screen.getByText('Trainings')).toBeTruthy();
     expect(screen.getByText('Alle anzeigen')).toBeTruthy();
+    await waitFor(() => expect(screen.getByText('Push Day')).toBeTruthy());
   });
 
-  it('renders each training title, meta, and kcal value', () => {
+  it('renders workouts from the API with category, intensity and duration', async () => {
     setWindowWidth(1200);
     render(<TrainingList />);
-    expect(screen.getByText('Laufen')).toBeTruthy();
-    expect(screen.getByText('30 Min · 5,2 km · Mittel')).toBeTruthy();
-    expect(screen.getByText('320')).toBeTruthy();
-    expect(screen.getByText('Krafttraining')).toBeTruthy();
+
+    await waitFor(() => expect(screen.getByText('Push Day')).toBeTruthy());
+    expect(screen.getByText('Kraft · Mittel')).toBeTruthy();
+    expect(screen.getByText('45')).toBeTruthy();
+    expect(screen.getByText('Morgenlauf')).toBeTruthy();
+    expect(screen.getByText('Cardio · Intensiv')).toBeTruthy();
+    expect(listWorkoutsMock).toHaveBeenCalledWith({ per_page: 4 });
   });
 
-  it('hides the chevron icon on narrow viewports (<= 430)', () => {
+  it('shows an empty state when the user has no workouts', async () => {
+    listWorkoutsMock.mockResolvedValue([]);
+    setWindowWidth(1200);
+    render(<TrainingList />);
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('Noch keine Trainings gespeichert. Starte mit einem Schnellstart.')
+      ).toBeTruthy()
+    );
+  });
+
+  it('shows the empty state when the request fails', async () => {
+    listWorkoutsMock.mockRejectedValue(new Error('network down'));
+    setWindowWidth(1200);
+    render(<TrainingList />);
+
+    await waitFor(() =>
+      expect(
+        screen.getByText('Noch keine Trainings gespeichert. Starte mit einem Schnellstart.')
+      ).toBeTruthy()
+    );
+  });
+
+  it('hides the chevron icon on narrow viewports (<= 430)', async () => {
     setWindowWidth(400);
     widthState.value = 400;
     render(<TrainingList />);
+    await waitFor(() => expect(screen.getByText('Push Day')).toBeTruthy());
     expect(document.querySelector('[data-size="22"]')).toBeNull();
   });
 
-  it('shows the chevron icon on wider viewports', () => {
+  it('shows the chevron icon on wider viewports', async () => {
     setWindowWidth(800);
     widthState.value = 800;
     render(<TrainingList />);
+    await waitFor(() => expect(screen.getByText('Push Day')).toBeTruthy());
     expect(document.querySelector('[data-size="22"]')).toBeTruthy();
   });
 });

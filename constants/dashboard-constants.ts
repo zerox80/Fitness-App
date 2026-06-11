@@ -1,9 +1,7 @@
 import {
   Activity,
-  Bike,
   Dumbbell,
   Home,
-  PersonStanding,
   Target,
   User,
   Utensils,
@@ -41,23 +39,6 @@ export const palette = {
 };
 
 export const avatarUri: string | null = null;
-
-export const trainings = [
-  { title: 'Laufen', meta: '30 Min · 5,2 km · Mittel', kcal: 320, icon: PersonStanding, color: Colors.primary },
-  { title: 'Krafttraining', meta: '45 Min · Ganzkörper', kcal: 280, icon: Dumbbell, color: Colors.secondary },
-  { title: 'Mobilität', meta: '30 Min · Regeneration', kcal: 180, icon: PersonStanding, color: Colors.warning },
-  { title: 'Radfahren', meta: '40 Min · 12,4 km · Mittel', kcal: 420, icon: Bike, color: '#2D7EAA' },
-];
-
-export const weeklyProgress = [
-  { day: 'M', progress: 0, done: false },
-  { day: 'D', progress: 0, done: false },
-  { day: 'M', progress: 0, done: false },
-  { day: 'D', progress: 0, done: false },
-  { day: 'F', progress: 0, done: false },
-  { day: 'S', progress: 0, done: false },
-  { day: 'S', progress: 0, done: false },
-];
 
 export const sidebarItems = [
   { label: 'Übersicht', icon: Home, active: true },
