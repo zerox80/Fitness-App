@@ -207,6 +207,10 @@ fn task_is_scheduled(task: &Task, weekday: i32) -> bool {
         TaskRecurrence::Daily => true,
         TaskRecurrence::Weekdays => (0..=4).contains(&weekday),
         TaskRecurrence::Weekly => {
+            // Known limitation: created_at is UTC, so for users ahead of UTC a
+            // task created late in their local evening anchors to the "wrong"
+            // weekday. Fixing this would require storing the creator's local
+            // date or timezone.
             let created_weekday = task.created_at.weekday().num_days_from_monday() as i32;
             weekday == created_weekday
         }

@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { api, UserStats, WeeklyActivitySummary } from '@/lib/api';
+import { formatLocalDateKey } from '@/utils/date';
 
 export function useStats() {
   const [stats, setStats] = useState<UserStats | null>(null);
@@ -11,9 +12,12 @@ export function useStats() {
     setLoading(true);
     setError(null);
     try {
+      // Pass the local date so streak/week boundaries follow the user's
+      // timezone instead of the server's UTC clock.
+      const todayParams = { date: formatLocalDateKey(new Date()) };
       const [nextStats, nextWeeklySummary] = await Promise.all([
-        api.stats.get(),
-        api.stats.weekly(),
+        api.stats.get(todayParams),
+        api.stats.weekly(todayParams),
       ]);
       setStats(nextStats);
       setWeeklySummary(nextWeeklySummary);

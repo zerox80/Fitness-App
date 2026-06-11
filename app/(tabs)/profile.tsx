@@ -8,6 +8,7 @@ import { Colors } from '@/constants/Colors';
 import { FadeIn } from '@/components/FadeIn';
 import { useAuth } from '@/lib/auth-context';
 import { api, UserStats } from '@/lib/api';
+import { formatLocalDateKey } from '@/utils/date';
 
 const SETTINGS = [
   { icon: Bell, title: 'Benachrichtigungen', value: 'Aktiv', color: Colors.primary },
@@ -33,7 +34,7 @@ export default function ProfileScreen() {
 
   async function loadStats() {
     try {
-      setStats(await api.stats.get());
+      setStats(await api.stats.get({ date: formatLocalDateKey(new Date()) }));
     } catch {
       setStats(null);
     }

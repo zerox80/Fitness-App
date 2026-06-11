@@ -51,9 +51,10 @@ where
 pub async fn get_stats(
     State(state): State<AppState>,
     axum::Extension(auth_user): axum::Extension<AuthUser>,
+    Query(params): Query<ActivityDateParams>,
 ) -> Result<Json<UserStats>, AppError> {
     Ok(Json(
-        stats::get_user_stats(&state, auth_user.user_id).await?,
+        stats::get_user_stats(&state, auth_user.user_id, params.date).await?,
     ))
 }
 
