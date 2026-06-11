@@ -128,6 +128,7 @@ vi.mock('@/components/FadeIn', () => ({
 }));
 
 import LoginScreen from '@/app/login';
+import { ApiError } from '@/lib/api';
 
 describe('LoginScreen', () => {
   afterEach(() => {
@@ -184,8 +185,8 @@ describe('LoginScreen', () => {
     });
   });
 
-  it('displays the login error message when login throws', async () => {
-    authMocks.login.mockRejectedValue(new Error('Ungültige Zugangsdaten'));
+  it('shows a friendly German message for 401 responses', async () => {
+    authMocks.login.mockRejectedValue(new ApiError('Invalid credentials', 401));
     authMocks.useAuth.mockReturnValue({ user: null, login: authMocks.login, register: authMocks.register });
 
     render(<LoginScreen />);
@@ -194,7 +195,37 @@ describe('LoginScreen', () => {
     fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'x' } });
     fireEvent.click(screen.getByRole('button', { name: 'Anmelden' }));
 
-    expect(await screen.findByText('Ungültige Zugangsdaten')).toBeTruthy();
+    expect(await screen.findByText('E-Mail oder Passwort ist falsch.')).toBeTruthy();
+  });
+
+  it('shows a rate-limit message for 429 responses', async () => {
+    authMocks.login.mockRejectedValue(new ApiError('Rate limited', 429));
+    authMocks.useAuth.mockReturnValue({ user: null, login: authMocks.login, register: authMocks.register });
+
+    render(<LoginScreen />);
+
+    fireEvent.change(screen.getByPlaceholderText('alex@example.com'), { target: { value: 'a@b.c' } });
+    fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'x' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Anmelden' }));
+
+    expect(
+      await screen.findByText('Zu viele Versuche. Bitte warte einen Moment und versuche es erneut.')
+    ).toBeTruthy();
+  });
+
+  it('passes validation messages from 400 responses through', async () => {
+    authMocks.register.mockRejectedValue(new ApiError('Email already in use', 400));
+    authMocks.useAuth.mockReturnValue({ user: null, login: authMocks.login, register: authMocks.register });
+
+    render(<LoginScreen />);
+
+    fireEvent.click(screen.getByText('Registrieren'));
+    fireEvent.change(screen.getByPlaceholderText('Alex Müller'), { target: { value: 'Alex' } });
+    fireEvent.change(screen.getByPlaceholderText('alex@example.com'), { target: { value: 'a@b.c' } });
+    fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'secret12' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Konto erstellen' }));
+
+    expect(await screen.findByText('Email already in use')).toBeTruthy();
   });
 
   it('uses a generic fallback error when login throws a non-Error', async () => {
@@ -207,7 +238,9 @@ describe('LoginScreen', () => {
     fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'x' } });
     fireEvent.click(screen.getByRole('button', { name: 'Anmelden' }));
 
-    expect(await screen.findByText('Anmeldung fehlgeschlagen.')).toBeTruthy();
+    expect(
+      await screen.findByText('Anmeldung fehlgeschlagen. Bitte versuche es später erneut.')
+    ).toBeTruthy();
   });
 
   it('renders the close button when a user is already authenticated and calls router.back on click', () => {

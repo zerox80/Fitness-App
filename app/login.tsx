@@ -14,8 +14,27 @@ import { X, Mail, Lock, User as UserIcon, Activity } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 
 import { Colors } from '@/constants/Colors';
+import { ApiError } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { FadeIn } from '@/components/FadeIn';
+
+export function authErrorMessage(error: unknown, isRegister: boolean): string {
+  if (error instanceof ApiError) {
+    if (error.status === 401) {
+      return 'E-Mail oder Passwort ist falsch.';
+    }
+    if (error.status === 429) {
+      return 'Zu viele Versuche. Bitte warte einen Moment und versuche es erneut.';
+    }
+    if (error.status === 400) {
+      // Validation messages (e.g. "Email already in use") are actionable.
+      return error.message;
+    }
+  }
+  return isRegister
+    ? 'Registrierung fehlgeschlagen. Bitte versuche es später erneut.'
+    : 'Anmeldung fehlgeschlagen. Bitte versuche es später erneut.';
+}
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -37,7 +56,7 @@ export default function LoginScreen() {
       if (isRegister) await register(email, name, password);
       else await login(email, password);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Anmeldung fehlgeschlagen.');
+      setError(authErrorMessage(err, isRegister));
     } finally {
       setLoading(false);
     }

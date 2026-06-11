@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, Switch, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Bell, Moon, Volume2, Info, ChevronRight, Shield } from 'lucide-react-native';
+import { Info, ChevronRight, Shield } from 'lucide-react-native';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/forms/Button';
 import { FadeIn } from '@/components/FadeIn';
@@ -9,9 +9,6 @@ import { Colors } from '@/constants/Colors';
 
 export default function SettingsScreen() {
   const { user, logout } = useAuth();
-  const [notifications, setNotifications] = React.useState(true);
-  const [darkMode, setDarkMode] = React.useState(false);
-  const [soundEffects, setSoundEffects] = React.useState(true);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -46,54 +43,6 @@ export default function SettingsScreen() {
 
         <FadeIn delay={200}>
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>App</Text>
-            <View style={styles.row}>
-              <View style={styles.rowLeft}>
-                <View style={[styles.iconBox, { backgroundColor: Colors.primaryGlow }]}>
-                  <Bell size={18} color={Colors.primary} />
-                </View>
-                <Text style={styles.rowLabel}>Benachrichtigungen</Text>
-              </View>
-              <Switch
-                value={notifications}
-                onValueChange={setNotifications}
-                trackColor={{ false: Colors.cardLight, true: `${Colors.primary}40` }}
-                thumbColor={notifications ? Colors.primary : Colors.textMuted}
-              />
-            </View>
-            <View style={styles.row}>
-              <View style={styles.rowLeft}>
-                <View style={[styles.iconBox, { backgroundColor: Colors.secondaryGlow }]}>
-                  <Moon size={18} color={Colors.secondary} />
-                </View>
-                <Text style={styles.rowLabel}>Dark Mode</Text>
-              </View>
-              <Switch
-                value={darkMode}
-                onValueChange={setDarkMode}
-                trackColor={{ false: Colors.cardLight, true: `${Colors.secondary}40` }}
-                thumbColor={darkMode ? Colors.secondary : Colors.textMuted}
-              />
-            </View>
-            <View style={[styles.row, { borderBottomWidth: 0 }]}>
-              <View style={styles.rowLeft}>
-                <View style={[styles.iconBox, { backgroundColor: Colors.tertiaryGlow }]}>
-                  <Volume2 size={18} color={Colors.tertiary} />
-                </View>
-                <Text style={styles.rowLabel}>Sound-Effekte</Text>
-              </View>
-              <Switch
-                value={soundEffects}
-                onValueChange={setSoundEffects}
-                trackColor={{ false: Colors.cardLight, true: `${Colors.tertiary}40` }}
-                thumbColor={soundEffects ? Colors.tertiary : Colors.textMuted}
-              />
-            </View>
-          </View>
-        </FadeIn>
-
-        <FadeIn delay={300}>
-          <View style={styles.section}>
             <Text style={styles.sectionTitle}>Über</Text>
             <View style={styles.row}>
               <View style={styles.rowLeft}>
@@ -116,7 +65,7 @@ export default function SettingsScreen() {
           </View>
         </FadeIn>
 
-        <FadeIn delay={400}>
+        <FadeIn delay={300}>
           <View style={styles.logoutSection}>
             <Button title="Abmelden" variant="danger" onPress={logout} />
           </View>

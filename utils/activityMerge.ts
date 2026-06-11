@@ -29,7 +29,9 @@ export function mergeHealthActivity(
 
   return {
     ...serverActivity,
-    steps: healthActivity.steps ?? serverActivity.steps,
+    // Never regress the step count: another device may have synced a higher
+    // value to the server than this device's Health Connect store knows.
+    steps: Math.max(healthActivity.steps ?? 0, serverActivity.steps),
     calories: baseCalories + additionalCalories,
     active_minutes: baseActiveMinutes + additionalActiveMinutes,
     base_calories: baseCalories,

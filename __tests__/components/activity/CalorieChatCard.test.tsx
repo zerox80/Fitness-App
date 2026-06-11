@@ -35,6 +35,18 @@ vi.mock('@/utils/date', () => ({
   formatLocalDateKey: dateMocks.formatLocalDateKey,
 }));
 
+vi.mock('expo-router/react-navigation', async () => {
+  const ReactActual = await vi.importActual<typeof import('react')>('react');
+
+  return {
+    // In tests there is no navigation container; treat focus as "always
+    // focused" by running the effect on mount like useEffect would.
+    useFocusEffect: (callback: () => void | (() => void)) => {
+      ReactActual.useEffect(callback, [callback]);
+    },
+  };
+});
+
 vi.mock('@/constants/Colors', () => ({
   Colors: {
     background: '#fff',
