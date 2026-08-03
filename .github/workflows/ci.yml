@@ -118,7 +118,7 @@ jobs:
         run: npm ci
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.2.0
 
       - name: Run Android tests with coverage
         run: npm run test:android:coverage
